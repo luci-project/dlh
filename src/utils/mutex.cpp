@@ -1,9 +1,6 @@
 #include <dlh/utils/mutex.hpp>
 #include <dlh/unistd.hpp>
 
-#include <linux/futex.h>
-
-
 Mutex::Mutex() : var(FUTEX_UNLOCKED) {}
 
 bool Mutex::lock(const struct timespec * __restrict__ at) {

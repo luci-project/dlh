@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <dlh/types.hpp>
 #include <dlh/unistd.hpp>
 
 namespace Allocator {

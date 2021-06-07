@@ -6,39 +6,39 @@
 #define PAGE_SIZE 4096
 
 extern "C" pid_t gettid() {
-	return syscall(__NR_gettid);
+	return syscall(SYS_gettid);
 }
 
 extern "C" pid_t getpid() {
-	return syscall(__NR_getpid);
+	return syscall(SYS_getpid);
 }
 
 extern "C" pid_t getppid() {
-	return syscall(__NR_getppid);
+	return syscall(SYS_getppid);
 }
 
 extern "C" int getrlimit(int resource, struct rlimit *rlim) {
 	unsigned long k_rlim[2];
-	int ret = syscall(__NR_prlimit64, 0, resource, 0, rlim);
+	int ret = syscall(SYS_prlimit64, 0, resource, 0, rlim);
 	if (!ret || errno != ENOSYS)
 		return ret;
-	if (syscall(__NR_getrlimit, resource, k_rlim) < 0)
+	if (syscall(SYS_getrlimit, resource, k_rlim) < 0)
 		return -1;
 	rlim->rlim_cur = k_rlim[0] == -1UL ? (~0ULL) : k_rlim[0];
 	rlim->rlim_max = k_rlim[1] == -1UL ? (~0ULL) : k_rlim[1];
 	return 0;
 }
 
-extern "C" int arch_prctl(int code, unsigned long addr) {
-	return syscall(__NR_arch_prctl, code, addr);
+extern "C" int arch_prctl(arch_code_t code, unsigned long addr) {
+	return syscall(SYS_arch_prctl, code, addr);
 }
 
 
-extern "C" int raise(int sig) {
+extern "C" int raise(signal_t sig) {
 	unsigned long set, mask = { 0xfffffffc7fffffff };
-	__syscall(__NR_rt_sigprocmask, SIG_BLOCK, &mask, &set, 8);
+	__syscall(SYS_rt_sigprocmask, SIG_BLOCK, &mask, &set, 8);
 	int ret = syscall(SYS_tkill, gettid(), &sig);
-	__syscall(__NR_rt_sigprocmask, SIG_SETMASK, &set, 0, 8);
+	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &set, 0, 8);
 	return ret;
 }
 
@@ -50,40 +50,40 @@ extern "C" [[noreturn]] void abort() {
 }
 
 extern "C" [[noreturn]] void exit(int code) {
-	syscall(__NR_exit, (long)code);
+	syscall(SYS_exit, (long)code);
 	__builtin_unreachable();
 }
 
 
 extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long off) {
-	return (void *)syscall(__NR_mmap, start, len, prot, flags, fd, off);
+	return (void *)syscall(SYS_mmap, start, len, prot, flags, fd, off);
 }
 
 extern "C" int mprotect(void *addr, size_t len, int prot) {
 	size_t start = (size_t)addr & -PAGE_SIZE;
 	size_t end = (size_t)((char *)addr + len + PAGE_SIZE - 1) & -PAGE_SIZE;
-	return syscall(__NR_mprotect, start, end-start, prot);
+	return syscall(SYS_mprotect, start, end-start, prot);
 }
 
 extern "C" int munmap(void *start, size_t len) {
-	return syscall(__NR_munmap, start, len);
+	return syscall(SYS_munmap, start, len);
 }
 
 extern "C" int msync(void *start, size_t len, int flags) {
-	return syscall(__NR_msync, start, len, flags);
+	return syscall(SYS_msync, start, len, flags);
 }
 
 
 
 extern "C" int access(const char *filename, int amode) {
-	int r = __syscall(__NR_access, filename, amode);
+	int r = __syscall(SYS_access, filename, amode);
 	if (r == -ENOSYS)
-		r = __syscall(__NR_faccessat, AT_FDCWD, filename, amode, 0);
+		r = __syscall(SYS_faccessat, AT_FDCWD, filename, amode, 0);
 	return __syscall_ret(r);
 }
 
 extern "C" int open(const char *filename, int flags) {
-	int fd = __syscall(__NR_open, filename, flags);
+	int fd = __syscall(SYS_open, filename, flags);
 	if (fd >= 0 && (flags & O_CLOEXEC))
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
 
@@ -91,51 +91,51 @@ extern "C" int open(const char *filename, int flags) {
 }
 
 extern "C" ssize_t read(int fd, void *buf, size_t count) {
-	return syscall(__NR_read, fd, buf, count);
+	return syscall(SYS_read, fd, buf, count);
 }
 
 extern "C" ssize_t write(int fd, const void *buf, size_t size) {
-	return syscall(__NR_write, fd, buf, size);
+	return syscall(SYS_write, fd, buf, size);
 }
 
 extern "C" int close(int fd) {
-	return syscall(__NR_close, fd);
+	return syscall(SYS_close, fd);
 }
 
-extern "C" int fcntl(int fd, int cmd, unsigned long arg) {
+extern "C" int fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg) {
 	switch (cmd) {
 		case F_GETOWN:
 		case F_DUPFD_CLOEXEC:
 			return __syscall_ret(-ENOSYS);
 		default:
-			return syscall(__NR_fcntl, fd, cmd, arg);
+			return syscall(SYS_fcntl, fd, cmd, arg);
 	}
 }
 
 extern "C" int fallocate(int fd, int mode, off_t base, off_t len) {
-	return syscall(__NR_fallocate, fd, mode, base, len);
+	return syscall(SYS_fallocate, fd, mode, base, len);
 }
 
 extern "C" int ftruncate(int fd, off_t length) {
-	return syscall(__NR_ftruncate, fd, length);
+	return syscall(SYS_ftruncate, fd, length);
 }
 
 
 extern "C" int fstat(int fd, struct stat *st) {
-	return syscall(__NR_fstat, fd, st);
+	return syscall(SYS_fstat, fd, st);
 }
 
 extern "C" int stat(const char * __restrict__ path, struct stat * __restrict__ buf) {
-	return syscall(__NR_stat, path, buf);
+	return syscall(SYS_stat, path, buf);
 }
 
 extern "C" int lstat(const char * __restrict__ path, struct stat * __restrict__ buf) {
-	return syscall(__NR_lstat, path, buf);
+	return syscall(SYS_lstat, path, buf);
 }
 
 
 extern "C" int memfd_create(const char *name, unsigned flags) {
-	return syscall(__NR_memfd_create, name, flags);
+	return syscall(SYS_memfd_create, name, flags);
 }
 
 
@@ -144,29 +144,29 @@ extern "C" int inotify_init() {
 }
 
 extern "C" int inotify_init1(int flags) {
-	int r = __syscall(__NR_inotify_init1, flags);
+	int r = __syscall(SYS_inotify_init1, flags);
 	if (r == -ENOSYS && !flags)
-		r = __syscall(__NR_inotify_init);
+		r = __syscall(SYS_inotify_init);
 	return __syscall_ret(r);
 }
 
 extern "C" int inotify_add_watch(int fd, const char *pathname, uint32_t mask) {
-	return syscall(__NR_inotify_add_watch, fd, pathname, mask);
+	return syscall(SYS_inotify_add_watch, fd, pathname, mask);
 }
 
 extern "C" int inotify_rm_watch(int fd, int wd) {
-	return syscall(__NR_inotify_rm_watch, fd, wd);
+	return syscall(SYS_inotify_rm_watch, fd, wd);
 }
 
-extern "C"  int futex(int * __restrict__ uaddr, int futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3) {
-	return syscall(__NR_futex, uaddr, futex_op, val, timeout, uaddr2, val3);
+extern "C"  int futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3) {
+	return syscall(SYS_futex, uaddr, futex_op, val, timeout, uaddr2, val3);
 }
 
 
 static void * curbrk = 0;
 
 extern "C" int brk(void *addr) {
-	curbrk = (void *)syscall(__NR_brk, addr);
+	curbrk = (void *)syscall(SYS_brk, addr);
 	return curbrk < addr ? __syscall_ret(-ENOMEM) : 0;
 }
 

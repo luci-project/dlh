@@ -3,7 +3,11 @@ VERBOSE = @
 BUILDDIR ?= .build
 SOURCE_FOLDER = src
 CXX = g++
-CXXFLAGS = -std=c++2a -fno-exceptions -fno-rtti -static-libgcc -Wall -Wno-nonnull-compare -Wno-comment -Og -g -I include
+CXXFLAGS := -Og -g -I include
+CXXFLAGS += -fno-exceptions -fno-rtti -ffreestanding -fno-pic
+CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
+CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
+#   -fno-rtti -fno-exceptions -Wno-write-strings -fno-stack-protector -mno-red-zone
 SOURCES = $(shell find $(SOURCE_FOLDER)/ -name "*.cpp")
 OBJECTS = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
 DEPFILES = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))

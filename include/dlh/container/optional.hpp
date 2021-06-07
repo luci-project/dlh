@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility.hpp"
+#include <dlh/utility.hpp>
 
 template<class T>
 class Optional {

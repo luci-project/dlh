@@ -2,8 +2,6 @@
 #include <dlh/errno.hpp>
 #include <dlh/unistd.hpp>
 
-#include <fcntl.h>
-
 
 bool Log::output(int fd) {
 	if (fcntl(fd, F_GETFD) != -1 || errno != EBADF) {

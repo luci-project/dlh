@@ -2,8 +2,8 @@
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/unistd.hpp>
-#include <dlh/math.hpp>
-#include <dlh/mutex.hpp>
+#include <dlh/utils/math.hpp>
+#include <dlh/utils/mutex.hpp>
 
 #include "internal/alloc_buddy.hpp"
 

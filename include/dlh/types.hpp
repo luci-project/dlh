@@ -9,28 +9,17 @@ typedef unsigned char      uint8_t;
 typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 typedef unsigned long long uint64_t;
-#if defined(__i386__)
-typedef unsigned long      uintptr_t;
-#elif defined(__x86_64__)
 typedef unsigned long long uintptr_t;
-#else
-#error Unknown architecture
-#endif
+
 typedef __SIZE_TYPE__      size_t;
 
 typedef char               int8_t;
 typedef short              int16_t;
 typedef int                int32_t;
 typedef long long          int64_t;
-#if defined(__i386__)
-typedef long               intptr_t;
-typedef int32_t            ssize_t;
-#elif defined(__x86_64__)
 typedef long long          intptr_t;
+
 typedef long int           ssize_t;
-#else
-#error Unknown architecture
-#endif
 
 typedef __PTRDIFF_TYPE__   ptrdiff_t;
 
@@ -74,12 +63,5 @@ static_assert(sizeof(uintptr_t) == sizeof(void*), "Wrong size for 'uintptr_t'");
 #define PTRDIFF_MAX         (__PTRDIFF_MAX__)
 
 #define SIZE_MAX            (__SIZE_MAX__)
-#if defined(__i386__)
-#define SSIZE_MIN           (-__INT32_MAX__-1)
-#define SSIZE_MAX           (__INT32_MAX__)
-#elif defined(__x86_64__)
 #define SSIZE_MIN           (-__INT64_MAX__-1)
 #define SSIZE_MAX           (__INT64_MAX__)
-#else
-#error Unknown architecture
-#endif

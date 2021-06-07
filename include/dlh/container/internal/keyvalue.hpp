@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../utility.hpp"
-#include "../pair.hpp"
+#include <dlh/utility.hpp>
+#include <dlh/container/pair.hpp>
 
 template<class K, class V>
 struct KeyValue {

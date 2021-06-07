@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cstring>
-
-#include "keyvalue.hpp"
+#include <dlh/string.hpp>
+#include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
 	template<typename T>

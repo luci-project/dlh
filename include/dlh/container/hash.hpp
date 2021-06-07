@@ -1,18 +1,14 @@
 #pragma once
 
-#include "../assert.hpp"
-#include "../string.hpp"
-#include <cstdlib>
-#include <cstring>
 
-#include "internal/comparison.hpp"
-#include "internal/elements.hpp"
-#include "internal/keyvalue.hpp"
-#include "../utility.hpp"
-#include "pair.hpp"
-#include "optional.hpp"
-
-#include <ostream>
+#include <dlh/assert.hpp>
+#include <dlh/string.hpp>
+#include <dlh/utility.hpp>
+#include <dlh/container/optional.hpp>
+#include <dlh/container/pair.hpp>
+#include <dlh/container/internal/comparison.hpp>
+#include <dlh/container/internal/elements.hpp>
+#include <dlh/container/internal/keyvalue.hpp>
 
 /*! \brief Hash set
  * influenced by standard [template/cxx] librarys `unordered_set`
@@ -346,28 +342,6 @@ class HashSet : protected Elements<T> {
 
 		memset(_bucket, 0, sizeof(uint32_t) * _bucket_capacity);
 		memset(_bucket, 0, sizeof(Node) * Elements<T>::_capacity);
-	}
-
-	std::ostream & dot(std::ostream & out) const {
-		out << "digraph HashSet {\n"
-		    << "	rankdir=LR;\n"
-		    << "	bucket\n";
-		for (size_t i = 1; i < Elements<T>::_next; i++) {
-			auto & e = Elements<T>::_node[i];
-			if (e.hash.active)
-				out << "	e" << i << "[shape=box label=\"" << e.data << "\" xlabel=\"" << e.hash.temp << "\"];\n";
-		}
-		out << '\n';
-		for (size_t i = 0; i < _bucket_capacity; i++)
-			if (_bucket[i] != 0)
-				out << "	bucket -> e" << _bucket[i] << " [label=\"" << i << " / " << _bucket_capacity << "\"];\n";
-		out << '\n';
-		for (size_t i = 1; i < Elements<T>::_next; i++) {
-			auto & e = Elements<T>::_node[i];
-			if (e.hash.active && e.hash.next != 0)
-				out << "	e" << i << " -> e" << e.hash.next << ";\n";
-		}
-		return out << "}\n";
 	}
 
  private:

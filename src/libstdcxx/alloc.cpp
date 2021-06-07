@@ -27,5 +27,6 @@ void operator delete(void *ptr) {
 }
 
 void operator delete(void *ptr, size_t size) {
+	(void) size;
 	free(ptr);
 }

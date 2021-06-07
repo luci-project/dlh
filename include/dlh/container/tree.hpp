@@ -1,16 +1,13 @@
 #pragma once
 
-#include <ostream>
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-
-#include "internal/comparison.hpp"
-#include "internal/elements.hpp"
-#include "internal/keyvalue.hpp"
-#include "../utility.hpp"
-#include "pair.hpp"
-#include "optional.hpp"
+#include <dlh/assert.hpp>
+#include <dlh/string.hpp>
+#include <dlh/utility.hpp>
+#include <dlh/container/optional.hpp>
+#include <dlh/container/pair.hpp>
+#include <dlh/container/internal/comparison.hpp>
+#include <dlh/container/internal/elements.hpp>
+#include <dlh/container/internal/keyvalue.hpp>
 
 /*! \brief Tree set class
  * influenced by standard [template/cxx] librarys `set`
@@ -325,28 +322,6 @@ class TreeSet : protected Elements<T> {
 	 */
 	inline Iterator highest() {
 		return Iterator(*this, max(_root));
-	}
-
-	std::ostream & dot(std::ostream & out) {
-		out << "digraph TreeSet {\n";
-		for (size_t i = 1; i < Elements<T>::_next; i++) {
-			auto & e = Elements<T>::_node[i];
-			if (e.tree.active)
-				out << "	e" << i << "[label=\"" << e.data << "\" xlabel=\"" << (int)e.tree.balance << (_root == i ? ", root" : "") << "\"];\n";
-		}
-		out << '\n';
-		for (size_t i = 1; i < Elements<T>::_next; i++) {
-			auto & e = Elements<T>::_node[i];
-			if (e.tree.active && (e.tree.right != 0 || e.tree.left != 0)) {
-				out << "	e" << i << " -> {";
-				if (e.tree.left != 0)
-					out << " e" << e.tree.left;
-				if (e.tree.right != 0)
-					out << " e" << e.tree.right;
-				out << " };\n";
-			}
-		}
-		return out << "}\n";
 	}
 
 	/*! \brief Reorganize Elements

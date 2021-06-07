@@ -1,8 +1,8 @@
 #include <dlh/stream/buffer.hpp>
 #include <dlh/types.hpp>
 #include <dlh/string.hpp>
+#include <dlh/stdarg.hpp>
 
-#include <cstdarg>
 
 const char * BufferStream::str() {
 	if (len < 1)
@@ -147,6 +147,8 @@ BufferStream& BufferStream::operator<<(const setbase & val) {
 		case 10:
 		case 16:
 			this->base = val.base;
+			break;
+
 		default:
 			this->base = 10;
 	}
@@ -234,7 +236,7 @@ size_t BufferStream::format(const char * format, ...) {
 						length = length != LONG ? LONG : LONGLONG;
 						break;
 					case 'j':
-						length = sizeof(intmax_t) == sizeof(long) ? LONG : LONGLONG;
+						length = sizeof(__INTMAX_TYPE__) == sizeof(long) ? LONG : LONGLONG;
 						break;
 					case 'z':
 						length = sizeof(size_t) == sizeof(long) ? LONG : LONGLONG;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sys/time.h>
+#include <dlh/unistd.hpp>
 
 class Mutex {
 	enum State : int {
