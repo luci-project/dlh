@@ -8,7 +8,7 @@
 
 /*! \brief Find the first occurrence of a character in a string
  * \ingroup string
- * \param s string to
+ * \param s string to search in
  * \param c character to find
  * \return Pointer to first occurrence of the character
  *         or to null byte at the end of the string if not found
@@ -17,12 +17,21 @@ extern "C" char *strchrnul(const char *s, int c);
 
 /*! \brief Find the first occurrence of a character in a string
  * \ingroup string
- * \param s string to
+ * \param s string to search in
  * \param c character to find
  * \return Pointer to first occurrence of the character
  *         or to nullptr if not found
  */
 extern "C" char *strchr(const char *s, int c);
+
+/*! \brief Find the last occurrence of a character in a string
+ * \ingroup string
+ * \param s string to search in
+ * \param c character to find
+ * \return Pointer to last occurrence of the character
+ *         or to nullptr if not found
+ */
+extern "C" char *strrchr(const char *s, int c);
 
 /*! \brief Compare two strings
  * \ingroup string

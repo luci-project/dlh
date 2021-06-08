@@ -35,7 +35,7 @@ struct StrPtr {
 		return *this;
 	}
 
-	/*! \brief Substring starting at last occurence of given character
+	/*! \brief Substring starting after last occurence of given character
 	 * \param c character to search for
 	 * \return string starting after last occurence of character or full string if not found
 	 */

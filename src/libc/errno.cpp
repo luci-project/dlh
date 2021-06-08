@@ -1,5 +1,6 @@
 #include <dlh/errno.hpp>
 #include <dlh/string.hpp>
+#include <dlh/stream/output.hpp>
 
 extern "C" int *__errno_location() {
 	static int e;
@@ -154,4 +155,8 @@ extern "C" char * strerror_r(int errnum, char *buf, size_t buflen) {
 extern "C" char * strerror(int errnum) {
 	static char buf[63];
 	return strerror_r(errnum, buf, 63);
+}
+
+extern "C" void perror(const char *msg) {
+	cerr << msg << ": " <<  __errno_string(errno) << endl;
 }

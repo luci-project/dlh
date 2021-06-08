@@ -4,7 +4,7 @@ BUILDDIR ?= .build
 SOURCE_FOLDER = src
 CXX = g++
 CXXFLAGS := -Og -g -I include
-CXXFLAGS += -fno-exceptions -fno-rtti -ffreestanding -fno-pic
+CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-pic
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 #   -fno-rtti -fno-exceptions -Wno-write-strings -fno-stack-protector -mno-red-zone

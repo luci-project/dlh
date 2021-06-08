@@ -23,6 +23,16 @@ typedef long int           ssize_t;
 
 typedef __PTRDIFF_TYPE__   ptrdiff_t;
 
+// Fast operation types (for x86_64)
+typedef unsigned char      uint_fast8_t;
+typedef unsigned long long uint_fast16_t;
+typedef unsigned long long uint_fast32_t;
+typedef unsigned long long uint_fast64_t;
+
+typedef char               int_fast8_t;
+typedef long long          int_fast16_t;
+typedef long long          int_fast32_t;
+typedef long long          int_fast64_t;
 
 // validate typedef size
 static_assert(sizeof(int8_t)   == (1), "Wrong size for 'int8_t'");

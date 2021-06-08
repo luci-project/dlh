@@ -35,6 +35,9 @@ template<class T> class Vector {
 	}
 
  public:
+	Vector(const Vector&) = default;
+	Vector(Vector&&) = default;
+
 	/*! \brief Constructor
 	 * \param invalid object for invalid returns
 	 */
@@ -52,12 +55,15 @@ template<class T> class Vector {
 		}
 	}
 
-	/*! \brief Copy constructor
+	/*! \brief Range constructor
+	 * \param first First element in range
+	 * \param last Last element in range
+	 * \param invalid object for invalid returns
 	 */
-	Vector(const Vector& other) : _element(new T[other._capacity]), _size(other._size),
-	                              _capacity(other._capacity), _invalid(other._invalid) {
-		for (size_t i = 0; i < _size; ++i) {
-			_element[i] = other._element[i];
+	template<typename I>
+	explicit Vector(I first, I last, T invalid = T()) : Vector(invalid) {
+		for (I i = first; i < last; ++i) {
+			emplace_back(*i);
 		}
 	}
 

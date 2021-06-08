@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/string.hpp>
+#include <dlh/utils/strptr.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
@@ -18,6 +19,10 @@ struct Comparison {
 		return strcmp(a, b);
 	}
 
+	static inline int compare(const StrPtr & a, const StrPtr & b) {
+		return strcmp(a.str, b.str);
+	}
+
 
 	template<typename T>
 	static inline bool equal(const T& a, const T& b) {
@@ -31,6 +36,10 @@ struct Comparison {
 
 	static inline bool equal(const char * a, const char * b) {
 		return compare(a, b) == 0;
+	}
+
+	static inline bool equal(const StrPtr & a, const StrPtr & b) {
+		return a == b;
 	}
 
 
@@ -82,6 +91,10 @@ struct Comparison {
 		for (unsigned char c = *v; c != '\0'; c = *++v)
 			h = h * 33 + c;
 		return h & 0xffffffff;
+	}
+
+	static inline uint32_t hash(const StrPtr & v) {
+		return v.hash;
 	}
 
 	template<typename T>

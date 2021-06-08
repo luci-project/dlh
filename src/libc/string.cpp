@@ -15,12 +15,25 @@ extern "C" char *strchrnul(const char *s, int c) {
 
 extern "C" char *strchr(const char *s, int c) {
 	if (s != nullptr) {
-		s = strchrnul(s, c);
-		if (*s == c) {
-			return const_cast<char *>(s);
+		while(*s != '\0') {
+			if (*s == c)
+				return const_cast<char *>(s);
+			s++;
 		}
 	}
 	return nullptr;
+}
+
+extern "C" char *strrchr(const char *s, int c) {
+	char * last = nullptr;
+	if (s != nullptr) {
+		while(*s != '\0') {
+			if (*s == c)
+				last = const_cast<char *>(s);
+			s++;
+		}
+	}
+	return last;
 }
 
 extern "C" int strcmp(const char *s1, const char *s2) {

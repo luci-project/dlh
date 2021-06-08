@@ -148,3 +148,5 @@ extern "C" const char *__errno_string(int e);
 
 extern "C" char * strerror_r(int errnum, char *buf, size_t buflen);
 extern "C" char * strerror(int errnum);
+
+extern "C" void perror(const char * msg);

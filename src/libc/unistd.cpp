@@ -82,8 +82,8 @@ extern "C" int access(const char *filename, int amode) {
 	return __syscall_ret(r);
 }
 
-extern "C" int open(const char *filename, int flags) {
-	int fd = __syscall(SYS_open, filename, flags);
+extern "C" int open(const char *filename, int flags, int mode) {
+	int fd = __syscall(SYS_open, filename, flags, mode);
 	if (fd >= 0 && (flags & O_CLOEXEC))
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
 

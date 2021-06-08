@@ -22,31 +22,36 @@ bool executable(const char * path) {
 	return ::access(path, X_OK ) == 0;
 }
 
-Vector<const char *> contents(const char * path) {
+void * contents(const char * path, size_t & size) {
 	errno = 0;
 	int fd = ::open(path, O_RDONLY);
 	if (fd < 0) {
 		LOG_ERROR << "Reading file " << path << " failed: " << strerror(errno) << endl;
-		return Vector<const char *>();
+		return nullptr;
 	}
 
 	struct stat sb;
 	if (::fstat(fd, &sb) == -1) {
 		LOG_ERROR << "Stat file " << path << " failed: " << strerror(errno) << endl;
 		::close(fd);
-		return Vector<const char *>();
+		return nullptr;
 	}
-	size_t length = sb.st_size;
+	size = sb.st_size;
 
-	void * addr = ::mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	void * addr = ::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	::close(fd);
 	if (addr == MAP_FAILED) {
 		LOG_ERROR << "Mmap file " << path << " failed: " << strerror(errno) << endl;
-		return Vector<const char *>();
+		return nullptr;
 	} else {
-		LOG_VERBOSE << "Mapped '" << path << "' (" << length << " bytes)" << endl;
-		return String::split(reinterpret_cast<char *>(addr), '\n');
+		LOG_VERBOSE << "Mapped '" << path << "' (" << size << " bytes)" << endl;
+		return addr;
 	}
+}
+
+Vector<const char *> lines(const char * path) {
+	size_t size;
+	return String::split(reinterpret_cast<char *>(File::contents(path, size)), '\n');
 }
 
 }  // Namespace File

@@ -57,6 +57,14 @@ struct alignas(16) Auxiliary {
 		return a_type != AT_NULL;
 	}
 
+	long int value() const {
+		return a_un.a_val;
+	}
+
+	void * pointer() const {
+		return a_un.a_ptr;
+	}
+
 	static Auxiliary vector(Auxiliary::type type);
 
 	Auxiliary(type t = AT_NULL, long int v = 0) : a_type(t), a_un({v}) {}

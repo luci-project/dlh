@@ -12,6 +12,8 @@ bool writeable(const char * path);
 
 bool executable(const char * path);
 
-Vector<const char *> contents(const char * path);
+void * contents(const char * path, size_t & size);
+
+Vector<const char *> lines(const char * path);
 
 }  // Namespace File

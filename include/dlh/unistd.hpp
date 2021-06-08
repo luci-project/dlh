@@ -126,6 +126,20 @@ typedef enum : int {
 #define F_SEAL_WRITE        0x0008
 #define F_SEAL_FUTURE_WRITE 0x0010
 
+#define S_IRWXU 00700
+#define S_IRUSR 00400
+#define S_IWUSR 00200
+#define S_IXUSR 00100
+#define S_IRWXG 00070
+#define S_IRGRP 00040
+#define S_IWGRP 00020
+#define S_IXGRP 00010
+#define S_IRWXO 00007
+#define S_IROTH 00004
+#define S_IWOTH 00002
+#define S_IXOTH 00001
+
+
 // File stat (*stat)
 struct stat {
 	unsigned long   st_dev;
@@ -206,7 +220,9 @@ typedef enum : int {
 #define SIG_UNBLOCK        1	/* for unblocking signals */
 #define SIG_SETMASK        2	/* for setting the signal mask */
 
-
+// Exit
+#define	EXIT_FAILURE  1
+#define	EXIT_SUCCESS  0
 
 
 // Syscall Wrapper
@@ -227,7 +243,7 @@ extern "C" int munmap(void *start, size_t len);
 extern "C" int msync(void *start, size_t len, int flags);
 
 extern "C" int access(const char *filename, int amode);
-extern "C" int open(const char *filename, int flags);
+extern "C" int open(const char *filename, int flags, int mode = 0);
 extern "C" ssize_t read(int fd, void *buf, size_t count);
 extern "C" ssize_t write(int fd, const void *buf, size_t size);
 extern "C" int close(int fd);

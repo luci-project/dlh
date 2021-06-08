@@ -55,17 +55,17 @@ class HashSet : protected Elements<T> {
 		rehash();
 	}
 
-	/*! \brief Convert to hash set
-	 * \param container Elements container
+	/*! \brief Range constructor
+	 * \param first First element in range
+	 * \param last Last element in range
 	 * \param capacity_reserve additional space to reserve
 	 */
-	/*template<typename X>
-	explicit HashSet(const X& container, size_t capacity_reserve = 128) {
-		resize(container.size() + capacity_reserve);
-		for (const auto & c : container)
-			insert(c);
+	template<typename I>
+	explicit HashSet(I first, I last,  size_t capacity_reserve = 128) : HashSet(capacity_reserve) {
+		for (I i = first; i < last; ++i)
+			emplace(*i);
 	}
-*/
+
 	/*! \brief Destructor
 	 */
 	virtual ~HashSet() {

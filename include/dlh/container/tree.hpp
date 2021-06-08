@@ -43,14 +43,15 @@ class TreeSet : protected Elements<T> {
 				insert(0, i, 0);
 	}
 
-
-	/*! \brief Convert to balanced binary search tree
-	 * \return container Elements container
+	/*! \brief Range constructor
+	 * \param first First element in range
+	 * \param last Last element in range
+	 * \param capacity_reserve additional space to reserve
 	 */
-	template<typename X>
-	explicit TreeSet(const X& container) {
-		for (const auto & c : container)
-			insert(c);
+	template<typename I>
+	explicit TreeSet(I first, I last,  size_t capacity_reserve = 1024) : TreeSet(capacity_reserve) {
+		for (I i = first; i < last; ++i)
+			emplace(*i);
 	}
 
 	/*! \brief Destructor
