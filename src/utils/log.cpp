@@ -26,13 +26,13 @@ bool Log::output(const char * file, bool truncate) {
 }
 
 void Log::flush() {
-	if (severity <= limit && severity != Level::NONE && pos > 0) {
+	if (severity <= limit && severity != Level::NONE && _pos > 0) {
 		if (fd <= 2)
 			*this << "\e[0m";
 		OutputStream::flush();
 	} else {
 		// Drop message
-		pos = 0;
+		_pos = 0;
 	}
 }
 
@@ -54,7 +54,7 @@ Log& Log::entry(Level level, const char * file, unsigned line) {
 		// STDOUT / STDERR with ANSI color codes
 		if (fd <= 2) {
 			*this << level_name[level];
-			size_t p = pos;
+			size_t p = _pos;
 			if (file != nullptr) {
 				*this << ' ' << file;
 				if (line > 0)
@@ -62,7 +62,7 @@ Log& Log::entry(Level level, const char * file, unsigned line) {
 			}
 			*this << ' ';
 			// Pad file name
-			while (pos - p < 32)
+			while (_pos - p < 32)
 				*this << '.';
 			*this << "\e[49m ";
 		} else {

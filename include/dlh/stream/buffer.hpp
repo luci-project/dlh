@@ -1,21 +1,22 @@
 #pragma once
 
 #include <dlh/types.hpp>
+#include <dlh/stdarg.hpp>
 
 /*! \brief Sets the base for numbers
  * Shortcut functions are `bin`, `oct`, `dec` and `hex`
  */
 struct setbase {
-	unsigned base;
-	setbase(unsigned base) : base(base) {}
+	uint8_t base;
+	setbase(uint8_t base) : base(base) {}
 };
 
 /*! \brief Sets the field width to be used on output operations.
  * \note use zero to disable field width (no padding)
  */
 struct setw {
-	size_t n;
-	setw(size_t n = 0) : n(n) {}
+	uint8_t n;
+	setw(uint8_t n = 0) : n(n) {}
 };
 
 /*! \brief Sets the fill character
@@ -31,22 +32,25 @@ class BufferStream {
 	/*! \brief Number system used for printing integral numbers (one of 2,
 	 *  8, 10, or 16)
 	 */
-	unsigned base;
+	uint8_t _base;
 
 	/*! \brief Field width for next input */
-	size_t width;
+	uint8_t _width;
 
 	/*! \brief Fill character */
-	char fill;
+	char _fill;
 
 	/*! \brief Upper or lowercase hex character */
-	char hexchar;
+	char _hexchar;
 
 	/*! Print base prefix */
-	bool prefix;
+	bool _prefix;
+
+	/*! Numbers are left aligned */
+	bool _left;
 
 	/*! Show sign for numbers (base 10) */
-	enum { MINUS_ONLY, PLUS, SPACE } sign;
+	enum { MINUS_ONLY, PLUS, SPACE } _sign;
 
 	/*! \brief Helper to write a string with fill characters (if necessary) */
 	BufferStream& writefill(const char* string, size_t n);
@@ -57,17 +61,17 @@ class BufferStream {
 
  protected:
 	/*! \brief Buffer */
-	char * bufptr;
+	char * _bufptr;
 
 	/*! \brief Length of buffer */
-	size_t len;
+	size_t _len;
 
 	/*! \brief Current position of buffer */
-	size_t pos;
+	size_t _pos;
 
  public:
 	/*! \brief Default constructor. Initial number system is decimal. */
-	BufferStream(char * buffer, size_t len) : bufptr(buffer), len(len), pos(0) {
+	BufferStream(char * buffer, size_t len) : _bufptr(buffer), _len(len), _pos(0) {
 		reset();
 		buffer[len - 1] = '\0';
 	}
@@ -83,14 +87,29 @@ class BufferStream {
 	 */
 	virtual void flush() {};
 
+	/*! \brief set alignment for fields with specified width
+	 * \param left `true` for right-, `false` for left alignment
+	 */
+	void align(bool right) {
+		_left = !right;
+	}
+
+	/*! \brief Enable/disable number prefix (for base != 10)
+	 * \param show `true` to enable number prefix
+	 */
+	void prefix(bool show) {
+		_prefix = show;
+	}
+
 	/*! \brief Reset modifiers */
 	void reset() {
-		base = 10;
-		width = 0;
-		fill = ' ';
-		hexchar = 'a';
-		prefix = true;
-		sign = MINUS_ONLY;
+		_base = 10;
+		_width = 0;
+		_fill = ' ';
+		_hexchar = 'a';
+		_prefix = false;
+		_left = true;
+		_sign = MINUS_ONLY;
 	}
 
 	/*! \brief Write string (including all characters, even `\0`) into buffer
@@ -175,7 +194,7 @@ class BufferStream {
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(long long ival) {
-		if ((ival < 0) && (base == 10))
+		if ((ival < 0) && (_base == 10))
 			return writefill(static_cast<unsigned long long>(-ival), true);
 		else
 			return writefill(static_cast<unsigned long long>(ival), false);
@@ -216,7 +235,7 @@ class BufferStream {
 	 *  \return Reference to BufferStream os; allows operator chaining.
 	 */
 	BufferStream& operator<<(const setw & val) {
-		this->width = val.n;
+		_width = val.n;
 		return *this;
 	}
 
@@ -225,17 +244,30 @@ class BufferStream {
 	 *  \return Reference to BufferStream os; allows operator chaining.
 	 */
 	BufferStream& operator<<(const setfill & val) {
-		this->fill = val.c;
+		_fill = val.c;
 		return *this;
 	}
 
 	/*! \brief Write format string
 	 * \note Supports only a subset of printf format string
 	 * \param format Format string
-	 * \param args Arguments
 	 * \return Bytes written
 	 */
-	size_t format(const char * format, ...);
+	size_t format(const char * format, ...) {
+		va_list args;
+		va_start(args, format);
+		size_t ret = this->format(format, args);
+		va_end(args);
+		return ret;
+	}
+
+	/*! \brief Write format string
+	 * \note Supports only a subset of printf format string
+	 * \param format Format string
+	 * \param args Argument list
+	 * \return Bytes written
+	 */
+	size_t format(const char * format, va_list args);
 };
 
 /*! \brief Enforces a buffer flush.
@@ -252,7 +284,7 @@ inline BufferStream& flush(BufferStream& os) {
  *  \return Reference to BufferStream os; allows operator chaining.
  */
 inline BufferStream& endl(BufferStream& os) {
-		return os << '\n' << flush;
+	return os << '\n' << flush;
 }
 
 /*! \brief Print subsequent numbers in binary form.
@@ -285,4 +317,65 @@ inline BufferStream& dec(BufferStream& os) {
  */
 inline BufferStream& hex(BufferStream& os) {
 	return os << setbase(16);
+}
+
+/*! \brief Align output with fixed length to the left
+ *  \param os Reference to stream to be modified.
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+inline BufferStream& left(BufferStream& os) {
+	os.align(false);
+	return os;
+}
+
+/*! \brief Align output with fixed length to the right
+ *  \param os Reference to stream to be modified.
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+inline BufferStream& right(BufferStream& os) {
+	os.align(true);
+	return os;
+}
+
+/*! \brief Enable number prefix (for base != 10)
+ *  \param os Reference to stream to be modified.
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+inline BufferStream& prefix(BufferStream& os) {
+	os.prefix(true);
+	return os;
+}
+
+/*! \brief Disable number prefix
+ *  \param os Reference to stream to be modified.
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+inline BufferStream& noprefix(BufferStream& os) {
+	os.prefix(false);
+	return os;
+}
+
+/*! \brief Wrapper for vsnprintf
+ * \param str Target buffer to store the formated string
+ * \param size Size of the target buffer
+ * \param format format string
+ * \param ap value identifying a variable arguments list
+ * \return Bytes written
+ */
+inline int vsnprintf(char *str, size_t size, const char *format, va_list ap) {
+	return BufferStream(str, size).format(format, ap);
+}
+
+/*! \brief Wrapper for snprintf
+ * \param str Target buffer to store the formated string
+ * \param size Size of the target buffer
+ * \param format format string
+ * \return Bytes written
+ */
+inline int snprintf(char *str, size_t size, const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	size_t ret = vsnprintf(str, size, format, args);
+	va_end(args);
+	return ret;
 }

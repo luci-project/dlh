@@ -1,89 +1,109 @@
 #include <dlh/stream/buffer.hpp>
 #include <dlh/types.hpp>
 #include <dlh/string.hpp>
-#include <dlh/stdarg.hpp>
-
 
 const char * BufferStream::str() {
-	if (len < 1)
+	if (_len < 1)
 		return nullptr;
-	else if (pos >= len)
-		pos = len - 1;
-	bufptr[pos] = '\0';
-	return bufptr;
+	else if (_pos >= _len)
+		_pos = _len - 1;
+
+	_bufptr[_pos] = '\0';
+
+	return _bufptr;
 }
 
 BufferStream& BufferStream::writefill(const char* string, size_t n) {
-	if (width > n)
-		write(fill, width - n);
-	width = 0;
+	// Fill left
+	if (!_left && _width > n)
+		write(_fill, _width - n);
 
-	return write(string, n);
+	// Write string
+	write(string, n);
+
+	// Fill right
+	if (_left && _width > n)
+		write(_fill, _width - n);
+
+	_width = 0;
+
+	return *this;
 }
 
-// Print a bool number.
+// Print a number.
 BufferStream& BufferStream::writefill(unsigned long long ival, bool minus) {
 	// Determine the largest potency in the number system used, which is
 	// still smaller than the number to be printed
-	size_t len = 1;
+	size_t n = 1;
 	unsigned long long div;
-	for (div = 1; ival/div >= static_cast<unsigned long long>(base); div *= base) { len++; }
+	for (div = 1; ival/div >= static_cast<unsigned long long>(_base); div *= _base)
+		n++;
 
 	// Fill (if necessary)
-	if ((base == 10 && (minus || sign != MINUS_ONLY)) || (base == 8 && prefix))
-		len += 1;
-	else if ((base == 2 || base == 16) && prefix)
-		len += 2;
+	if ((_base == 10 && (minus || _sign != MINUS_ONLY)) || (_base == 8 && _prefix))
+		n += 1;
+	else if ((_base == 2 || _base == 16) && _prefix)
+		n += 2;
 
-	if (width > len && (fill != '0' || base == 10))
-		write(fill, width - len);
-	width = 0;
+	size_t pad = _width > n ? _width - n : 0;
+	_width = 0;
+	if (pad && !_left && (_fill != '0' || _base == 10)) {
+		write(_fill, pad);
+		pad = 0;
+	}
 
 	// Print prefix
-	switch(base) {
+	switch(_base) {
 		case 2:
-			if (prefix) operator<<("0b");
+			if (_prefix)
+				operator<<("0b");
 			break;
 
 		case 8:
-			if (prefix) operator<<('0');
+			if (_prefix)
+				operator<<('0');
 			break;
 
 		case 16:
-			if (prefix) operator<<("0x");
+			if (_prefix)
+				operator<<("0x");
 			break;
 
 		default:
 			if (minus)
 				operator<<('-');
-			else if (sign == PLUS)
+			else if (_sign == PLUS)
 				operator<<('+');
-			else if (sign == SPACE)
+			else if (_sign == SPACE)
 				operator<<(' ');
 	}
 	// Special case: Zeros after prefix (for base != 10)
-	if (width > len && fill == '0' && base != 10)
-		write(fill, width - len);
-	width = 0;
+	if (pad && !_left && _fill == '0' && _base != 10)
+		write(_fill, pad);
 
 	// print number char by char
-	for (; div > 0; div /= static_cast<unsigned long long>(base)) {
+	for (; div > 0; div /= static_cast<unsigned long long>(_base)) {
 		auto digit = ival / div;
 		if (digit < 10)
 			operator<<(static_cast<char>('0' + digit));
 		else
-			operator<<(static_cast<char>(hexchar + digit - 10));
+			operator<<(static_cast<char>(_hexchar + digit - 10));
 
 		ival %= div;
 	}
+
+	// Fill right
+	if (pad && _left)
+		write(_fill, pad);
+
 	return *this;
 }
 
 BufferStream& BufferStream::write(const char* string, size_t n) {
 	for (size_t i = 0; i < n; i++)
-		if (pos + 1 < len) {
-			bufptr[pos++] = string[i];
-			if (pos + 1 == len)
+		if (_pos + 1 < _len) {
+			_bufptr[_pos++] = string[i];
+			if (_pos + 1 == _len)
 				flush();
 		}
 
@@ -92,9 +112,9 @@ BufferStream& BufferStream::write(const char* string, size_t n) {
 
 BufferStream& BufferStream::write(char c, size_t n) {
 	for (size_t i = 0; i < n; i++)
-		if (pos + 1 < len) {
-			bufptr[pos++] = c;
-			if (pos + 1 == len)
+		if (_pos + 1 < _len) {
+			_bufptr[_pos++] = c;
+			if (_pos + 1 == _len)
 				flush();
 		}
 	return *this;
@@ -102,13 +122,13 @@ BufferStream& BufferStream::write(char c, size_t n) {
 
 // Print a single character (trivial)
 BufferStream& BufferStream::operator<<(char c) {
-	if (width > 1)
-		write(fill, width - 1);
-	width = 0;
+	if (_width > 1)
+		write(_fill, _width - 1);
+	_width = 0;
 
-	if (pos + 1 < len)
-		bufptr[pos++] = c;
-	if (pos + 1 >= len)
+	if (_pos + 1 < _len)
+		_bufptr[_pos++] = c;
+	if (_pos + 1 >= _len)
 		flush();
 	return *this;
 }
@@ -116,12 +136,12 @@ BufferStream& BufferStream::operator<<(char c) {
 // Printing a null-terminated string
 BufferStream& BufferStream::operator<<(const char* string) {
 	if (string != nullptr) {
-		if (width > 0)
+		if (_width > 0)
 			return writefill(string, strlen(string));
 		else  // slightly faster
-			while ((*string) != '\0' && pos + 1 < len) {
-				bufptr[pos++] = *(string++);
-				if (pos + 1 == len)
+			while ((*string) != '\0' && _pos + 1 < _len) {
+				_bufptr[_pos++] = *(string++);
+				if (_pos + 1 == _len)
 					flush();
 			}
 	}
@@ -131,10 +151,10 @@ BufferStream& BufferStream::operator<<(const char* string) {
 
 // Print a pointer as hexadecimal number
 BufferStream& BufferStream::operator<<(const void* ptr) {
-	int oldbase = base;
-	base = 16;
+	int oldbase = _base;
+	_base = 16;
 	*this << reinterpret_cast<unsigned long long>(ptr);
-	base = oldbase;
+	_base = oldbase;
 	return *this;
 }
 
@@ -146,20 +166,17 @@ BufferStream& BufferStream::operator<<(const setbase & val) {
 		case 8:
 		case 10:
 		case 16:
-			this->base = val.base;
+			this->_base = val.base;
 			break;
 
 		default:
-			this->base = 10;
+			this->_base = 10;
 	}
 	return *this;
 }
 
-size_t BufferStream::format(const char * format, ...) {
-	va_list arguments;
-	va_start(arguments, format);
-
-	size_t start = pos;
+size_t BufferStream::format(const char * format, va_list args) {
+	size_t start = _pos;
 	enum {
 		NONE,
 		MARKER,
@@ -188,26 +205,32 @@ size_t BufferStream::format(const char * format, ...) {
 				[[fallthrough]];
 
 			case FLAGS:
-				if (*format == '+') {
-					sign = PLUS;
-					break;
-				} else if (*format == ' ') {
-					sign = SPACE;
-					break;
-				} else if (*format == '0') {
-					fill = '0';
-					break;
-				} else if (*format == '#') {
-					prefix = true;
-					break;
-				} else {
-					state = WIDTHSTAR;
+				switch (*format) {
+					case '+':
+						_sign = PLUS;
+						break;
+					case '-':
+						_left = true;
+						break;
+					case ' ':
+						_sign = SPACE;
+						break;
+					case '0':
+						_fill = '0';
+						break;
+					case '#':
+						_prefix = true;
+						break;
+					default:
+						state = WIDTHSTAR;
 				}
+				if (state != WIDTHSTAR)
+					break;
 				[[fallthrough]];
 
 			case WIDTHSTAR:
 				if (*format == '*') {
-					width = va_arg(arguments, size_t);
+					_width = va_arg(args, size_t);
 					state = LENGTH;
 					break;
 				} else {
@@ -217,7 +240,7 @@ size_t BufferStream::format(const char * format, ...) {
 
 			case WIDTH:
 				if (*format >= '0' && *format <= '9') {
-					width = width * 10 + *format - '0';
+					_width = _width * 10 + *format - '0';
 					break;
 				} else {
 					state = LENGTH;
@@ -254,22 +277,22 @@ size_t BufferStream::format(const char * format, ...) {
 			case SPECIFIER:
 				switch (*format) {
 					case 'c':
-						operator<<(static_cast<char>(va_arg(arguments, int)));
+						operator<<(static_cast<char>(va_arg(args, int)));
 						state = NONE;
 						break;
 
 					case 's':
-						operator<<(va_arg(arguments, const char *));
+						operator<<(va_arg(args, const char *));
 						state = NONE;
 						break;
 
 					case 'p':
-						operator<<(va_arg(arguments, void *));
+						operator<<(va_arg(args, void *));
 						state = NONE;
 						break;
 
 					case 'n':
-						*va_arg(arguments, int *) = pos - start;
+						*va_arg(args, int *) = _pos - start;
 						state = NONE;
 						break;
 
@@ -277,35 +300,35 @@ size_t BufferStream::format(const char * format, ...) {
 					case 'i':
 						switch (length) {
 							case SHORT:
-								operator<<(static_cast<short>(va_arg(arguments, int)));
+								operator<<(static_cast<short>(va_arg(args, int)));
 								break;
 
 							case LONG:
-								operator<<(va_arg(arguments, long));
+								operator<<(va_arg(args, long));
 								break;
 
 							case LONGLONG:
-								operator<<(va_arg(arguments, long long));
+								operator<<(va_arg(args, long long));
 								break;
 
 							default:
-								operator<<(va_arg(arguments, int));
+								operator<<(va_arg(args, int));
 						}
 						state = NONE;
 						break;
 
 					case 'o':
-						base = 8;
+						_base = 8;
 						break;
 
 					case 'x':
-						hexchar = 'a';
-						base = 16;
+						_hexchar = 'a';
+						_base = 16;
 						break;
 
 					case 'X':
-						hexchar = 'A';
-						base = 16;
+						_hexchar = 'A';
+						_base = 16;
 						break;
 
 					case 'u':
@@ -317,19 +340,19 @@ size_t BufferStream::format(const char * format, ...) {
 				if (state != NONE)
 					switch (length) {
 						case SHORT:
-							operator<<(static_cast<unsigned short>(va_arg(arguments, unsigned)));
+							operator<<(static_cast<unsigned short>(va_arg(args, unsigned)));
 							break;
 
 						case LONG:
-							operator<<(va_arg(arguments, unsigned long));
+							operator<<(va_arg(args, unsigned long));
 							break;
 
 						case LONGLONG:
-							operator<<(va_arg(arguments, unsigned long long));
+							operator<<(va_arg(args, unsigned long long));
 							break;
 
 						default:
-							operator<<(va_arg(arguments, unsigned));
+							operator<<(va_arg(args, unsigned));
 					}
 				state = NONE;
 				break;
@@ -337,10 +360,11 @@ size_t BufferStream::format(const char * format, ...) {
 			default:
 				if (*format == '%') {
 					state = MARKER;
-					width = 0;
-					fill = ' ';
-					prefix = false;
-					sign = MINUS_ONLY;
+					_width = 0;
+					_fill = ' ';
+					_prefix = false;
+					_left = false;
+					_sign = MINUS_ONLY;
 					length = INT;
 				} else {
 					operator<<(*format);
@@ -348,9 +372,10 @@ size_t BufferStream::format(const char * format, ...) {
 		}
 		format++;
 	}
-	va_end(arguments);
 
 	// Reset modifiers
 	reset();
-	return pos - start;
+	size_t n = _pos - start;
+	flush();
+	return n;
 }
