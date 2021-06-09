@@ -108,16 +108,18 @@ class HashSet : protected Elements<T> {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		inline bool operator==(const T& other) const {
-			return ref.element[i].data == other;
+		template<typename O>
+		inline bool operator==(const O& other) const {
+			return C::equal(ref.element[i].data, other);
 		}
 
 		inline bool operator!=(const Iterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
+		template<typename O>
 		inline bool operator!=(const T& other) const {
-			return ref.element[i].data != other;
+			return !C::equal(ref.element[i].data, other);
 		}
 
 		inline operator bool() const {
@@ -157,7 +159,7 @@ class HashSet : protected Elements<T> {
 		uint32_t * b = bucket(next.hash.temp = C::hash(next.data));
 
 		// Check if already in set
-		uint32_t i = find(b, next.data);
+		uint32_t i = find_in(b, next.data);
 		if (i != Elements<T>::_next)
 			return { Iterator(*this, i), false };
 
@@ -178,7 +180,7 @@ class HashSet : protected Elements<T> {
 		uint32_t * b = bucket(h);
 
 		// Check if already in set
-		uint32_t i = find(b, value);
+		uint32_t i = find_in(b, value);
 		if ( i != Elements<T>::_next)
 			return { Iterator(*this, i), false };
 
@@ -193,16 +195,18 @@ class HashSet : protected Elements<T> {
 	 * \param value element
 	 * \return iterator to element (if found) or `end()` (if not found)
 	 */
-	inline Iterator find(const T& value) {
-		return Iterator(*this, find(bucket(C::hash(value)), value));
+	template<typename U>
+	inline Iterator find(const U& value) {
+		return Iterator(*this, find_in(bucket(C::hash(value)), value));
 	}
 
 	/*! \brief check if set contains element
 	 * \param value element
 	 * \return `true` if element is in set
 	 */
-	inline bool contains(const T& value) const {
-		return find(bucket(C::hash(value)), value) != Elements<T>::_next;
+	template<typename U>
+	inline bool contains(const U& value) const {
+		return find_in(bucket(C::hash(value)), value) != Elements<T>::_next;
 	}
 
 	/*! \brief Remove value from set
@@ -248,7 +252,8 @@ class HashSet : protected Elements<T> {
 	 * \param value element to be removed
 	 * \return removed value (if found)
 	 */
-	inline Optional<T> erase(const T & value) {
+	template<typename U>
+	inline Optional<T> erase(const U& value) {
 		return erase(find(value));
 	}
 
@@ -420,7 +425,8 @@ class HashSet : protected Elements<T> {
 	 * \param value the value we are looking for
 	 * \return index of target value or `Elements<T>::_next` if not found
 	 */
-	inline uint32_t find(uint32_t * bucket, const T &value) const {
+	template<typename U>
+	inline uint32_t find_in(uint32_t * bucket, const U &value) const {
 		// Find
 		for (uint32_t i = *bucket; i != 0; i = Elements<T>::_node[i].hash.next) {
 			assert(Elements<T>::_count < Elements<T>::_next);
@@ -475,6 +481,8 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 	using typename Base::Iterator;
 	using typename Base::begin;
 	using typename Base::end;
+	using typename Base::find;
+	using typename Base::contains;
 	using typename Base::resize;
 	using typename Base::rehash;
 	using typename Base::empty;
@@ -482,7 +490,6 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 	using typename Base::bucket_size;
 	using typename Base::bucket_count;
 	using typename Base::clear;
-	using typename Base::dot;
 
 	/*! \brief Insert element */
 	inline Pair<Iterator,bool> insert(const K& key, const V& value) {
@@ -493,52 +500,36 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 		return Base::insert(KeyValue<K,V>(move(key), move(value)));
 	}
 
-	inline Iterator find(const K& key) {
-		return Base::find(KeyValue<K,V>(key));
-	}
-
-	inline Iterator find(K&& key) {
-		return Base::find(KeyValue<K,V>(move(key)));
-	}
-
-	inline bool contains(const K& key) {
-		return Base::contains(KeyValue<K,V>(key));
-	}
-
-	inline bool contains(K&& key) {
-		return Base::contains(KeyValue<K,V>(move(key)));
-	}
-
 	inline Optional<V> erase(const Iterator & position) {
 		auto i = Base::erase(position);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> erase(const K& key) {
-		auto i = Base::erase(KeyValue<K,V>(key));
+	template<typename O>
+	inline Optional<V> erase(const O& key) {
+		auto i = Base::erase(key);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> erase(K&& key) {
-		auto i = Base::erase(KeyValue<K,V>(move(key)));
-		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
-	}
-
-	inline Optional<V> at(const K& key) {
+	template<typename O>
+	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> at(K&& key) {
+	template<typename O>
+	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline V & operator[](const K& key) {
+	template<typename O>
+	inline V & operator[](const O& key) {
 		return (*(Base::insert(key).first)).value;
 	}
 
-	inline V & operator[](K&& key) {
+	template<typename O>
+	inline V & operator[](O&& key) {
 		return (*(Base::insert(move(key).first))).value;
 	}
 };

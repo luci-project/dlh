@@ -3,7 +3,8 @@ VERBOSE = @
 BUILDDIR ?= .build
 SOURCE_FOLDER = src
 CXX = g++
-CXXFLAGS := -Og -g -I include
+CXXFLAGS ?= -Og -g
+CXXFLAGS += -I include
 CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-pic
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
@@ -11,12 +12,20 @@ CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 SOURCES = $(shell find $(SOURCE_FOLDER)/ -name "*.cpp")
 OBJECTS = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
 DEPFILES = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))
-TARGET = libdlh.a
+LIBNAME = dlh
+TARGET = lib$(LIBNAME).a
 
 all: $(TARGET)
 
-%.a: $(OBJECTS)
+%.a: $(OBJECTS) $(MAKEFILE_LIST)
 	ar rcs $@ $^
+
+tests: $(patsubst test/%.cpp,test-%,$(wildcard test/*.cpp))
+
+test-%: test/%.cpp $(TARGET) $(MAKEFILE_LIST)
+	@echo "Build		$@ ($<)"
+	@mkdir -p $(@D)
+	$(VERBOSE) $(CXX) $(CXXFLAGS) -no-pie -o $@ $< -L. -l$(LIBNAME)
 
 $(BUILDDIR)/%.d: $(SOURCE_FOLDER)/%.cpp $(MAKEFILE_LIST)
 	@echo "DEP		$<"
@@ -34,7 +43,7 @@ clean:
 
 
 ifneq ($(MAKECMDGOALS),clean)
--include $(DEP_FILES)
+-include $(DEPFILES)
 endif
 
 # Phony targets

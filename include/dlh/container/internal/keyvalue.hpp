@@ -6,16 +6,9 @@
 template<class K, class V>
 struct KeyValue {
 	K key;
-	union {
-		bool _used;
-		V value;
-	};
+	V value;
 
 	KeyValue() : key(), value() { }
-
-	KeyValue(const K& key) : key(key), _used(false) { }
-
-	KeyValue(K&& key) : key(move(key)), _used(false) { }
 
 	KeyValue(const K& key, const V& value) : key(key), value(value) { }
 

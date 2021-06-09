@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
+#include <dlh/string.hpp>
 #include <dlh/stream/buffer.hpp>
 
 struct StrPtr {
@@ -66,6 +67,14 @@ struct StrPtr {
 		return !operator==(other);
 	}
 };
+
+static inline bool operator==(const StrPtr &a, const char * b) {
+	return a.str == b || strcmp(a.str, b) == 0;
+}
+
+static inline bool operator==(const char * a, const StrPtr & b) {
+	return a == b.str || strcmp(a, b.str) == 0;
+}
 
 static inline BufferStream& operator<<(BufferStream& bs, const StrPtr & s) {
 	if (s.str == nullptr)

@@ -97,16 +97,18 @@ class TreeSet : protected Elements<T> {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		inline bool operator==(const T& other) const {
-			return ref.element[i].data == other;
+		template <typename O>
+		inline bool operator==(const O& other) const {
+			return C::compare(ref.element[i].data, other) == 0;
 		}
 
 		inline bool operator!=(const Iterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
-		inline bool operator!=(const T& other) const {
-			return ref.element[i].data != other;
+		template <typename O>
+		inline bool operator!=(const O& other) const {
+			return C::compare(ref.element[i].data, other) != 0;
 		}
 
 		inline operator bool() const {
@@ -181,16 +183,17 @@ class TreeSet : protected Elements<T> {
 	 * \param value element to be removed
 	 * \return removed value (if found)
 	 */
-	inline Optional<T> erase(const T & value) {
+	template<typename O>
+	inline Optional<T> erase(const O & value) {
 		return erase(find(value));
 	}
-
 
 	/*! \brief Get iterator to specific element
 	 * \param value element
 	 * \return iterator to element (if found) or `end()` (if not found)
 	 */
-	inline Iterator find(const T& value) {
+	template<typename O>
+	inline Iterator find(const O& value) {
 		uint32_t r = _root;
 		return contains(value, r) ? Iterator(*this, r) : end();
 	}
@@ -199,7 +202,8 @@ class TreeSet : protected Elements<T> {
 	 * \param value element
 	 * \return `true` if element is in set
 	 */
-	inline bool contains(const T& value) const {
+	template<typename O>
+	inline bool contains(const O& value) const {
 		uint32_t r = _root;
 		return contains(value, r);
 	}
@@ -228,7 +232,8 @@ class TreeSet : protected Elements<T> {
 	 * \param value element
 	 * \return Iterator to the greatest element less than the given element
 	 */
-	Iterator lower(const T& value) {
+	template<typename O>
+	Iterator lower(const O& value) {
 		uint32_t r = 0;
 		uint32_t i = _root;
 		while (i != 0) {
@@ -252,7 +257,8 @@ class TreeSet : protected Elements<T> {
 	 * \param value element
 	 * \return Iterator to the greatest element less than or equal to the given element
 	 */
-	Iterator floor(const T& value) {
+	template<typename O>
+	Iterator floor(const O& value) {
 		uint32_t r = 0;
 		uint32_t i = _root;
 		while (i != 0) {
@@ -275,7 +281,8 @@ class TreeSet : protected Elements<T> {
 	 * \param value element
 	 * \return Iterator to the smallest element greater than or equal to the given element
 	 */
-	Iterator ceil(const T& value) {
+	template<typename O>
+	Iterator ceil(const O& value) {
 		uint32_t r = 0;
 		uint32_t i = _root;
 		while (i != 0) {
@@ -298,7 +305,8 @@ class TreeSet : protected Elements<T> {
 	 * \param value element
 	 * \return Iterator to the smallest element greater than the given element
 	 */
-	Iterator higher(const T& value) {
+	template<typename O>
+	Iterator higher(const O& value) {
 		uint32_t r = 0;
 		uint32_t i = _root;
 		while (i != 0) {
@@ -445,7 +453,8 @@ class TreeSet : protected Elements<T> {
 	 * \param c reference to last comparison result
 	 * \return true if found, false otherwise
 	 */
-	bool contains(const T& value, uint32_t & i, int & c) const {
+	template<typename O>
+	bool contains(const O& value, uint32_t & i, int & c) const {
 		if (i != 0)
 			while (true) {
 				auto & e = Elements<T>::_node[i];
@@ -473,7 +482,8 @@ class TreeSet : protected Elements<T> {
 	 * \param i root, will contain index of nearest node
 	 * \return true if found, false otherwise
 	 */
-	inline bool contains(const T& value, uint32_t & i) const {
+	template<typename O>
+	inline bool contains(const O& value, uint32_t & i) const {
 		int c;
 		return contains(value, i, c);
 	}
@@ -780,8 +790,13 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using typename Base::Iterator;
 	using typename Base::begin;
 	using typename Base::lowest;
+	using typename Base::lower;
+	using typename Base::floor;
+	using typename Base::ceil;
+	using typename Base::higher;
 	using typename Base::highest;
 	using typename Base::end;
+	using typename Base::find;
 	using typename Base::resize;
 	using typename Base::empty;
 	using typename Base::size;
@@ -795,79 +810,36 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 		return Base::insert(KeyValue<K,V>(move(key), move(value)));
 	}
 
-	inline Iterator find(const K& key) {
-		return Base::find(KeyValue<K,V>(key));
-	}
-
-	inline Iterator find(K&& key) {
-		return Base::find(KeyValue<K,V>(move(key)));
-	}
-
-	inline bool contains(const K& key) {
-		return Base::contains(KeyValue<K,V>(key));
-	}
-
-	inline bool contains(K&& key) {
-		return Base::contains(KeyValue<K,V>(move(key)));
-	}
-
-	inline Iterator lower(const K& key) {
-		return Base::lower(KeyValue<K,V>(key));
-	}
-
-	inline Iterator lower(K&& key) {
-		return Base::lower(KeyValue<K,V>(move(key)));
-	}
-
-	inline Iterator floor(const K& key) {
-		return Base::floor(KeyValue<K,V>(key));
-	}
-
-	inline Iterator floor(K&& key) {
-		return Base::floor(KeyValue<K,V>(move(key)));
-	}
-
-	inline Iterator ceil(const K& key) {
-		return Base::ceil(KeyValue<K,V>(key));
-	}
-
-	inline Iterator ceil(K&& key) {
-		return Base::ceil(KeyValue<K,V>(move(key)));
-	}
-
-	inline Iterator higher(const K& key) {
-		return Base::higher(KeyValue<K,V>(key));
-	}
-
-	inline Iterator higher(K&& key) {
-		return Base::higher(KeyValue<K,V>(move(key)));
-	}
-
 	inline Optional<V> erase(const Iterator & position) {
 		auto i = Base::erase(position);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> erase(const K& key) {
-		auto i = Base::erase(KeyValue<K,V>(key));
+	template<typename O>
+	inline Optional<V> erase(const O& key) {
+		auto i = Base::erase(key);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> at(const K& key) {
+	template<typename O>
+	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline Optional<V> at(K&& key) {
+	template<typename O>
+	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
 		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
 	}
 
-	inline V & operator[](const K& key) {
+	template<typename O>
+	inline V & operator[](const O& key) {
 		return (*(Base::insert(key).first)).value;
 	}
 
-	inline V & operator[](K&& key) {
+	template<typename O>
+	inline V & operator[](O&& key) {
 		return (*(Base::insert(move(key).first))).value;
 	}
 };

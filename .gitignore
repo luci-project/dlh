@@ -1,2 +1,3 @@
 .build/
 libdlh.a
+test-*

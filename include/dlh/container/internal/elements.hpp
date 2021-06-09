@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
+#include <dlh/alloc.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
 

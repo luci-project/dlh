@@ -5,13 +5,23 @@
 #include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
-	template<typename T>
-	static inline int compare(const T& a, const T& b) {
+	template<typename T, typename U>
+	static inline int compare(const T& a, const U& b) {
 		return a == b ? 0 : (a < b ? -1 : 1);
 	}
 
-	template<typename K, typename V>
-	static inline int compare(const KeyValue<K,V> & a, const KeyValue<K,V> & b) {
+	template<typename K, typename V, typename O>
+	static inline int compare(const KeyValue<K,V> & a, const O & b) {
+		return compare(a.key, b);
+	}
+
+	template<typename O, typename K, typename V>
+	static inline int compare(const O & a, const KeyValue<K,V> & b) {
+		return compare(a, b.key);
+	}
+
+	template<typename K, typename V, typename U, typename W>
+	static inline int compare(const KeyValue<K,V> & a, const KeyValue<U,W> & b) {
 		return compare(a.key, b.key);
 	}
 
@@ -24,13 +34,23 @@ struct Comparison {
 	}
 
 
-	template<typename T>
-	static inline bool equal(const T& a, const T& b) {
+	template<typename T, typename U>
+	static inline bool equal(const T& a, const U& b) {
 		return a == b;
 	}
 
-	template<typename K, typename V>
-	static inline bool equal(const KeyValue<K,V> & a, const KeyValue<K,V> & b) {
+	template<typename K, typename V, typename O>
+	static inline bool equal(const KeyValue<K,V> & a, const O & b) {
+		return equal(a.key, b);
+	}
+
+	template<typename O, typename K, typename V>
+	static inline bool equal(const O & a, const KeyValue<K,V> & b) {
+		return equal(a, b.key);
+	}
+
+	template<typename K, typename V, typename U, typename W>
+	static inline bool equal(const KeyValue<K,V> & a, const KeyValue<U,W> & b) {
 		return equal(a.key, b.key);
 	}
 
