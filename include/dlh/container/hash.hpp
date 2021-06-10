@@ -38,7 +38,10 @@ class HashSet : protected Elements<T> {
 	 * \return capacity initial capacity
 	 */
 	explicit HashSet(size_t capacity = 1024) {
-		resize(capacity);
+		if (resize(capacity))
+			Elements<T>::_node[0].hash.active = false;
+		else
+			assert(false);
 	}
 
 	/*! \brief Convert to hash set
@@ -46,6 +49,7 @@ class HashSet : protected Elements<T> {
 	 */
 	HashSet(const Elements<T>& elements) : Elements<T>(elements) {
 		rehash();
+		assert(!Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Convert to hash set
@@ -53,6 +57,7 @@ class HashSet : protected Elements<T> {
 	 */
 	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		rehash();
+		assert(!Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Range constructor
@@ -276,7 +281,7 @@ class HashSet : protected Elements<T> {
 	 * \return `true` if resize was successfully, `false` otherwise
 	 */
 	bool resize(size_t capacity) {
-		if (capacity <= Elements<T>::_count || capacity > UINT32_MAX)
+		if (capacity <= Elements<T>::_count || capacity == 0 || capacity > UINT32_MAX)
 			return false;
 
 		// reorder node slots

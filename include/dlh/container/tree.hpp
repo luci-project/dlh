@@ -26,21 +26,31 @@ class TreeSet : protected Elements<T> {
 	 * \return capacity initial capacity
 	 */
 	explicit TreeSet(size_t capacity = 1024) : _root(0) {
-		bool r = Elements<T>::resize(capacity);
-		assert(r);
+		Elements<T>::resize(capacity);
+		if (Elements<T>::resize(capacity))
+			Elements<T>::_node[0].tree.active = false;
+		else
+			assert(false);
 	}
 
-
+	/*! \brief Convert to binary search tree
+	 * \return elements container
+	 */
 	TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
 		for (size_t i = 1; i < Elements<T>::_next; i++)
 			if (Elements<T>::_node[i].tree.active)
 				insert(0, i, 0);
+		assert(!Elements<T>::_node[0].tree.active);
 	}
 
+	/*! \brief Convert to binary search tree
+	 * \return elements container
+	 */
 	TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		for (size_t i = 1; i < Elements<T>::_next; i++)
 			if (Elements<T>::_node[i].tree.active)
 				insert(0, i, 0);
+		assert(!Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Range constructor
@@ -377,6 +387,7 @@ class TreeSet : protected Elements<T> {
 	}
 
 #ifndef NDEBUG
+	/*! \brief Check if balanced */
 	void check() {
 		// Elements
 		assert(!Elements<T>::_node[0].tree.active);
@@ -404,19 +415,19 @@ class TreeSet : protected Elements<T> {
 			assert(Elements<T>::_count == 0);
 		} else {
 			assert(Elements<T>::_node[_root].tree.parent == 0);
-			check(_root, 0);
+			check_node(_root, 0);
 		}
 	}
 
  private:
-	int check(uint32_t node, uint32_t parent) {
+	int check_node(uint32_t node, uint32_t parent) {
 		if (node == 0) {
 			return 0;
 		} else {
 			assert(Elements<T>::_node[node].tree.parent == parent);
 			auto & n = Elements<T>::_node[node].tree;
-			int l = check(n.left, node);
-			int r = check(n.right, node);
+			int l = check_node(n.left, node);
+			int r = check_node(n.right, node);
 			assert(r - l == (int)n.balance);
 			return 1 + (l > r ? l : r);
 		}
@@ -801,6 +812,9 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using typename Base::empty;
 	using typename Base::size;
 	using typename Base::clear;
+#ifndef NDEBUG
+	using typename Base::check;
+#endif
 
 	inline Pair<Iterator,bool> insert(const K& key, const V& value) {
 		return Base::insert(KeyValue<K,V>(key, value));

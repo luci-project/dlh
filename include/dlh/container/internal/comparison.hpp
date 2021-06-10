@@ -7,7 +7,7 @@
 struct Comparison {
 	template<typename T, typename U>
 	static inline int compare(const T& a, const U& b) {
-		return a == b ? 0 : (a < b ? -1 : 1);
+		return (b < a) - (a < b);
 	}
 
 	template<typename K, typename V, typename O>
@@ -27,6 +27,14 @@ struct Comparison {
 
 	static inline int compare(const char * a, const char * b) {
 		return strcmp(a, b);
+	}
+
+	static inline int compare(const char * a, const StrPtr & b) {
+		return strcmp(a, b.str);
+	}
+
+	static inline int compare(const StrPtr & a, const char * b) {
+		return strcmp(a.str, b);
 	}
 
 	static inline int compare(const StrPtr & a, const StrPtr & b) {
@@ -55,6 +63,14 @@ struct Comparison {
 	}
 
 	static inline bool equal(const char * a, const char * b) {
+		return compare(a, b) == 0;
+	}
+
+	static inline bool equal(const char * a, const StrPtr & b) {
+		return compare(a, b) == 0;
+	}
+
+	static inline bool equal(const StrPtr & a, const char * b) {
 		return compare(a, b) == 0;
 	}
 
