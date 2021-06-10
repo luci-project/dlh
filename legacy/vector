@@ -1,0 +1,10 @@
+#pragma once
+
+#include <dlh/container/vector.hpp>
+
+namespace std {
+
+template<typename T>
+using vector = Vector<T>;
+
+} // namespace std

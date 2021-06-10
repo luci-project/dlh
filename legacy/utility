@@ -1,0 +1,10 @@
+#pragma once
+
+#include <dlh/utility.hpp>
+
+namespace std {
+
+using ::forward;
+using ::move;
+
+}

@@ -1,0 +1,9 @@
+#pragma once
+
+#include <dlh/utils/strptr.hpp>
+
+namespace std {
+
+using string = StrPtr;
+
+} // namespace std

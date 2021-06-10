@@ -1,0 +1,10 @@
+#pragma once
+
+#include <dlh/container/optional.hpp>
+
+namespace std {
+
+template<class F, class S>
+using pair = Pair<F, S>;
+
+} // namespace std

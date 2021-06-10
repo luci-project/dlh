@@ -1,0 +1,20 @@
+#pragma once
+
+#include <dlh/container/tree.hpp>
+#include <dlh/container/hash.hpp>
+
+namespace std {
+
+template<typename T, typename C = Comparison>
+using set = TreeSet<T, C>;
+
+template<typename T, typename C = Comparison>
+using unordered_set = HashSet<T, C>;
+
+template<typename K, typename V, typename C = Comparison>
+using map = TreeMap<K, V, C>;
+
+template<typename K, typename V, typename C = Comparison>
+using unordered_map = HashMap<K, V, C>;
+
+} // namespace std

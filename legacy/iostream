@@ -1,0 +1,23 @@
+#pragma once
+
+#include <dlh/stream/buffer.hpp>
+#include <dlh/stream/output.hpp>
+
+namespace std {
+
+using ::setbase;
+using ::setw
+using ::setfill;
+using ::flush;
+using ::endl;
+using ::bin;
+using ::oct;
+using ::dec;
+using ::hex;
+using ::left;
+using ::right;
+
+OutputStream<1024> & cout = ::cout;
+OutputStream<1024> & cerr = ::cerr;
+
+} // namespace std
