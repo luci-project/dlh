@@ -25,12 +25,11 @@ class TreeSet : protected Elements<T> {
 	/*! \brief Create new balanced binary search tree
 	 * \return capacity initial capacity
 	 */
-	explicit TreeSet(size_t capacity = 1024) : _root(0) {
-		Elements<T>::resize(capacity);
-		if (Elements<T>::resize(capacity))
+	explicit TreeSet(size_t capacity = 0) : _root(0) {
+		if (capacity > 0) {
+			Elements<T>::resize(capacity);
 			Elements<T>::_node[0].tree.active = false;
-		else
-			assert(false);
+		}
 	}
 
 	/*! \brief Convert to binary search tree
@@ -40,7 +39,7 @@ class TreeSet : protected Elements<T> {
 		for (size_t i = 1; i < Elements<T>::_next; i++)
 			if (Elements<T>::_node[i].tree.active)
 				insert(0, i, 0);
-		assert(!Elements<T>::_node[0].tree.active);
+		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Convert to binary search tree
@@ -50,7 +49,7 @@ class TreeSet : protected Elements<T> {
 		for (size_t i = 1; i < Elements<T>::_next; i++)
 			if (Elements<T>::_node[i].tree.active)
 				insert(0, i, 0);
-		assert(!Elements<T>::_node[0].tree.active);
+		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Range constructor
@@ -59,9 +58,10 @@ class TreeSet : protected Elements<T> {
 	 * \param capacity_reserve additional space to reserve
 	 */
 	template<typename I>
-	explicit TreeSet(I first, I last,  size_t capacity_reserve = 1024) : TreeSet(capacity_reserve) {
+	explicit TreeSet(I first, I last,  size_t capacity_reserve = 0) : TreeSet(capacity_reserve) {
 		for (I i = first; i < last; ++i)
 			emplace(*i);
+		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Destructor
@@ -204,8 +204,12 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator find(const O& value) {
-		uint32_t r = _root;
-		return contains(value, r) ? Iterator(*this, r) : end();
+		if (!empty()) {
+			uint32_t r = _root;
+			if (contains(value, r))
+				return Iterator(*this, r);
+		}
+		return end();
 	}
 
 	/*! \brief check if set contains element
@@ -214,15 +218,19 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline bool contains(const O& value) const {
-		uint32_t r = _root;
-		return contains(value, r);
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t r = _root;
+			return contains(value, r);
+		}
 	}
 
 	/*! \brief Iterator to the lowest element in this set
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator begin() {
-		return Iterator(*this, min(_root));
+		return empty() ? end() : Iterator(*this, min(_root));
 	}
 
 	/*! \brief Iterator refering to the past-the-end element in this set */
@@ -244,23 +252,27 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	Iterator lower(const O& value) {
-		uint32_t r = 0;
-		uint32_t i = _root;
-		while (i != 0) {
-			auto & e = Elements<T>::_node[i];
-			int c = C::compare(e.data, value);
-			if (c == 0) {
-				if (e.tree.left != 0)
-					r = max(e.tree.left);
-				break;
-			} else if (c < 0) {
-				r = i;
-				i = e.tree.right;
-			} else /* if (c > 0) */ {
-				i = e.tree.left;
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t r = 0;
+			uint32_t i = _root;
+			while (i != 0) {
+				auto & e = Elements<T>::_node[i];
+				int c = C::compare(e.data, value);
+				if (c == 0) {
+					if (e.tree.left != 0)
+						r = max(e.tree.left);
+					break;
+				} else if (c < 0) {
+					r = i;
+					i = e.tree.right;
+				} else /* if (c > 0) */ {
+					i = e.tree.left;
+				}
 			}
+			return Iterator(*this, r);
 		}
-		return Iterator(*this, r);
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -269,22 +281,26 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	Iterator floor(const O& value) {
-		uint32_t r = 0;
-		uint32_t i = _root;
-		while (i != 0) {
-			auto & e = Elements<T>::_node[i];
-			int c = C::compare(e.data, value);
-			if (c == 0) {
-				r = i;
-				break;
-			} else if (c < 0) {
-				r = i;
-				i = e.tree.right;
-			} else /* if (c > 0) */ {
-				i = e.tree.left;
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t r = 0;
+			uint32_t i = _root;
+			while (i != 0) {
+				auto & e = Elements<T>::_node[i];
+				int c = C::compare(e.data, value);
+				if (c == 0) {
+					r = i;
+					break;
+				} else if (c < 0) {
+					r = i;
+					i = e.tree.right;
+				} else /* if (c > 0) */ {
+					i = e.tree.left;
+				}
 			}
+			return Iterator(*this, r);
 		}
-		return Iterator(*this, r);
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -293,22 +309,26 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	Iterator ceil(const O& value) {
-		uint32_t r = 0;
-		uint32_t i = _root;
-		while (i != 0) {
-			auto & e = Elements<T>::_node[i];
-			int c = C::compare(e.data, value);
-			if (c == 0) {
-				r = i;
-				break;
-			} else if (c < 0) {
-				i = e.tree.right;
-			} else /* if (c > 0) */ {
-				r = i;
-				i = e.tree.left;
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t r = 0;
+			uint32_t i = _root;
+			while (i != 0) {
+				auto & e = Elements<T>::_node[i];
+				int c = C::compare(e.data, value);
+				if (c == 0) {
+					r = i;
+					break;
+				} else if (c < 0) {
+					i = e.tree.right;
+				} else /* if (c > 0) */ {
+					r = i;
+					i = e.tree.left;
+				}
 			}
+			return Iterator(*this, r);
 		}
-		return Iterator(*this, r);
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -317,37 +337,42 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	Iterator higher(const O& value) {
-		uint32_t r = 0;
-		uint32_t i = _root;
-		while (i != 0) {
-			auto & e = Elements<T>::_node[i];
-			int c = C::compare(e.data, value);
-			if (c == 0) {
-				if (e.tree.right != 0)
-					r = min(e.tree.right);
-				break;
-			} else if (c < 0) {
-				i = e.tree.right;
-			} else /* if (c > 0) */ {
-				r = i;
-				i = e.tree.left;
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t r = 0;
+			uint32_t i = _root;
+			while (i != 0) {
+				auto & e = Elements<T>::_node[i];
+				int c = C::compare(e.data, value);
+				if (c == 0) {
+					if (e.tree.right != 0)
+						r = min(e.tree.right);
+					break;
+				} else if (c < 0) {
+					i = e.tree.right;
+				} else /* if (c > 0) */ {
+					r = i;
+					i = e.tree.left;
+				}
 			}
+			return Iterator(*this, r);
 		}
-		return Iterator(*this, r);
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline Iterator highest() {
-		return Iterator(*this, max(_root));
+		return empty() ? end() : Iterator(*this, max(_root));
 	}
 
 	/*! \brief Reorganize Elements
 	 * Fill gaps emerged from erasing elments
 	 */
 	inline void reorganize() {
-		reorder();
+		if (!empty())
+			reorder();
 	}
 
 	/*! \brief Resize set capacity
@@ -362,7 +387,13 @@ class TreeSet : protected Elements<T> {
 		reorder();
 
 		// Resize
-		return capacity != Elements<T>::_capacity ? Elements<T>::resize(capacity) : true;
+		if (capacity != Elements<T>::_capacity) {
+			if (Elements<T>::resize(capacity))
+				Elements<T>::_node[0].tree.active = false;
+			else
+				return false;
+		}
+		return true;
 	}
 
 	/*! \brief Test whether container is empty
@@ -503,7 +534,10 @@ class TreeSet : protected Elements<T> {
 	 * \return `false` on error
 	 */
 	inline bool increase() {
-		if (Elements<T>::_next >= Elements<T>::_capacity) {
+		if (Elements<T>::_capacity == 0) {
+			if (!resize(16))
+				return false;
+		} else if (Elements<T>::_next >= Elements<T>::_capacity) {
 			if (Elements<T>::_count * 2 <= Elements<T>::_capacity)
 				reorder();
 			else if (!resize(Elements<T>::_capacity * 2))

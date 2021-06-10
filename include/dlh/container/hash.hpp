@@ -37,11 +37,9 @@ class HashSet : protected Elements<T> {
 	/*! \brief Create new hash set
 	 * \return capacity initial capacity
 	 */
-	explicit HashSet(size_t capacity = 1024) {
-		if (resize(capacity))
-			Elements<T>::_node[0].hash.active = false;
-		else
-			assert(false);
+	explicit HashSet(size_t capacity = 0) {
+		resize(capacity);
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Convert to hash set
@@ -49,7 +47,7 @@ class HashSet : protected Elements<T> {
 	 */
 	HashSet(const Elements<T>& elements) : Elements<T>(elements) {
 		rehash();
-		assert(!Elements<T>::_node[0].hash.active);
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Convert to hash set
@@ -57,18 +55,19 @@ class HashSet : protected Elements<T> {
 	 */
 	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		rehash();
-		assert(!Elements<T>::_node[0].hash.active);
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Range constructor
 	 * \param first First element in range
 	 * \param last Last element in range
-	 * \param capacity_reserve additional space to reserve
+	 * \param initial_capacity space to reserve
 	 */
 	template<typename I>
-	explicit HashSet(I first, I last,  size_t capacity_reserve = 128) : HashSet(capacity_reserve) {
+	explicit HashSet(I first, I last, size_t initial_capacity = 0) : HashSet(initial_capacity) {
 		for (I i = first; i < last; ++i)
 			emplace(*i);
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Destructor
@@ -136,10 +135,14 @@ class HashSet : protected Elements<T> {
 	 * \return iterator to first valid element (if available) or `end()`
 	 */
 	inline Iterator begin() {
-		uint32_t i = 1;
-		while (i < Elements<T>::_next && !Elements<T>::_node[i].hash.active)
-			i++;
-		return Iterator(*this, i);
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t i = 1;
+			while (i < Elements<T>::_next && !Elements<T>::_node[i].hash.active)
+				i++;
+			return Iterator(*this, i);
+		}
 	}
 
 	/*! \brief Get iterator to end (post-last-element)
@@ -202,7 +205,7 @@ class HashSet : protected Elements<T> {
 	 */
 	template<typename U>
 	inline Iterator find(const U& value) {
-		return Iterator(*this, find_in(bucket(C::hash(value)), value));
+		return empty() ? end() : Iterator(*this, find_in(bucket(C::hash(value)), value));
 	}
 
 	/*! \brief check if set contains element
@@ -211,7 +214,7 @@ class HashSet : protected Elements<T> {
 	 */
 	template<typename U>
 	inline bool contains(const U& value) const {
-		return find_in(bucket(C::hash(value)), value) != Elements<T>::_next;
+		return empty() ? false : (find_in(bucket(C::hash(value)), value) != Elements<T>::_next);
 	}
 
 	/*! \brief Remove value from set
@@ -265,14 +268,15 @@ class HashSet : protected Elements<T> {
 	/*! \brief Recalculate hash values
 	 */
 	inline void rehash() {
-		bucketize(false, true);
+		if (!empty())
+			bucketize(false, true);
 	}
 
 	/*! \brief Reorganize Elements
 	 * Fill gaps emerged from erasing elments
 	 */
 	inline void reorganize() {
-		if (reorder())
+		if (!empty() && reorder())
 			bucketize();
 	}
 
@@ -281,7 +285,7 @@ class HashSet : protected Elements<T> {
 	 * \return `true` if resize was successfully, `false` otherwise
 	 */
 	bool resize(size_t capacity) {
-		if (capacity <= Elements<T>::_count || capacity == 0 || capacity > UINT32_MAX)
+		if (capacity <= Elements<T>::_count || capacity > UINT32_MAX)
 			return false;
 
 		// reorder node slots
@@ -291,6 +295,9 @@ class HashSet : protected Elements<T> {
 		bool s = capacity == Elements<T>::_capacity;
 		// Resize element container
 		if (!s && Elements<T>::resize(capacity)) {
+			// NULL Element (let's waste it)
+			Elements<T>::_node[0].hash.active = false;
+
 			// resize hash buckets
 			size_t bucket_cap = capacity * L / 100;
 			if (bucket_cap >= UINT32_MAX)
@@ -359,7 +366,10 @@ class HashSet : protected Elements<T> {
 	 * \return `false` on error
 	 */
 	inline bool increase() {
-		if (Elements<T>::_next >= Elements<T>::_capacity) {
+		if (Elements<T>::_capacity == 0) {
+			if (!resize(16))
+				return false;
+		} else if (Elements<T>::_next >= Elements<T>::_capacity) {
 			if (Elements<T>::_count * 2 <= Elements<T>::_capacity)
 				reorganize();
 			else if (!resize(Elements<T>::_capacity * 2))

@@ -54,33 +54,6 @@ struct Comparison {
 	 */
 	template<typename T, typename U>
 	static inline bool equal(const T& a, const U& b) {
-		return a == b;
-	}
-
-	template<typename K, typename V, typename O>
-	static inline bool equal(const KeyValue<K,V> & a, const O & b) {
-		return equal(a.key, b);
-	}
-
-	template<typename O, typename K, typename V>
-	static inline bool equal(const O & a, const KeyValue<K,V> & b) {
-		return equal(a, b.key);
-	}
-
-	template<typename K, typename V, typename U, typename W>
-	static inline bool equal(const KeyValue<K,V> & a, const KeyValue<U,W> & b) {
-		return equal(a.key, b.key);
-	}
-
-	static inline bool equal(const char * a, const char * b) {
-		return compare(a, b) == 0;
-	}
-
-	static inline bool equal(const char * a, const StrPtr & b) {
-		return compare(a, b) == 0;
-	}
-
-	static inline bool equal(const StrPtr & a, const char * b) {
 		return compare(a, b) == 0;
 	}
 
