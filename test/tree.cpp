@@ -34,12 +34,12 @@ int main(int argc, const char *argv[]) {
 	cout << endl;
 
 	int n = 42;
-	cout << "Lowest: " << *s.lowest() << endl;
-	cout << "Lower than " << n << ": " << *s.lower(n) << endl;
-	cout << "Lower than or equal to " << n << ": " << *s.floor(n) << endl;
-	cout << "Higher than or equal to " << n << ": " << *s.ceil(n) << endl;
-	cout << "Higher than " << n << ": " << *s.higher(n) << endl;
-	cout << "Highest: " << *s.highest() << endl;
+	cout << " - Lowest: " << *s.lowest() << endl;
+	cout << " - Lower than " << n << ": " << *s.lower(n) << endl;
+	cout << " - Lower than or equal to " << n << ": " << *s.floor(n) << endl;
+	cout << " - Higher than or equal to " << n << ": " << *s.ceil(n) << endl;
+	cout << " - Higher than " << n << ": " << *s.higher(n) << endl;
+	cout << " - Highest: " << *s.highest() << endl;
 	cout << endl << endl;
 
 

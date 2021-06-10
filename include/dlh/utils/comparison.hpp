@@ -5,6 +5,11 @@
 #include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
+	/*! \brief Three-Way-Compare (until the spaceship lands in C++20)
+	 * \param a first value
+	 * \param b second value
+	 * \return a value less than, equal, or greater than zero if `a` is less than, equal or greater than `b`.
+	 */
 	template<typename T, typename U>
 	static inline int compare(const T& a, const U& b) {
 		return (b < a) - (a < b);
@@ -42,6 +47,11 @@ struct Comparison {
 	}
 
 
+	/*! \brief Compare equality
+	 * \param a first value
+	 * \param b second value
+	 * \return `true` if equal, `false` otherwise
+	 */
 	template<typename T, typename U>
 	static inline bool equal(const T& a, const U& b) {
 		return a == b;
@@ -79,6 +89,11 @@ struct Comparison {
 	}
 
 
+	/*! \brief Calculate 32bit hash value
+	 * \param v value
+	 * \param b second value
+	 * \return hash value
+	 */
 	static inline uint32_t hash(uint64_t v) {
 		union {
 			struct {

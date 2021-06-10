@@ -3,9 +3,9 @@
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/utility.hpp>
+#include <dlh/utils/comparison.hpp>
 #include <dlh/container/optional.hpp>
 #include <dlh/container/pair.hpp>
-#include <dlh/container/internal/comparison.hpp>
 #include <dlh/container/internal/elements.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
