@@ -33,9 +33,9 @@ class ByteBuffer {
 	template<typename T>
 	inline T pop() {
 		assert(_size >= sizeof(T));
-		T * = reinterpret_cast<T *>(_buffer + _size);
+		T * v = reinterpret_cast<T *>(_buffer + _size);
 		_size -= sizeof(T);
-		return *T;
+		return *v;
 	}
 
 	inline void clear() {

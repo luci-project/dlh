@@ -4,17 +4,17 @@
  */
 namespace Math {
 	template <typename T>
-	T abs(T a) {
+	auto abs(const T a) {
 		return (a >= 0 ? a : -a);
 	}
 
-	template <typename T>
-	T min(T a, T b) {
+	template <typename T, typename U>
+	auto min(const T a, const U b) {
 		return a > b ? b : a;
 	}
 
-	template <typename T>
-	T max(T a, T b) {
+	template <typename T, typename U>
+	auto max(const T a, const U b) {
 		return a > b ? a : b;
 	}
 }  // namespace Math

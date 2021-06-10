@@ -48,8 +48,12 @@ struct StrPtr {
 		return *this;
 	}
 
-	bool empty() const {
+	inline bool empty() const {
 		return str == nullptr || len == 0;
+	}
+
+	inline const char * c_str() {
+		return str;
 	}
 
 	bool operator==(const StrPtr & other) const {

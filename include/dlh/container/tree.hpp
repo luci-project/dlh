@@ -71,17 +71,17 @@ class TreeSet : protected Elements<T> {
 	/*! \brief binary search tree iterator
 	 */
 	class Iterator {
-		friend class TreeSet<T>;
-		TreeSet<T> &ref;
+		friend class TreeSet<T, C>;
+		TreeSet<T, C> &ref;
 		uint32_t i;
 
-		explicit Iterator(TreeSet<T> &ref, uint32_t p) : ref(ref), i(p) {}
+		explicit Iterator(TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
 
 	 public:
 		Iterator& operator++() {
 			const uint32_t right = ref._node[i].tree.right;
 			if (right != 0) {
-				i = ref.min(right);
+				i = ref.min_node(right);
 			} else {
 				while(i != 0) {
 					const uint32_t old = i;
@@ -98,7 +98,17 @@ class TreeSet : protected Elements<T> {
 			return ref._node[i].data;
 		}
 
+		inline const T& operator*() const {
+			assert(ref._node[i].tree.active);
+			return ref._node[i].data;
+		}
+
 		inline T* operator->() {
+			assert(ref._node[i].tree.active);
+			return &(ref._node[i].data);
+		}
+
+		inline const T* operator->() const {
 			assert(ref._node[i].tree.active);
 			return &(ref._node[i].data);
 		}
@@ -126,6 +136,72 @@ class TreeSet : protected Elements<T> {
 		}
 	};
 
+	/*! \brief binary search tree iterator
+	 */
+	class ConstIterator {
+		friend class TreeSet<T, C>;
+		const TreeSet<T, C> &ref;
+		mutable uint32_t i;
+
+		explicit ConstIterator(const TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+
+	 public:
+		const ConstIterator& operator++() const {
+			const uint32_t right = ref._node[i].tree.right;
+			if (right != 0) {
+				i = ref.min_node(right);
+			} else {
+				while(i != 0) {
+					const uint32_t old = i;
+					i = ref._node[old].tree.parent;
+					if (ref._node[i].tree.left == old)
+						break;
+				}
+			}
+			return *this;
+		}
+
+		inline const T& operator*() const {
+			assert(ref._node[i].tree.active);
+			return ref._node[i].data;
+		}
+
+		inline const T* operator->() const {
+			assert(ref._node[i].tree.active);
+			return &(ref._node[i].data);
+		}
+
+		inline bool operator==(const Iterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		inline bool operator==(const ConstIterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		template <typename O>
+		inline bool operator==(const O& other) const {
+			return C::compare(ref.element[i].data, other) == 0;
+		}
+
+		inline bool operator!=(const Iterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		inline bool operator!=(const ConstIterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		template <typename O>
+		inline bool operator!=(const O& other) const {
+			return C::compare(ref.element[i].data, other) != 0;
+		}
+
+		inline operator bool() const {
+			return i != 0;
+		}
+	};
+
 	/*! \brief Create new element into set
 	 * \param args Arguments to construct element
 	 * \return iterator to the new element (`first`) and
@@ -140,7 +216,7 @@ class TreeSet : protected Elements<T> {
 
 		int c = 0;
 		uint32_t i = _root;
-		if (contains(Elements<T>::_node[Elements<T>::_next].data, i, c))
+		if (contains_node(Elements<T>::_node[Elements<T>::_next].data, i, c))
 			return Pair<Iterator,bool>(Iterator(*this, i), false);
 		else
 			return insert(i, Elements<T>::_next++, c);
@@ -156,7 +232,7 @@ class TreeSet : protected Elements<T> {
 
 		int c = 0;
 		uint32_t i = _root;
-		if (contains(value, i, c)) {
+		if (contains_node(value, i, c)) {
 			return Pair<Iterator,bool>(Iterator(*this, i), false);
 		} else {
 			Elements<T>::_node[Elements<T>::_next].data = value;
@@ -172,7 +248,7 @@ class TreeSet : protected Elements<T> {
 	Pair<Iterator,bool> insert(Node &value) {
 		int c = 0;
 		uint32_t i = _root;
-		if (contains(value.data, i, c)) {
+		if (contains_node(value.data, i, c)) {
 			return Pair<Iterator,bool>(Iterator(*this, i), false);
 		} else {
 			size_t n = 0;
@@ -191,7 +267,7 @@ class TreeSet : protected Elements<T> {
 		auto & e = Elements<T>::_node[position.i].tree;
 
 		if (e.left != 0 && e.right != 0) {
-			uint32_t node = min(e.right);
+			uint32_t node = min_node(e.right);
 			erase(node);
 			replace_node(position.i, node, true);
 			e.active = false;
@@ -228,12 +304,18 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator find(const O& value) {
-		if (!empty()) {
-			uint32_t r = _root;
-			if (contains(value, r))
-				return Iterator(*this, r);
-		}
-		return end();
+		uint32_t r = _root;
+		return contains_node(value, r) ? Iterator(*this, r) : end();
+	}
+
+	/*! \brief Get iterator to specific element
+	 * \param value element
+	 * \return iterator to element (if found) or `end()` (if not found)
+	 */
+	template<typename O>
+	inline ConstIterator find(const O& value) const {
+		uint32_t r = _root;
+		return contains_node(value, r) ? ConstIterator(*this, r) : end();
 	}
 
 	/*! \brief check if set contains element
@@ -242,24 +324,36 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline bool contains(const O& value) const {
-		if (empty()) {
-			return end();
-		} else {
-			uint32_t r = _root;
-			return contains(value, r);
-		}
+		uint32_t r = _root;
+		return contains_node(value, r);
 	}
 
 	/*! \brief Iterator to the lowest element in this set
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator begin() {
-		return empty() ? end() : Iterator(*this, min(_root));
+		return Iterator(*this, min_node(_root));
 	}
 
-	/*! \brief Iterator refering to the past-the-end element in this set */
+	/*! \brief Iterator to the lowest element in this set
+	 * \return Iterator to the lowest element
+	 */
+	inline ConstIterator begin() const {
+		return ConstIterator(*this, min_node(_root));
+	}
+
+	/*! \brief Iterator refering to the past-the-end element in this set
+	 * \return Iterator to the element past the end of this set
+	 */
 	inline Iterator end() {
 		return Iterator(*this, 0);
+	}
+
+	/*! \brief Iterator refering to the past-the-end element in this set
+	 * \return Iterator to the element past the end of this set
+	 */
+	inline ConstIterator end() const {
+		return ConstIterator(*this, 0);
 	}
 
 	/*! \brief Get the lowest element in this set
@@ -270,33 +364,30 @@ class TreeSet : protected Elements<T> {
 		return begin();
 	}
 
+	/*! \brief Get the lowest element in this set
+	 * \note alias for `begin()`
+	 * \return Iterator to the lowest element
+	 */
+	inline ConstIterator lowest() const {
+		return begin();
+	}
+
 	/*! \brief Get the greatest element in this set less than the given element
 	 * \param value element
 	 * \return Iterator to the greatest element less than the given element
 	 */
 	template<typename O>
-	Iterator lower(const O& value) {
-		if (empty()) {
-			return end();
-		} else {
-			uint32_t r = 0;
-			uint32_t i = _root;
-			while (i != 0) {
-				auto & e = Elements<T>::_node[i];
-				int c = C::compare(e.data, value);
-				if (c == 0) {
-					if (e.tree.left != 0)
-						r = max(e.tree.left);
-					break;
-				} else if (c < 0) {
-					r = i;
-					i = e.tree.right;
-				} else /* if (c > 0) */ {
-					i = e.tree.left;
-				}
-			}
-			return Iterator(*this, r);
-		}
+	inline Iterator lower(const O& value) {
+		return Iterator(*this, lower_node(value));
+	}
+
+	/*! \brief Get the greatest element in this set less than the given element
+	 * \param value element
+	 * \return Iterator to the greatest element less than the given element
+	 */
+	template<typename O>
+	inline ConstIterator lower(const O& value) const {
+		return ConstIterator(*this, lower_node(value));
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -304,27 +395,17 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the greatest element less than or equal to the given element
 	 */
 	template<typename O>
-	Iterator floor(const O& value) {
-		if (empty()) {
-			return end();
-		} else {
-			uint32_t r = 0;
-			uint32_t i = _root;
-			while (i != 0) {
-				auto & e = Elements<T>::_node[i];
-				int c = C::compare(e.data, value);
-				if (c == 0) {
-					r = i;
-					break;
-				} else if (c < 0) {
-					r = i;
-					i = e.tree.right;
-				} else /* if (c > 0) */ {
-					i = e.tree.left;
-				}
-			}
-			return Iterator(*this, r);
-		}
+	inline Iterator floor(const O& value) {
+		return Iterator(*this, floor_node(value));
+	}
+
+	/*! \brief Get the greatest element in this set less than or equal to the given element
+	 * \param value element
+	 * \return Iterator to the greatest element less than or equal to the given element
+	 */
+	template<typename O>
+	inline ConstIterator floor(const O& value) const {
+		return ConstIterator(*this, floor_node(value));
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -332,27 +413,17 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the smallest element greater than or equal to the given element
 	 */
 	template<typename O>
-	Iterator ceil(const O& value) {
-		if (empty()) {
-			return end();
-		} else {
-			uint32_t r = 0;
-			uint32_t i = _root;
-			while (i != 0) {
-				auto & e = Elements<T>::_node[i];
-				int c = C::compare(e.data, value);
-				if (c == 0) {
-					r = i;
-					break;
-				} else if (c < 0) {
-					i = e.tree.right;
-				} else /* if (c > 0) */ {
-					r = i;
-					i = e.tree.left;
-				}
-			}
-			return Iterator(*this, r);
-		}
+	inline Iterator ceil(const O& value) {
+		return Iterator(*this, ceil_node(value));
+	}
+
+	/*! \brief Get the smallest element in this set greater than or equal to the given element
+	 * \param value element
+	 * \return Iterator to the smallest element greater than or equal to the given element
+	 */
+	template<typename O>
+	inline ConstIterator ceil(const O& value) const {
+		return ConstIterator(*this, ceil_node(value));
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -360,35 +431,31 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the smallest element greater than the given element
 	 */
 	template<typename O>
-	Iterator higher(const O& value) {
-		if (empty()) {
-			return end();
-		} else {
-			uint32_t r = 0;
-			uint32_t i = _root;
-			while (i != 0) {
-				auto & e = Elements<T>::_node[i];
-				int c = C::compare(e.data, value);
-				if (c == 0) {
-					if (e.tree.right != 0)
-						r = min(e.tree.right);
-					break;
-				} else if (c < 0) {
-					i = e.tree.right;
-				} else /* if (c > 0) */ {
-					r = i;
-					i = e.tree.left;
-				}
-			}
-			return Iterator(*this, r);
-		}
+	inline Iterator higher(const O& value) {
+		return Iterator(*this, higher_node(value));
+	}
+
+	/*! \brief Get the smallest element in this set greater than the given element
+	 * \param value element
+	 * \return Iterator to the smallest element greater than the given element
+	 */
+	template<typename O>
+	inline ConstIterator higher(const O& value) const {
+		return ConstIterator(*this, higher_node(value));
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline Iterator highest() {
-		return empty() ? end() : Iterator(*this, max(_root));
+		return Iterator(*this, max_node(_root));
+	}
+
+	/*! \brief Get the highest element in this set
+	 * \return Iterator to the highest element
+	 */
+	inline ConstIterator highest() const {
+		return ConstIterator(*this, max_node(_root));
 	}
 
 	/*! \brief Reorganize Elements
@@ -494,7 +561,7 @@ class TreeSet : protected Elements<T> {
 	 * \param i node definining the subtree
 	 * \return minimum value of the subtree
 	 */
-	inline uint32_t min(uint32_t i) {
+	inline uint32_t min_node(uint32_t i) const {
 		if (i != 0)
 			while (Elements<T>::_node[i].tree.left != 0)
 				i = Elements<T>::_node[i].tree.left;
@@ -506,11 +573,109 @@ class TreeSet : protected Elements<T> {
 	 * \param i node definining the subtree
 	 * \return max value of the subtree
 	 */
-	inline uint32_t max(uint32_t i) {
+	inline uint32_t max_node(uint32_t i) const {
 		if (i != 0)
 			while (Elements<T>::_node[i].tree.right != 0)
 				i = Elements<T>::_node[i].tree.right;
 		return i;
+	}
+
+	/*! \brief Get the greatest element in this set less than the given element
+	 * \param value element
+	 * \return Node ID of the greatest element less than the given element
+	 */
+	template<typename O>
+	uint32_t lower_node(const O& value) const {
+		uint32_t r = 0;
+		uint32_t i = _root;
+		while (i != 0) {
+			auto & e = Elements<T>::_node[i];
+			int c = C::compare(e.data, value);
+			if (c == 0) {
+				if (e.tree.left != 0)
+					r = max_node(e.tree.left);
+				break;
+			} else if (c < 0) {
+				r = i;
+				i = e.tree.right;
+			} else /* if (c > 0) */ {
+				i = e.tree.left;
+			}
+		}
+		return r;
+	}
+
+	/*! \brief Get the greatest element in this set less than or equal to the given element
+	 * \param value element
+	 * \return Node ID of the greatest element less than or equal to the given element
+	 */
+	template<typename O>
+	uint32_t floor_node(const O& value) const {
+		uint32_t r = 0;
+		uint32_t i = _root;
+		while (i != 0) {
+			auto & e = Elements<T>::_node[i];
+			int c = C::compare(e.data, value);
+			if (c == 0) {
+				r = i;
+				break;
+			} else if (c < 0) {
+				r = i;
+				i = e.tree.right;
+			} else /* if (c > 0) */ {
+				i = e.tree.left;
+			}
+		}
+		return r;
+	}
+
+	/*! \brief Get the smallest element in this set greater than or equal to the given element
+	 * \param value element
+	 * \return Node ID of the smallest element greater than or equal to the given element
+	 */
+	template<typename O>
+	uint32_t ceil_node(const O& value) const {
+		uint32_t r = 0;
+		uint32_t i = _root;
+		while (i != 0) {
+			auto & e = Elements<T>::_node[i];
+			int c = C::compare(e.data, value);
+			if (c == 0) {
+				r = i;
+				break;
+			} else if (c < 0) {
+				i = e.tree.right;
+			} else /* if (c > 0) */ {
+				r = i;
+				i = e.tree.left;
+			}
+		}
+		return r;
+	}
+
+	/*! \brief Get the smallest element in this set greater than the given element
+	 * \param value element
+	 * \return Node ID of the smallest element greater than the given element
+	 */
+	template<typename O>
+	uint32_t higher_node(const O& value) const {
+		uint32_t r = 0;
+		uint32_t i = _root;
+		while (i != 0) {
+			auto & e = Elements<T>::_node[i];
+			int c = C::compare(e.data, value);
+			if (c == 0) {
+				if (e.tree.right != 0)
+					r = min_node(e.tree.right);
+				break;
+			} else if (c < 0) {
+				i = e.tree.right;
+			} else /* if (c > 0) */ {
+				r = i;
+				i = e.tree.left;
+			}
+		}
+		return r;
 	}
 
 	/*! \brief Check if set contains node
@@ -520,7 +685,7 @@ class TreeSet : protected Elements<T> {
 	 * \return true if found, false otherwise
 	 */
 	template<typename O>
-	bool contains(const O& value, uint32_t & i, int & c) const {
+	bool contains_node(const O& value, uint32_t & i, int & c) const {
 		if (i != 0)
 			while (true) {
 				auto & e = Elements<T>::_node[i];
@@ -549,9 +714,9 @@ class TreeSet : protected Elements<T> {
 	 * \return true if found, false otherwise
 	 */
 	template<typename O>
-	inline bool contains(const O& value, uint32_t & i) const {
+	inline bool contains_node(const O& value, uint32_t & i) const {
 		int c;
-		return contains(value, i, c);
+		return contains_node(value, i, c);
 	}
 
 	/*! \brief Increase capacity (by reordering or resizing) if required
@@ -611,7 +776,7 @@ class TreeSet : protected Elements<T> {
 			_root = element;
 		} else {
 			auto & p = Elements<T>::_node[parent].tree;
-			if ((parent == 0 && contains(e.data, parent, c)) || c == 0) {
+			if ((parent == 0 && contains_node(e.data, parent, c)) || c == 0) {
 				assert(p.active);
 				return Pair<Iterator,bool>(Iterator(*this, parent), false);
 			} else if (c < 0) {
@@ -866,6 +1031,7 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using typename Base::highest;
 	using typename Base::end;
 	using typename Base::find;
+	using typename Base::contains;
 	using typename Base::resize;
 	using typename Base::empty;
 	using typename Base::size;

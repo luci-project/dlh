@@ -79,11 +79,11 @@ class HashSet : protected Elements<T> {
 	/*! \brief hash set iterator
 	 */
 	class Iterator {
-		friend class HashSet<T>;
-		HashSet<T> &ref;
+		friend class HashSet<T, C>;
+		HashSet<T, C> &ref;
 		uint32_t i;
 
-		explicit Iterator(HashSet<T> &ref, uint32_t p) : ref(ref), i(p) {}
+		explicit Iterator(HashSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
 
 	 public:
 		Iterator& operator++() {
@@ -93,17 +93,22 @@ class HashSet : protected Elements<T> {
 			return *this;
 		}
 
-		inline T& operator*() & {
+		inline T& operator*() {
 			assert(ref._node[i].hash.active);
 			return ref._node[i].data;
 		}
 
-		inline T&& operator*() && {
+		inline const T& operator*() const {
 			assert(ref._node[i].hash.active);
-			return move(ref._node[i].data);
+			return ref._node[i].data;
 		}
 
 		inline T* operator->() {
+			assert(ref._node[i].hash.active);
+			return &(ref._node[i].data);
+		}
+
+		inline const T* operator->() const {
 			assert(ref._node[i].hash.active);
 			return &(ref._node[i].data);
 		}
@@ -131,6 +136,65 @@ class HashSet : protected Elements<T> {
 		}
 	};
 
+	/*! \brief hash set iterator
+	 */
+	class ConstIterator {
+		friend class HashSet<T, C>;
+		const HashSet<T, C> &ref;
+		mutable uint32_t i;
+
+		explicit ConstIterator(const HashSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+
+	 public:
+		const ConstIterator& operator++() const {
+			do {
+				i++;
+			} while (i < ref._next && !ref._node[i].hash.active);
+			return *this;
+		}
+
+		inline const T& operator*() const {
+			assert(ref._node[i].hash.active);
+			return ref._node[i].data;
+		}
+
+		inline const T* operator->() const {
+			assert(ref._node[i].hash.active);
+			return &(ref._node[i].data);
+		}
+
+		inline bool operator==(const Iterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		inline bool operator==(const ConstIterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		template<typename O>
+		inline bool operator==(const O& other) const {
+			return C::equal(ref.element[i].data, other);
+		}
+
+		inline bool operator!=(const Iterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		inline bool operator!=(const ConstIterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		template<typename O>
+		inline bool operator!=(const T& other) const {
+			return !C::equal(ref.element[i].data, other);
+		}
+
+		inline operator bool() const {
+			return i != ref._next;
+		}
+	};
+
+
 	/*! \brief Get iterator to first element
 	 * \return iterator to first valid element (if available) or `end()`
 	 */
@@ -150,6 +214,27 @@ class HashSet : protected Elements<T> {
 	 */
 	inline Iterator end() {
 		return Iterator(*this, Elements<T>::_next);
+	}
+
+	/*! \brief Get iterator to first element
+	 * \return iterator to first valid element (if available) or `end()`
+	 */
+	inline ConstIterator begin() const {
+		if (empty()) {
+			return end();
+		} else {
+			uint32_t i = 1;
+			while (i < Elements<T>::_next && !Elements<T>::_node[i].hash.active)
+				i++;
+			return ConstIterator(*this, i);
+		}
+	}
+
+	/*! \brief Get iterator to end (post-last-element)
+	 * \return iterator to end (first invalid element)
+	 */
+	inline ConstIterator end() const {
+		return ConstIterator(*this, Elements<T>::_next);
 	}
 
 	/*! \brief Create new element into set
