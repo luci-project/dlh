@@ -164,29 +164,53 @@ class TreeSet : protected Elements<T> {
 		}
 	}
 
+	/*! \brief Insert element node into set
+	 * \param value Node of element to be inserted
+	 * \return iterator to the inserted element (`first`) and
+	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
+	 */
+	Pair<Iterator,bool> insert(Node &value) {
+		int c = 0;
+		uint32_t i = _root;
+		if (contains(value.data, i, c)) {
+			return Pair<Iterator,bool>(Iterator(*this, i), false);
+		} else {
+			size_t n = 0;
+			if (!Elements<T>::is_node(value, n) || n == 0)
+				Elements<T>::_node[n = Elements<T>::_next++].data = value.data;
+			return insert(i, n, c);
+		}
+	}
+
+	/*! \brief Extract value from set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node & extract(const Iterator & position) {
+		assert(position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active);
+		auto & e = Elements<T>::_node[position.i].tree;
+
+		if (e.left != 0 && e.right != 0) {
+			uint32_t node = min(e.right);
+			erase(node);
+			replace_node(position.i, node, true);
+			e.active = false;
+		} else {
+			erase(position.i);
+		}
+
+		e.active = false;
+		Elements<T>::_count--;
+
+		return Elements<T>::_node[position.i];
+	}
+
 	/*! \brief Remove value from set
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
 	Optional<T> erase(const Iterator & position) {
-		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active) {
-			auto & e = Elements<T>::_node[position.i].tree;
-
-			if (e.left != 0 && e.right != 0) {
-				uint32_t node = min(e.right);
-				erase(node);
-				replace_node(position.i, node, true);
-				e.active = false;
-			} else {
-				erase(position.i);
-			}
-
-			e.active = false;
-			Elements<T>::_count--;
-
-			return { Elements<T>::_node[position.i].data };
-		}
-		return {};
+		return (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active) ? Optional<T>(move(extract(position).data)) : Optional<T>();
 	}
 
 	/*! \brief Remove value from set
@@ -423,7 +447,7 @@ class TreeSet : protected Elements<T> {
 		// Elements
 		assert(!Elements<T>::_node[0].tree.active);
 		uint32_t c = 0;
-		for (size_t i = 1; i <= Elements<T>::_next; i++)
+		for (size_t i = 1; i < Elements<T>::_next; i++)
 			if (Elements<T>::_node[i].tree.active)
 				c++;
 		assert(c == Elements<T>::_count);

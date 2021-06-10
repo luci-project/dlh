@@ -35,6 +35,7 @@ extern "C" int arch_prctl(arch_code_t code, unsigned long addr) {
 
 
 extern "C" int raise(signal_t sig) {
+	// TODO
 	unsigned long set, mask = { 0xfffffffc7fffffff };
 	__syscall(SYS_rt_sigprocmask, SIG_BLOCK, &mask, &set, 8);
 	int ret = syscall(SYS_tkill, gettid(), &sig);

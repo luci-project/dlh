@@ -189,7 +189,7 @@ class HashSet : protected Elements<T> {
 
 		// Check if already in set
 		uint32_t i = find_in(b, value);
-		if ( i != Elements<T>::_next)
+		if (i != Elements<T>::_next)
 			return { Iterator(*this, i), false };
 
 		// Insert at position
@@ -198,6 +198,28 @@ class HashSet : protected Elements<T> {
 		next.data = value;
 		return insert(Elements<T>::_next++, b);
 	}
+
+	/*! \brief Insert element node into set
+	 * \param value Node of element to be inserted
+	 * \return iterator to the inserted element (`first`) and
+	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
+	 */
+	Pair<Iterator,bool> insert(Node &value) {
+		uint32_t h = C::hash(value.data);
+		uint32_t * b = bucket(h);
+
+		uint32_t i = find_in(b, value.data);
+		if (i != Elements<T>::_next) {
+			return Pair<Iterator,bool>(Iterator(*this, i), false);
+		} else {
+			size_t n = 0;
+			if (!Elements<T>::is_node(value, n) || n == 0)
+				Elements<T>::_node[n = Elements<T>::_next++].data = value.data;
+			Elements<T>::_node[n].hash.temp = h;
+			return insert(n, b);
+		}
+	}
+
 
 	/*! \brief Get iterator to specific element
 	 * \param value element
@@ -217,43 +239,48 @@ class HashSet : protected Elements<T> {
 		return empty() ? false : (find_in(bucket(C::hash(value)), value) != Elements<T>::_next);
 	}
 
+
+	/*! \brief Extract value from set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node & extract(const Iterator & position) {
+		assert(position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active);
+		auto & e = Elements<T>::_node[position.i];
+
+		e.hash.active = false;
+
+		uint32_t * b = bucket(e.hash.temp);
+		assert(*b != 0);
+
+		auto next = e.hash.next;
+		auto prev = e.hash.prev;
+
+		if (next != 0) {
+			assert(Elements<T>::_node[next].hash.active);
+			assert(Elements<T>::_node[next].hash.prev == position.i);
+			Elements<T>::_node[next].hash.prev = prev;
+		}
+
+		if (*b == position.i) {
+			assert(prev == 0);
+			*b = next;
+		} else if (prev != 0) {
+			assert(Elements<T>::_node[prev].hash.active);
+			assert(Elements<T>::_node[prev].hash.next == position.i);
+			Elements<T>::_node[prev].hash.next = next;
+		}
+
+		Elements<T>::_count--;
+		return e;
+	}
+
 	/*! \brief Remove value from set
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
 	Optional<T> erase(const Iterator & position) {
-		assert(position.i >= 1);
-		auto & e = Elements<T>::_node[position.i];
-		if (e.hash.active && position.i < Elements<T>::_next) {
-			e.hash.active = 0;
-
-			uint32_t * b = bucket(e.hash.temp);
-			assert(*b != 0);
-
-			auto next = e.hash.next;
-			auto prev = e.hash.prev;
-
-			if (next != 0) {
-				assert(Elements<T>::_node[next].hash.active);
-				assert(Elements<T>::_node[next].hash.prev == position.i);
-				Elements<T>::_node[next].hash.prev = prev;
-			}
-
-			if (*b == position.i) {
-				assert(prev == 0);
-				*b = next;
-			} else if (prev != 0) {
-				assert(Elements<T>::_node[prev].hash.active);
-				assert(Elements<T>::_node[prev].hash.next == position.i);
-				Elements<T>::_node[prev].hash.next = next;
-			}
-
-			Elements<T>::_count--;
-
-			return Optional<T>(move(e.data));
-		} else {
-			return Optional<T>();
-		}
+		return (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active) ? Optional<T>(move(extract(position).data)) : Optional<T>();
 	}
 
 	/*! \brief Remove value from set

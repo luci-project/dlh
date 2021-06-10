@@ -6,8 +6,7 @@
 #include <dlh/utility.hpp>
 
 template<class T>
-class Elements {
- protected:
+struct Elements {
 	uint32_t _capacity;
 	uint32_t _next;
 	uint32_t _count;
@@ -66,5 +65,22 @@ class Elements {
 			}
 		}
 		return true;
+	}
+
+
+	/*! \brief check if a given node is part of the element
+	 * \param n given node
+	 * \param index will contain the index in node array (in case it is a part of it)
+	 * \return `true` if given node is partof this element
+	 */
+	bool is_node(const Node & given_node, size_t & index) {
+		auto gnptr = reinterpret_cast<uintptr_t>(&given_node);
+		auto _nptr = reinterpret_cast<uintptr_t>(_node);
+		if (gnptr >= _nptr) {
+			index = (gnptr - _nptr) / sizeof(Node);
+			return index < _next;
+		} else {
+			return false;
+		}
 	}
 };
