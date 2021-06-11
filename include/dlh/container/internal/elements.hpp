@@ -31,24 +31,54 @@ struct Elements {
 
 	static_assert(sizeof(Node) == 16 + sizeof(T), "Wrong Node size");
 
+	/*! \brief Constructor (empty) element container
+	 * \param e Element container to copy
+	 */
 	constexpr Elements() : _capacity(0), _next(1), _count(0), _node(nullptr) {}
 
-	Elements(const Elements<T>& e) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(malloc(e._capacity * sizeof(Node))) {
-		assert(_node != nullptr);
-		memcpy(_node, e._node, e._capacity * sizeof(Node));
+	/*! \brief Copy constructor
+	 * \param e Element container to copy
+	 */
+	Elements(const Elements<T>& e) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(nullptr) {
+		if (e._capacity > 0) {
+			_node = reinterpret_cast<Node*>(malloc(e._capacity * sizeof(Node)));
+			assert(_node != nullptr);
+			for (size_t i = 0; i < e._next; i++)
+				_node[i] = e._node[i];
+		}
 	}
 
-	Elements(Elements<T>&& e) : _capacity(move(e._capacity)), _next(move(e._next)), _count(move(e._count)), _node(move(e._node)) {
-		assert(_node != nullptr);
-		e._capacity = 0;
-		e._next = 1;
-		e._count = 0;
-		e._node = 0;
-	}
+	/*! \brief Default move constructor
+	 */
+	Elements(Elements<T> &&) = default;
 
+	/*! \brief Destructor
+	 */
 	virtual ~Elements() {
 		free(Elements<T>::_node);
 	}
+
+	/*! \brief Copy assignment operator
+	 * \param e Element container to copy
+	 * \return Reference to this instance
+	 */
+	Elements<T> & operator=(const Elements<T> & e) {
+		_next = e._next;
+		_count = e._count;
+		if ((_capacity = e._capacity) > 0) {
+			_node = reinterpret_cast<Node*>(malloc(e._capacity * sizeof(Node)));
+			assert(_node != nullptr);
+			for (size_t i = 0; i < e._next; i++)
+				_node[i] = e._node[i];
+		} else {
+			_node = nullptr;
+		}
+		return *this;
+	}
+
+	/*! \brief Default move assignment operator
+	 */
+	Elements<T> & operator=(Elements<T> &&) = default;
 
 	/*! \brief Resize element slots to capacity
 	 * \param capacity the new capacity
@@ -56,7 +86,7 @@ struct Elements {
 	 */
 	bool resize(uint32_t capacity) {
 		if (capacity != _capacity) {
-			void * ptr = realloc(_node, capacity * sizeof(Node));
+			void * ptr = realloc(reinterpret_cast<void*>(_node), capacity * sizeof(Node));
 			if (ptr == nullptr) {
 				return false;
 			} else {

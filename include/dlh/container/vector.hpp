@@ -3,8 +3,11 @@
  */
 #pragma once
 
+#include <dlh/alloc.hpp>
+#include <dlh/assert.hpp>
 #include <dlh/types.hpp>
 #include <dlh/utility.hpp>
+#include <dlh/container/optional.hpp>
 #include <dlh/stream/buffer.hpp>
 
 /*! \brief Vector class influenced by standard [template/cxx] library
@@ -23,11 +26,6 @@ template<class T> class Vector {
 	 */
 	size_t _capacity;
 
-	/*! \brief Return object for out of bounds
-	 * since we don't have exceptions
-	 */
-	T _invalid;
-
 	/*! \brief Expand capacity
 	 */
 	inline void expand() {
@@ -39,19 +37,18 @@ template<class T> class Vector {
 	Vector(Vector&&) = default;
 
 	/*! \brief Constructor
-	 * \param invalid object for invalid returns
 	 */
-	explicit Vector(T invalid = T()) : _element(nullptr), _size(0), _capacity(0), _invalid(invalid) {}
+	Vector() : _element(nullptr), _size(0), _capacity(0) {}
 
 	/*! \brief Constructor with initial _capacity
-	 * \param count number of initial values
+	 * \param capacity number of initial values
 	 * \param init initial values
 	 * \param invalid object for invalid returns
 	 */
-	explicit Vector(size_t count, T init, T invalid = T()) : _element(new T[count]), _size(count),
-	                                                         _capacity(count), _invalid(invalid) {
-		for (size_t i = 0; i < count; ++i) {
-			_element[i] = init;
+	explicit Vector(size_t capacity) : _element(nullptr), _size(capacity), _capacity(capacity) {
+		if (capacity > 0) {
+			_element = malloc(capacity * sizeof(T));
+			assert(_element != nullptr);
 		}
 	}
 
@@ -61,16 +58,23 @@ template<class T> class Vector {
 	 * \param invalid object for invalid returns
 	 */
 	template<typename I>
-	explicit Vector(I first, I last, T invalid = T()) : Vector(invalid) {
-		for (I i = first; i < last; ++i) {
+	explicit Vector(I first, I last) : Vector(0) {
+		for (I i = first; i < last; ++i)
 			emplace_back(*i);
-		}
 	}
+
+	/*! \brief Copy constructor
+	 * \param other other vector
+	 */
+	template<typename I>
+	explicit Vector(const Vector & other) : Vector(other.begin(), other.end()) {}
+
 
 	/*! \brief Destructor
 	 */
 	~Vector() {
-		delete[] _element;
+		resize(0);
+		free(_element);
 	}
 
 	/*! \brief access specified element
@@ -78,22 +82,25 @@ template<class T> class Vector {
 	 * \return element or T() if out of bounds
 	 * \note This function differs to the standard library due to the lack of exceptions
 	 */
-	inline T& at(size_t pos) {
-		return pos < _size ? _element[pos] : _invalid;
+	inline Optional<T> at(int i) {
+		if (i < _size)
+			return { _element[i] };
+		else
+			return {};
 	}
 
 	/*! \brief Access the first element
-	 * \return first element or T() if none
+	 * \return first element
 	 */
 	inline T& front() {
-		return 0 == _size ? _element[0] : _invalid;
+		return operator[](0);
 	}
 
 	/*! \brief Access the last element
-	 * \return last element or T() if none
+	 * \return last element
 	 */
 	inline T& back() {
-		return 0 == _size ? _element[_size - 1] : _invalid;
+		return operator[](_size - 1);
 	}
 
 	/*! \brief direct access to the underlying array
@@ -134,35 +141,22 @@ template<class T> class Vector {
 	 */
 	inline void reserve(size_t capacity) {
 		if (capacity > this->_capacity) {
-			T* tmp = new T[capacity];
-
-			for (size_t i = 0; i < _size; ++i) {
-				tmp[i] = _element[i];
-			}
-
-			delete[] _element;
-			_element = tmp;
+			_element = reinterpret_cast<T*>(realloc(_element, capacity * sizeof(T)));
 			this->_capacity = capacity;
 		}
 	}
 
 	/*! \brief Resizes the container
 	 * \param count new size of the container
-	 * \param value the value to initialize the new elements with
-	 */
-	inline void resize(size_t count, T value) {
-		reserve(count);
-		for (size_t i = _size; i < count; ++i) {
-			_element[i] = value;
-		}
-		_size = count;
-	}
-
-	/*! \brief Resizes the container
-	 * \param count new size of the container
 	 */
 	inline void resize(size_t count) {
-		resize(count, _invalid);
+		if (count < _size) {
+			// Free items (
+			for (size_t i = count; i < _size; ++i)
+				_element[i].~T();
+			_size = count;
+		}
+		reserve(count);
 	}
 
 	/*! \brief Creates an element at the end
@@ -170,11 +164,10 @@ template<class T> class Vector {
 	 */
 	template<typename... ARGS>
 	inline void emplace_back(ARGS&&... args) {
-		if (_capacity == _size) {
+		if (_capacity == _size)
 			expand();
-		}
 
-		_element[_size] = move(T(forward<ARGS>(args)...));
+		new (_element + _size) T(forward<ARGS>(args)...);
 		_size++;
 	}
 
@@ -198,15 +191,14 @@ template<class T> class Vector {
 	 */
 	template<typename... ARGS>
 	inline void emplace(size_t pos, ARGS&&... args) {
-		if (pos == _capacity) {
+		if (pos == _capacity)
 			expand();
-		}
 
 		if (pos <= _size) {
-			for (size_t i = _size; i > pos; --i) {
-				_element[i] = move(_element[i - 1]);
-			}
-			_element[pos] = move(T(forward<ARGS>(args)...));
+			for (size_t i = _size; i > pos; --i)
+				new (_element + i) T(move(_element[i - 1]));
+
+			new (_element + pos) T(forward<ARGS>(args)...);
 			_size++;
 		}
 	}
@@ -230,56 +222,53 @@ template<class T> class Vector {
 	/*! \brief Remove the last element
 	 * \return last element
 	 */
-	inline T pop_back() {
-		return 0 == _size ? _invalid : _element[--_size];
+	inline Optional<T> pop_back() {
+		return 0 == _size ? Optional<T>() : Optional<T>(_element[--_size]);
 	}
 
 	/*! \brief Remove element at the specified location
 	 * \param pos position
-	 * \return value or T() if position out of bounds
+	 * \return value (if available)
 	 */
-	inline T remove(size_t pos) {
+	inline Optional<T> remove(size_t pos) {
 		if (pos < _size) {
-			T r = _element[pos];
-			for (size_t i = pos; i < _size - 1; i++) {
-				_element[i] = move(_element[i + 1]);
-			}
+			auto r = Optional<T>(_element[pos]);
+			for (size_t i = pos; i < _size - 1; i++)
+				new (_element + i) T(move(_element[i - 1]));
+
 			_size--;
 			return r;
 		} else {
-			return _invalid;
+			return Optional<T>();
 		}
 	}
 
 	/*! \brief Access Element
+	 * \note undefined behaviour if index is out of bounds
 	 * \param i index
 	 */
 	inline T & operator[](int i) {
+		assert(i > 0 && static_cast<size_t>(i) < _size);
 		return _element[i];
 	}
 
-	/*! \brief Assignment
+	/*! \brief Copy Assignment
 	 * \param other
 	 */
 	Vector<T>& operator=(const Vector<T>& other) {
 		// No self assignment
 		if (this != &other) {
-			if (_capacity != 0) {
-				delete _element;
-			}
-			_size = other._size;
-			_capacity = other._capacity;
-			if (other.entires > 0) {
-				_element = new T[other._capacity];
-				for (size_t i = 0; i < _size; ++i) {
-					_element[i] = other._element[i];
-				}
-			} else {
-				_element = nullptr;
-			}
+			resize(0);
+			for (auto & e : other)
+				emplace_back(e);
 		}
 		return *this;
 	}
+
+	/*! \brief Move Assignment
+	 * \param other
+	 */
+	Vector<T>& operator=(Vector<T>&& other) = default;
 
 	/*! \brief Concatenate vector
 	 * \param other vector
@@ -287,9 +276,9 @@ template<class T> class Vector {
 	 */
 	Vector<T> & operator+=(const Vector<T>& other) {
 		reserve(_size + other._size);
-		for (size_t i = 0; i < other._size; ++i) {
+		for (size_t i = 0; i < other._size; ++i)
 			push_back(i);
-		}
+
 		return *this;
 	}
 
@@ -354,11 +343,11 @@ template<class T> class Vector {
 	};
 
 	inline Vector<T>::Iterator begin() const {
-		return Vector<T>::Iterator(&_element[0]);
+		return Vector<T>::Iterator(_element);
 	}
 
 	inline Vector<T>::Iterator end() const {
-		return Vector<T>::Iterator(&_element[_size]);
+		return Vector<T>::Iterator(_element + _size);
 	}
 };
 

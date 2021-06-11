@@ -32,8 +32,12 @@ class TreeSet : protected Elements<T> {
 		}
 	}
 
-	/*! \brief Convert to binary search tree
-	 * \return elements container
+	/*! \brief Default copy constructor for a binary search tree from a tree set
+	 */
+	TreeSet(const TreeSet<T, C> &) = default;
+
+	/*! \brief Copy constructor for a binary search tree from an element container
+	 * \return elements Elements container
 	 */
 	TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
 		for (size_t i = 1; i < Elements<T>::_next; i++)
@@ -42,7 +46,11 @@ class TreeSet : protected Elements<T> {
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
-	/*! \brief Convert to binary search tree
+	/*! \brief Default move constructor for a binary search tree from a tree set
+	 */
+	TreeSet(TreeSet<T, C> &&) = default;
+
+	/*! \brief Move constructor for a binary search tree from an element container
 	 * \return elements container
 	 */
 	TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
@@ -51,6 +59,15 @@ class TreeSet : protected Elements<T> {
 				insert(0, i, 0);
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
+
+	/*! \brief Default copy assignment operator
+	 */
+	TreeSet<T, C> & operator=(const TreeSet<T, C> &) = default;
+
+
+	/*! \brief Default move assignment operator
+	 */
+	TreeSet<T, C> & operator=(TreeSet<T, C> &&) = default;
 
 	/*! \brief Range constructor
 	 * \param first First element in range
@@ -66,7 +83,9 @@ class TreeSet : protected Elements<T> {
 
 	/*! \brief Destructor
 	 */
-	virtual ~TreeSet() {}
+	virtual ~TreeSet() {
+		clear();
+	}
 
 	/*! \brief binary search tree iterator
 	 */
@@ -75,7 +94,7 @@ class TreeSet : protected Elements<T> {
 		TreeSet<T, C> &ref;
 		uint32_t i;
 
-		explicit Iterator(TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		Iterator(TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
 
 	 public:
 		Iterator& operator++() {
@@ -143,7 +162,7 @@ class TreeSet : protected Elements<T> {
 		const TreeSet<T, C> &ref;
 		mutable uint32_t i;
 
-		explicit ConstIterator(const TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		ConstIterator(const TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
 
 	 public:
 		const ConstIterator& operator++() const {
@@ -212,12 +231,12 @@ class TreeSet : protected Elements<T> {
 		increase();
 
 		// Create local element
-		Elements<T>::_node[Elements<T>::_next].data = move(T(forward<ARGS>(args)...));
+		new (&Elements<T>::_node[Elements<T>::_next].data) T(forward<ARGS>(args)...);
 
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(Elements<T>::_node[Elements<T>::_next].data, i, c))
-			return Pair<Iterator,bool>(Iterator(*this, i), false);
+			return { Iterator(*this, i), false };
 		else
 			return insert(i, Elements<T>::_next++, c);
 	}
@@ -233,9 +252,9 @@ class TreeSet : protected Elements<T> {
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(value, i, c)) {
-			return Pair<Iterator,bool>(Iterator(*this, i), false);
+			return { Iterator(*this, i), false };
 		} else {
-			Elements<T>::_node[Elements<T>::_next].data = value;
+			new (&Elements<T>::_node[Elements<T>::_next].data) T(value);
 			return insert(i, Elements<T>::_next++, c);
 		}
 	}
@@ -245,15 +264,15 @@ class TreeSet : protected Elements<T> {
 	 * \return iterator to the inserted element (`first`) and
 	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
 	 */
-	Pair<Iterator,bool> insert(Node &value) {
+	Pair<Iterator,bool> insert(Node &&value) {
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(value.data, i, c)) {
-			return Pair<Iterator,bool>(Iterator(*this, i), false);
+			return { Iterator(*this, i), false };
 		} else {
 			size_t n = 0;
 			if (!Elements<T>::is_node(value, n) || n == 0)
-				Elements<T>::_node[n = Elements<T>::_next++].data = value.data;
+				new (&Elements<T>::_node[n = Elements<T>::_next++].data) T(move(value.data));
 			return insert(i, n, c);
 		}
 	}
@@ -262,7 +281,7 @@ class TreeSet : protected Elements<T> {
 	 * \param position iterator to element (must be valid)
 	 * \return removed Node
 	 */
-	Node & extract(const Iterator & position) {
+	Node && extract(const Iterator & position) {
 		assert(position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active);
 		auto & e = Elements<T>::_node[position.i].tree;
 
@@ -278,7 +297,7 @@ class TreeSet : protected Elements<T> {
 		e.active = false;
 		Elements<T>::_count--;
 
-		return Elements<T>::_node[position.i];
+		return move(Elements<T>::_node[position.i]);
 	}
 
 	/*! \brief Remove value from set
@@ -286,7 +305,10 @@ class TreeSet : protected Elements<T> {
 	 * \return removed value (if valid iterator)
 	 */
 	Optional<T> erase(const Iterator & position) {
-		return (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active) ? Optional<T>(move(extract(position).data)) : Optional<T>();
+		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
+			return { move(extract(position).data) };
+		else
+			return {};
 	}
 
 	/*! \brief Remove value from set
@@ -295,7 +317,11 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Optional<T> erase(const O & value) {
-		return erase(find(value));
+		auto position = find(value);
+		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
+			return { move(extract(position).data) };
+		else
+			return {};
 	}
 
 	/*! \brief Get iterator to specific element
@@ -305,7 +331,9 @@ class TreeSet : protected Elements<T> {
 	template<typename O>
 	inline Iterator find(const O& value) {
 		uint32_t r = _root;
-		return contains_node(value, r) ? Iterator(*this, r) : end();
+		if (!contains_node(value, r))
+			r = 0;
+		return { *this, r };
 	}
 
 	/*! \brief Get iterator to specific element
@@ -315,7 +343,9 @@ class TreeSet : protected Elements<T> {
 	template<typename O>
 	inline ConstIterator find(const O& value) const {
 		uint32_t r = _root;
-		return contains_node(value, r) ? ConstIterator(*this, r) : end();
+		if (!contains_node(value, r))
+			r = 0;
+		return { *this, r };
 	}
 
 	/*! \brief check if set contains element
@@ -332,28 +362,28 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator begin() {
-		return Iterator(*this, min_node(_root));
+		return { *this, min_node(_root) };
 	}
 
 	/*! \brief Iterator to the lowest element in this set
 	 * \return Iterator to the lowest element
 	 */
 	inline ConstIterator begin() const {
-		return ConstIterator(*this, min_node(_root));
+		return { *this, min_node(_root) };
 	}
 
 	/*! \brief Iterator refering to the past-the-end element in this set
 	 * \return Iterator to the element past the end of this set
 	 */
 	inline Iterator end() {
-		return Iterator(*this, 0);
+		return { *this, 0 };
 	}
 
 	/*! \brief Iterator refering to the past-the-end element in this set
 	 * \return Iterator to the element past the end of this set
 	 */
 	inline ConstIterator end() const {
-		return ConstIterator(*this, 0);
+		return { *this, 0 };
 	}
 
 	/*! \brief Get the lowest element in this set
@@ -361,7 +391,7 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator lowest() {
-		return begin();
+		return { *this, min_node(_root) };
 	}
 
 	/*! \brief Get the lowest element in this set
@@ -369,7 +399,7 @@ class TreeSet : protected Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline ConstIterator lowest() const {
-		return begin();
+		return { *this, min_node(_root) };
 	}
 
 	/*! \brief Get the greatest element in this set less than the given element
@@ -378,7 +408,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator lower(const O& value) {
-		return Iterator(*this, lower_node(value));
+		return { *this, lower_node(value) };
 	}
 
 	/*! \brief Get the greatest element in this set less than the given element
@@ -387,7 +417,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator lower(const O& value) const {
-		return ConstIterator(*this, lower_node(value));
+		return { *this, lower_node(value) };
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -396,7 +426,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator floor(const O& value) {
-		return Iterator(*this, floor_node(value));
+		return { *this, floor_node(value) };
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -405,7 +435,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator floor(const O& value) const {
-		return ConstIterator(*this, floor_node(value));
+		return { *this, floor_node(value) };
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -414,7 +444,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator ceil(const O& value) {
-		return Iterator(*this, ceil_node(value));
+		return { *this, ceil_node(value) };
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -423,7 +453,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator ceil(const O& value) const {
-		return ConstIterator(*this, ceil_node(value));
+		return { *this, ceil_node(value) };
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -432,7 +462,7 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator higher(const O& value) {
-		return Iterator(*this, higher_node(value));
+		return { *this, higher_node(value) };
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -441,21 +471,21 @@ class TreeSet : protected Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator higher(const O& value) const {
-		return ConstIterator(*this, higher_node(value));
+		return { *this, higher_node(value) };
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline Iterator highest() {
-		return Iterator(*this, max_node(_root));
+		return { *this, max_node(_root) };
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline ConstIterator highest() const {
-		return ConstIterator(*this, max_node(_root));
+		return { *this, max_node(_root) };
 	}
 
 	/*! \brief Reorganize Elements
@@ -502,7 +532,11 @@ class TreeSet : protected Elements<T> {
 	}
 
 	/*! \brief Clear all elements in set */
-	void clear() const {
+	void clear() {
+		for (size_t i = 1; i < Elements<T>::_next; i++)
+			if (Elements<T>::_node[i].tree.active)
+				Elements<T>::_node[i].data.~T();
+
 		Elements<T>::_next = 1;
 		Elements<T>::_count = 0;
 		_root = 0;
@@ -745,7 +779,7 @@ class TreeSet : protected Elements<T> {
 				if (!Elements<T>::_node[i].tree.active) {
 					for (; !Elements<T>::_node[j].tree.active; --j)
 						assert(j > i);
-					Elements<T>::_node[i].data = move(Elements<T>::_node[j].data);
+					new (&Elements<T>::_node[i].data) T(move(Elements<T>::_node[j].data));
 
 					replace_node(j, i, true);
 
@@ -778,7 +812,7 @@ class TreeSet : protected Elements<T> {
 			auto & p = Elements<T>::_node[parent].tree;
 			if ((parent == 0 && contains_node(e.data, parent, c)) || c == 0) {
 				assert(p.active);
-				return Pair<Iterator,bool>(Iterator(*this, parent), false);
+				return { Iterator(*this, parent), false };
 			} else if (c < 0) {
 				assert(p.right == 0);
 				p.right = element;
@@ -825,7 +859,7 @@ class TreeSet : protected Elements<T> {
 		}
 
 		Elements<T>::_count++;
-		return Pair<Iterator,bool>(Iterator(*this, element), true);
+		return { Iterator(*this, element), true };
 	}
 
 	/*! \brief Remove node (with at most one child)
@@ -1050,25 +1084,37 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 
 	inline Optional<V> erase(const Iterator & position) {
 		auto i = Base::erase(position);
-		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
+		if (i)
+			return { move(i.value().value) };
+		else
+			return {};
 	}
 
 	template<typename O>
 	inline Optional<V> erase(const O& key) {
 		auto i = Base::erase(key);
-		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
+		if (i)
+			return { move(i.value().value) };
+		else
+			return {};
 	}
 
 	template<typename O>
 	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
-		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
+		if (i)
+			return { move(i.value().value) };
+		else
+			return {};
 	}
 
 	template<typename O>
 	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
-		return i ? Optional<V>(move(i.value().value)) : Optional<V>();
+		if (i)
+			return { move(i.value().value) };
+		else
+			return {};
 	}
 
 	template<typename O>

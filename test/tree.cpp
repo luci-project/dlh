@@ -22,18 +22,18 @@ int main(int argc, const char *argv[]) {
 	s.insert(1572877);
 	auto it1 = s.find(204);
 	if (it1) {
-		auto tmp = s.extract(it1);
+		auto && tmp = s.extract(it1);
 		tmp.value() = 205;
-		s.insert(tmp);
+		s.insert(move(tmp));
 	}
 	s.insert(13);
 	s.resize(128);
 	s.insert(32);
 	auto it2 = s.find(7);
 	if (it2) {
-		auto tmp = s.extract(it2);
+		auto && tmp = s.extract(it2);
 		tmp.value() = 13;
-		s.insert(tmp);
+		s.insert(move(tmp));
 	}
 	s.insert(42);
 	s.insert(52);

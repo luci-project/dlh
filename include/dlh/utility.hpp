@@ -25,3 +25,8 @@ constexpr T&& forward(typename remove_reference<T>::type && arg) noexcept {
   static_assert(!is_lvalue_reference<T>::value, "invalid rvalue to lvalue conversion");
   return static_cast<T&&>(arg);
 }
+
+inline void *operator new(size_t n, void * ptr) {
+	(void)n;
+	return ptr;
+}

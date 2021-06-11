@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/utility.hpp>
+#include <dlh/stream/output.hpp>
 
 template<class T>
 class Optional {
@@ -18,7 +19,15 @@ class Optional {
 	Optional(T&& value) : _assigned(true), _value(move(value)) {}
 
 	template <class... ARGS>
-	Optional(ARGS&&... args) : _assigned(true), _value(move(T(forward<ARGS>(args)...))) {}
+	explicit Optional(const ARGS&... args) : _assigned(true), _value(args...) {}
+
+	template <class... ARGS>
+	explicit Optional(ARGS&&... args) : _assigned(true), _value(forward<ARGS>(args)...) {}
+
+	~Optional() {
+		if (_assigned)
+			_value.~T();
+	}
 
 	T* operator->() {
 		assert(_assigned);

@@ -10,7 +10,7 @@ class ByteBuffer {
  public:
 	ByteBuffer() : _size(0) {}
 
-	inline void * buffer() const {
+	inline const void * buffer() const {
 		return _buffer;
 	}
 
