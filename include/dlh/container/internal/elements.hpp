@@ -4,6 +4,7 @@
 #include <dlh/alloc.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
+#include <dlh/type_traits.hpp>
 
 template<class T>
 struct Elements {
@@ -13,6 +14,12 @@ struct Elements {
 
 	struct Node {
 		union {
+			struct __attribute__ ((packed)) {
+				uint64_t a,b;
+			} mem;
+			struct {
+				bool active;
+			} generic;
 			struct {
 				bool active;
 				uint32_t prev, next, temp;
@@ -27,8 +34,21 @@ struct Elements {
 		T data;
 
 		T& value() { return data; }
-	} * _node;
 
+
+		~Node() {
+			if (generic.active)
+				data.~T();
+		}
+
+		Node & operator=(const Node& other) {
+			cerr << "baz" << endl;
+			mem = other.mem;
+			if (generic.active)
+				new (&data) T(other.data);
+			return *this;
+		}
+	} * _node;
 	static_assert(sizeof(Node) == 16 + sizeof(T), "Wrong Node size");
 
 	/*! \brief Constructor (empty) element container
@@ -41,44 +61,33 @@ struct Elements {
 	 */
 	Elements(const Elements<T>& e) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(nullptr) {
 		if (e._capacity > 0) {
-			_node = reinterpret_cast<Node*>(malloc(e._capacity * sizeof(Node)));
+			auto s = e._capacity * sizeof(Node);
+			_node = reinterpret_cast<Node*>(malloc(s));
 			assert(_node != nullptr);
-			for (size_t i = 0; i < e._next; i++)
-				_node[i] = e._node[i];
+			if (is_integral<T>::value || is_reference<T>::value)
+				memcpy(reinterpret_cast<void*>(_node), reinterpret_cast<void*>(e._node), s);
+			else
+				for (size_t i = 0; i < e._next; i++)
+					_node[i] = e._node[i];
 		}
 	}
 
 	/*! \brief Default move constructor
 	 */
-	Elements(Elements<T> &&) = default;
+	Elements(Elements<T> && e) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(e._node) {
+		e._capacity = 0;
+		e._next = 1;
+		e._count = 0;
+		e._node = nullptr;
+	}
 
 	/*! \brief Destructor
 	 */
 	virtual ~Elements() {
-		free(Elements<T>::_node);
+		clear();
+		if (_node != nullptr)
+			free(_node);
 	}
-
-	/*! \brief Copy assignment operator
-	 * \param e Element container to copy
-	 * \return Reference to this instance
-	 */
-	Elements<T> & operator=(const Elements<T> & e) {
-		_next = e._next;
-		_count = e._count;
-		if ((_capacity = e._capacity) > 0) {
-			_node = reinterpret_cast<Node*>(malloc(e._capacity * sizeof(Node)));
-			assert(_node != nullptr);
-			for (size_t i = 0; i < e._next; i++)
-				_node[i] = e._node[i];
-		} else {
-			_node = nullptr;
-		}
-		return *this;
-	}
-
-	/*! \brief Default move assignment operator
-	 */
-	Elements<T> & operator=(Elements<T> &&) = default;
 
 	/*! \brief Resize element slots to capacity
 	 * \param capacity the new capacity
@@ -111,6 +120,18 @@ struct Elements {
 			return index < _next;
 		} else {
 			return false;
+		}
+	}
+
+	void clear() {
+		if (_count > 0) {
+			for (size_t i = 0; i < _next; i++)
+				if (_node[i].generic.active) {
+					_node[i].data.~T();
+					_node[i].generic.active = false;
+				}
+			_next = 1;
+			_count = 0;
 		}
 	}
 };
