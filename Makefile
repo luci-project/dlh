@@ -5,7 +5,7 @@ SOURCE_FOLDER = src
 CXX = g++
 CXXFLAGS ?= -Og -g
 CXXFLAGS += -I include
-CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-pic
+CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -mno-red-zone -fno-pic
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 #   -fno-rtti -fno-exceptions -Wno-write-strings -fno-stack-protector -mno-red-zone
