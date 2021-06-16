@@ -38,7 +38,7 @@ extern "C" int raise(signal_t sig) {
 	// TODO
 	unsigned long set, mask = { 0xfffffffc7fffffff };
 	__syscall(SYS_rt_sigprocmask, SIG_BLOCK, &mask, &set, 8);
-	int ret = syscall(SYS_tkill, gettid(), &sig);
+	int ret = syscall(SYS_tgkill, getpid(), gettid(), sig);
 	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &set, 0, 8);
 	return ret;
 }
