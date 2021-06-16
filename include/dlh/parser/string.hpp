@@ -1,24 +1,29 @@
 #pragma once
 
 #include <dlh/container/vector.hpp>
+#include <dlh/types.hpp>
 
 namespace Parser {
 
-bool string(uint64_t & target, const char * value);
+bool string(unsigned long long & target, const char * value);
 
-bool string(int64_t & target, const char * value);
+bool string(long long & target, const char * value);
 
-bool string(uint32_t & target, const char * value);
+bool string(unsigned long & target, const char * value);
 
-bool string(int32_t & target, const char * value);
+bool string(long & target, const char * value);
 
-bool string(uint16_t & target, const char * value);
+bool string(unsigned int & target, const char * value);
 
-bool string(int16_t & target, const char * value);
+bool string(int & target, const char * value);
 
-bool string(uint8_t & target, const char * value);
+bool string(unsigned short & target, const char * value);
 
-bool string(int8_t & target, const char * value);
+bool string(short & target, const char * value);
+
+bool string(unsigned char & target, const char * value);
+
+bool string(char & target, const char * value);
 
 bool string(bool & target, const char * value);
 
