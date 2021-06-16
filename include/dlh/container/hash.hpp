@@ -18,7 +18,7 @@
  * \tparam L percentage of hash buckets (compared to element capacity)
  */
 template<typename T, typename C = Comparison, size_t L = 150>
-class HashSet : protected Elements<T> {
+class HashSet : public Elements<T> {
  protected:
 	using typename Elements<T>::_capacity;
 	using typename Elements<T>::_next;
@@ -30,6 +30,57 @@ class HashSet : protected Elements<T> {
 
 	/*! \brief Pointer to start of hash bucket array */
 	uint32_t * _bucket = nullptr;
+
+	/*! \brief base hash set iterator
+	 */
+	struct BaseIterator {
+		const HashSet<T, C> &ref;
+		mutable uint32_t i;
+
+		BaseIterator(const HashSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+
+		inline void next() const {
+			do {
+				i++;
+			} while (i < ref._next && !ref._node[i].hash.active);
+		}
+
+		inline void prev() const {
+			do {
+				i--;
+			} while (i > 0 && !ref._node[i].hash.active);
+		}
+
+		inline const T& operator*() const {
+			assert(ref._node[i].hash.active);
+			return ref._node[i].data;
+		}
+
+		inline const T* operator->() const {
+			assert(ref._node[i].hash.active);
+			return &(ref._node[i].data);
+		}
+
+		inline bool operator==(BaseIterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		inline bool operator==(const T& other) const {
+			return C::equal(ref._node[i].data, other);
+		}
+
+		inline bool operator!=(BaseIterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		inline bool operator!=(const T& other) const {
+			return !C::equal(ref._node[i].data, other);
+		}
+
+		inline operator bool() const {
+			return i != 0 && i != ref._next;
+		}
+	};
 
  public:
 	using typename Elements<T>::Node;
@@ -59,52 +110,45 @@ class HashSet : protected Elements<T> {
 	 * \return elements Elements container
 	 */
 	HashSet(const Elements<T>& elements) : Elements<T>(elements) {
-		rehash();
-		assert(empty() || !Elements<T>::_node[0].hash.active);
+		if (!empty()) {
+			assert(!Elements<T>::_node[0].hash.active);
+			_bucket_capacity = buckets(Elements<T>::_capacity);
+			_bucket = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), _bucket_capacity));
+			bucketize(true, true);
+		}
 	}
 
 	/*! \brief Convert to hash set
 	 * \return elements Elements container
 	 */
-	HashSet(HashSet<T, C, L> &&) = default;
+	HashSet(HashSet<T, C> && set) : Elements<T>(move(set)), _bucket_capacity(set._bucket_capacity), _bucket(set._bucket) {
+		set._bucket_capacity = 0;
+		set._bucket = nullptr;
+	}
 
 	/*! \brief Convert to hash set
 	 * \return elements Elements container
 	 */
 	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
-		rehash();
-		assert(empty() || !Elements<T>::_node[0].hash.active);
-	}
-
-	/*! \brief Copy assignment operator
-	 * \param set HashSet to copy
-	 */
-	HashSet<T, C, L> & operator=(const HashSet<T, C, L> & set) {
-		Elements<T>::operator=(set);
-		if ((_bucket_capacity = set._bucket_capacity) > 0) {
-			const size_t size = _bucket_capacity * sizeof(uint32_t);
-			_bucket = reinterpret_cast<uint32_t *>(malloc(size));
-			assert(_bucket != nullptr);
-			memcpy(_bucket, set._bucket, size);
+		if (!empty()) {
 			assert(!Elements<T>::_node[0].hash.active);
-		} else {
-			_bucket = nullptr;
+			_bucket_capacity = buckets(Elements<T>::_capacity);
+			_bucket = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), _bucket_capacity));
+			bucketize(true, true);
 		}
-		return *this;
 	}
 
-	/*! \brief Default move assignment operator
-	 */
-	HashSet<T, C, L> & operator=(HashSet<T, C, L> &&) = default;
+	HashSet<T, C> & operator=(const HashSet<T, C> &) = delete;
+	HashSet<T, C> & operator=(HashSet<T, C> &&) = delete;
 
 	/*! \brief Range constructor
-	 * \param first First element in range
-	 * \param last Last element in range
+	 * \param begin First element in range
+	 * \param end End of range
 	 * \param initial_capacity space to reserve
 	 */
 	template<typename I>
-	explicit HashSet(I first, I last, size_t initial_capacity = 0) : HashSet(initial_capacity) {
-		for (I i = first; i < last; ++i)
+	explicit HashSet(const I & begin, const I & end, size_t initial_capacity = 0) : HashSet(initial_capacity) {
+		for (I i = begin; i != end; ++i)
 			emplace(*i);
 		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
@@ -112,128 +156,102 @@ class HashSet : protected Elements<T> {
 	/*! \brief Destructor
 	 */
 	virtual ~HashSet() {
-		clear();
-		free(_bucket);
+		if (_bucket != nullptr)
+			free(_bucket);
 	}
 
-	/*! \brief hash set iterator
+	/*! \brief binary search tree iterator
 	 */
-	class Iterator {
+	class Iterator : public BaseIterator {
 		friend class HashSet<T, C>;
-		HashSet<T, C> &ref;
-		uint32_t i;
-
-		Iterator(HashSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		Iterator(HashSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
 
 	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
 		Iterator& operator++() {
-			do {
-				i++;
-			} while (i < ref._next && !ref._node[i].hash.active);
+			BaseIterator::next();
 			return *this;
 		}
 
 		inline T& operator*() {
-			assert(ref._node[i].hash.active);
-			return ref._node[i].data;
-		}
-
-		inline const T& operator*() const {
-			assert(ref._node[i].hash.active);
-			return ref._node[i].data;
+			return const_cast<T&>(BaseIterator::operator*());
 		}
 
 		inline T* operator->() {
-			assert(ref._node[i].hash.active);
-			return &(ref._node[i].data);
-		}
-
-		inline const T* operator->() const {
-			assert(ref._node[i].hash.active);
-			return &(ref._node[i].data);
-		}
-
-		inline bool operator==(const Iterator& other) const {
-			return &ref == &other.ref && i == other.i;
-		}
-
-		template<typename O>
-		inline bool operator==(const O& other) const {
-			return C::equal(ref.element[i].data, other);
-		}
-
-		inline bool operator!=(const Iterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		template<typename O>
-		inline bool operator!=(const T& other) const {
-			return !C::equal(ref.element[i].data, other);
-		}
-
-		inline operator bool() const {
-			return i != ref._next;
+			return const_cast<T*>(BaseIterator::operator->());
 		}
 	};
 
-	/*! \brief hash set iterator
+	/*! \brief constant binary search tree iterator
 	 */
-	class ConstIterator {
+	class ConstIterator : public BaseIterator {
 		friend class HashSet<T, C>;
-		const HashSet<T, C> &ref;
-		mutable uint32_t i;
-
-		ConstIterator(const HashSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		ConstIterator(const HashSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
 
 	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
 		const ConstIterator& operator++() const {
-			do {
-				i++;
-			} while (i < ref._next && !ref._node[i].hash.active);
+			BaseIterator::next();
 			return *this;
 		}
 
-		inline const T& operator*() const {
-			assert(ref._node[i].hash.active);
-			return ref._node[i].data;
+	};
+
+	/*! \brief Reverse binary search tree iterator
+	 */
+	class ReverseIterator : public BaseIterator {
+		friend class HashSet<T, C>;
+		ReverseIterator(HashSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
+
+	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		ReverseIterator& operator++() {
+			BaseIterator::prev();
+			return *this;
 		}
 
-		inline const T* operator->() const {
-			assert(ref._node[i].hash.active);
-			return &(ref._node[i].data);
+		inline T& operator*() {
+			return const_cast<T&>(BaseIterator::operator*());
 		}
 
-		inline bool operator==(const Iterator& other) const {
-			return &ref == &other.ref && i == other.i;
-		}
-
-		inline bool operator==(const ConstIterator& other) const {
-			return &ref == &other.ref && i == other.i;
-		}
-
-		template<typename O>
-		inline bool operator==(const O& other) const {
-			return C::equal(ref.element[i].data, other);
-		}
-
-		inline bool operator!=(const Iterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		inline bool operator!=(const ConstIterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		template<typename O>
-		inline bool operator!=(const T& other) const {
-			return !C::equal(ref.element[i].data, other);
-		}
-
-		inline operator bool() const {
-			return i != ref._next;
+		inline T* operator->() {
+			return const_cast<T*>(BaseIterator::operator->());
 		}
 	};
 
+	/*! \brief constant binary search tree iterator
+	 */
+	class ConstReverseIterator : public BaseIterator {
+		friend class HashSet<T, C>;
+		ConstReverseIterator(const HashSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
+
+	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		const ConstReverseIterator& operator++() const {
+			BaseIterator::prev();
+			return *this;
+		}
+	};
 
 	/*! \brief Get iterator to first element
 	 * \return iterator to first valid element (if available) or `end()`
@@ -275,6 +293,48 @@ class HashSet : protected Elements<T> {
 	 */
 	inline ConstIterator end() const {
 		return { *this, Elements<T>::_next };
+	}
+
+	/*! \brief Get iterator to last element
+	 * \return iterator to last valid element (if available) or `rend()`
+	 */
+	inline ReverseIterator rbegin() {
+		if (empty()) {
+			return rend();
+		} else {
+			uint32_t i = Elements<T>::_next - 1;
+			while (i > 0 && !Elements<T>::_node[i].hash.active)
+				i--;
+			return { *this, i };
+		}
+	}
+
+	/*! \brief Get reverse iterator to end (pre-first-element)
+	 * \return iterator to end (first invalid element)
+	 */
+	inline ReverseIterator rend() {
+		return { *this, 0 };
+	}
+
+	/*! \brief Get iterator to last element
+	 * \return iterator to last valid element (if available) or `rend()`
+	 */
+	inline ConstReverseIterator rbegin() const {
+		if (empty()) {
+			return rend();
+		} else {
+			uint32_t i = Elements<T>::_next - 1;
+			while (i > 0 && !Elements<T>::_node[i].hash.active)
+				i--;
+			return { *this, i };
+		}
+	}
+
+	/*! \brief Get reverse iterator to end (pre-first-element)
+	 * \return iterator to end (first invalid element)
+	 */
+	inline ConstReverseIterator rend() const {
+		return { *this, 0 };
 	}
 
 	/*! \brief Create new element into set
@@ -457,10 +517,7 @@ class HashSet : protected Elements<T> {
 			Elements<T>::_node[0].hash.active = false;
 
 			// resize hash buckets
-			size_t bucket_cap = capacity * L / 100;
-			if (bucket_cap >= UINT32_MAX)
-				bucket_cap = UINT32_MAX - 1;
-
+			auto bucket_cap = buckets(capacity);
 			auto bucket_ptr = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), bucket_cap));
 			if (bucket_ptr != nullptr) {
 				free(_bucket);
@@ -512,17 +569,20 @@ class HashSet : protected Elements<T> {
 
 	/*! \brief Clear all elements in set */
 	void clear() {
-		for (size_t i = 1; i < Elements<T>::_next; i++)
-			if (Elements<T>::_node[i].hash.active)
-				Elements<T>::_node[i].data.~T();
-
-		Elements<T>::_next = 1;
-		Elements<T>::_count = 0;
-
-		memset(_bucket, 0, sizeof(uint32_t) * _bucket_capacity);
+		Elements<T>::clear();
+		if (_bucket != nullptr)
+			memset(_bucket, 0, sizeof(uint32_t) * _bucket_capacity);
 	}
 
  private:
+	/*! \brief Calculate buckets for given element capacity
+	 * \return number of buckets
+	 */
+	static uint32_t buckets(uint32_t capacity) {
+		auto b = capacity * L / 100ULL;
+		return b >= UINT32_MAX ? UINT32_MAX - 1 : static_cast<uint32_t>(b);
+	}
+
 	/*! \brief Increase capacity (by reordering or resizing) if required
 	 * \return `false` on error
 	 */
