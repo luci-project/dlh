@@ -15,9 +15,76 @@
  * \tparam C structure with comparison functions (compare())
  */
 template<typename T, typename C = Comparison>
-class TreeSet : protected Elements<T> {
+class TreeSet : public Elements<T> {
  protected:
-	uint32_t _root;
+	uint32_t _root = 0;
+
+	/*! \brief base binary search tree iterator
+	 */
+	struct BaseIterator {
+		const TreeSet<T, C> &ref;
+		mutable uint32_t i;
+
+		BaseIterator(const TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+
+		inline void next() const {
+			const uint32_t right = ref._node[i].tree.right;
+			if (right != 0) {
+				i = ref.min_node(right);
+			} else {
+				while(i != 0) {
+					const uint32_t old = i;
+					i = ref._node[old].tree.parent;
+					if (ref._node[i].tree.left == old)
+						break;
+				}
+			}
+		}
+
+		inline void prev() const {
+			const uint32_t left = ref._node[i].tree.left;
+			if (left != 0) {
+				i = ref.max_node(left);
+			} else {
+				while(i != 0) {
+					const uint32_t old = i;
+					i = ref._node[old].tree.parent;
+					if (ref._node[i].tree.right == old)
+						break;
+				}
+			}
+		}
+
+		inline const T& operator*() const {
+			assert(ref._node[i].tree.active);
+			return ref._node[i].data;
+		}
+
+		inline const T* operator->() const {
+			assert(ref._node[i].tree.active);
+			return &(ref._node[i].data);
+		}
+
+		inline bool operator==(BaseIterator& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		inline bool operator==(const T& other) const {
+			return C::compare(ref._node[i].data, other) == 0;
+		}
+
+		inline bool operator!=(BaseIterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		inline bool operator!=(const T& other) const {
+			return C::compare(ref._node[i].data, other) != 0;
+		}
+
+		inline operator bool() const {
+			return i != 0;
+		}
+	};
 
  public:
 	using typename Elements<T>::Node;
@@ -25,7 +92,7 @@ class TreeSet : protected Elements<T> {
 	/*! \brief Create new balanced binary search tree
 	 * \return capacity initial capacity
 	 */
-	explicit TreeSet(size_t capacity = 0) : _root(0) {
+	explicit TreeSet(size_t capacity = 0) {
 		if (capacity > 0) {
 			Elements<T>::resize(capacity);
 			Elements<T>::_node[0].tree.active = false;
@@ -40,184 +107,140 @@ class TreeSet : protected Elements<T> {
 	 * \return elements Elements container
 	 */
 	TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
+		Elements<T>::_count = 0;
 		for (size_t i = 1; i < Elements<T>::_next; i++)
-			if (Elements<T>::_node[i].tree.active)
-				insert(0, i, 0);
+			if (Elements<T>::_node[i].tree.active && !insert(0, i, 0).second)
+				Elements<T>::_node[i].tree.active = false;
 		assert(empty() || !Elements<T>::_node[0].tree.active);
+		assert(Elements<T>::_count <= elements._count);
+		assert(Elements<T>::_next == elements._next);
 	}
 
 	/*! \brief Default move constructor for a binary search tree from a tree set
 	 */
-	TreeSet(TreeSet<T, C> &&) = default;
+	TreeSet(TreeSet<T, C> && set) : Elements<T>(move(set)), _root(set._root) {
+		set._root = 0;
+	}
 
 	/*! \brief Move constructor for a binary search tree from an element container
 	 * \return elements container
 	 */
 	TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
+		Elements<T>::_count = 0;
 		for (size_t i = 1; i < Elements<T>::_next; i++)
-			if (Elements<T>::_node[i].tree.active)
-				insert(0, i, 0);
+			if (Elements<T>::_node[i].tree.active && !insert(0, i, 0).second)
+				Elements<T>::_node[i].tree.active = false;
 		assert(empty() || !Elements<T>::_node[0].tree.active);
+		assert(Elements<T>::_count <= elements._count);
+		assert(Elements<T>::_next == elements._next);
 	}
 
-	/*! \brief Default copy assignment operator
-	 */
-	TreeSet<T, C> & operator=(const TreeSet<T, C> &) = default;
-
-
-	/*! \brief Default move assignment operator
-	 */
-	TreeSet<T, C> & operator=(TreeSet<T, C> &&) = default;
-
 	/*! \brief Range constructor
-	 * \param first First element in range
-	 * \param last Last element in range
+	 * \param begin First element in range
+	 * \param end End of range
 	 * \param capacity_reserve additional space to reserve
 	 */
 	template<typename I>
-	explicit TreeSet(I first, I last,  size_t capacity_reserve = 0) : TreeSet(capacity_reserve) {
-		for (I i = first; i < last; ++i)
+	explicit TreeSet(const I & begin, const I & end, size_t capacity_reserve = 0) : TreeSet(capacity_reserve) {
+		for (I i = begin; i != end; ++i)
 			emplace(*i);
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Destructor
 	 */
-	virtual ~TreeSet() {
-		clear();
-	}
+	virtual ~TreeSet() {}
 
 	/*! \brief binary search tree iterator
 	 */
-	class Iterator {
+	class Iterator : public BaseIterator {
 		friend class TreeSet<T, C>;
-		TreeSet<T, C> &ref;
-		uint32_t i;
-
-		Iterator(TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		Iterator(TreeSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
 
 	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
 		Iterator& operator++() {
-			const uint32_t right = ref._node[i].tree.right;
-			if (right != 0) {
-				i = ref.min_node(right);
-			} else {
-				while(i != 0) {
-					const uint32_t old = i;
-					i = ref._node[old].tree.parent;
-					if (ref._node[i].tree.left == old)
-						break;
-				}
-			}
+			BaseIterator::next();
 			return *this;
 		}
 
 		inline T& operator*() {
-			assert(ref._node[i].tree.active);
-			return ref._node[i].data;
-		}
-
-		inline const T& operator*() const {
-			assert(ref._node[i].tree.active);
-			return ref._node[i].data;
+			return const_cast<T&>(BaseIterator::operator*());
 		}
 
 		inline T* operator->() {
-			assert(ref._node[i].tree.active);
-			return &(ref._node[i].data);
-		}
-
-		inline const T* operator->() const {
-			assert(ref._node[i].tree.active);
-			return &(ref._node[i].data);
-		}
-
-		inline bool operator==(const Iterator& other) const {
-			return &ref == &other.ref && i == other.i;
-		}
-
-		template <typename O>
-		inline bool operator==(const O& other) const {
-			return C::compare(ref.element[i].data, other) == 0;
-		}
-
-		inline bool operator!=(const Iterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		template <typename O>
-		inline bool operator!=(const O& other) const {
-			return C::compare(ref.element[i].data, other) != 0;
-		}
-
-		inline operator bool() const {
-			return i != 0;
+			return const_cast<T*>(BaseIterator::operator->());
 		}
 	};
 
-	/*! \brief binary search tree iterator
+	/*! \brief constant binary search tree iterator
 	 */
-	class ConstIterator {
+	class ConstIterator : public BaseIterator {
 		friend class TreeSet<T, C>;
-		const TreeSet<T, C> &ref;
-		mutable uint32_t i;
-
-		ConstIterator(const TreeSet<T, C> &ref, uint32_t p) : ref(ref), i(p) {}
+		ConstIterator(const TreeSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
 
 	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
 		const ConstIterator& operator++() const {
-			const uint32_t right = ref._node[i].tree.right;
-			if (right != 0) {
-				i = ref.min_node(right);
-			} else {
-				while(i != 0) {
-					const uint32_t old = i;
-					i = ref._node[old].tree.parent;
-					if (ref._node[i].tree.left == old)
-						break;
-				}
-			}
+			BaseIterator::next();
 			return *this;
 		}
 
-		inline const T& operator*() const {
-			assert(ref._node[i].tree.active);
-			return ref._node[i].data;
+	};
+
+	/*! \brief Reverse binary search tree iterator
+	 */
+	class ReverseIterator : public BaseIterator {
+		friend class TreeSet<T, C>;
+		ReverseIterator(TreeSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
+
+	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		ReverseIterator& operator++() {
+			BaseIterator::prev();
+			return *this;
 		}
 
-		inline const T* operator->() const {
-			assert(ref._node[i].tree.active);
-			return &(ref._node[i].data);
+		inline T& operator*() {
+			return const_cast<T&>(BaseIterator::operator*());
 		}
 
-		inline bool operator==(const Iterator& other) const {
-			return &ref == &other.ref && i == other.i;
+		inline T* operator->() {
+			return const_cast<T*>(BaseIterator::operator->());
 		}
+	};
 
-		inline bool operator==(const ConstIterator& other) const {
-			return &ref == &other.ref && i == other.i;
-		}
+	/*! \brief constant binary search tree iterator
+	 */
+	class ConstReverseIterator : public BaseIterator {
+		friend class TreeSet<T, C>;
+		ConstReverseIterator(const TreeSet<T, C> &ref, uint32_t p) : BaseIterator(ref, p) {}
 
-		template <typename O>
-		inline bool operator==(const O& other) const {
-			return C::compare(ref.element[i].data, other) == 0;
-		}
+	 public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
 
-		inline bool operator!=(const Iterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		inline bool operator!=(const ConstIterator& other) const {
-			return &ref != &other.ref || i != other.i;
-		}
-
-		template <typename O>
-		inline bool operator!=(const O& other) const {
-			return C::compare(ref.element[i].data, other) != 0;
-		}
-
-		inline operator bool() const {
-			return i != 0;
+		const ConstReverseIterator& operator++() const {
+			BaseIterator::prev();
+			return *this;
 		}
 	};
 
@@ -318,9 +341,9 @@ class TreeSet : protected Elements<T> {
 	template<typename O>
 	inline Optional<T> erase(const O & value) {
 		auto position = find(value);
-		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
+		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active) {
 			return { move(extract(position).data) };
-		else
+		} else
 			return {};
 	}
 
@@ -365,7 +388,7 @@ class TreeSet : protected Elements<T> {
 		return { *this, min_node(_root) };
 	}
 
-	/*! \brief Iterator to the lowest element in this set
+	/*! \brief Constant iterator to the lowest element in this set
 	 * \return Iterator to the lowest element
 	 */
 	inline ConstIterator begin() const {
@@ -379,10 +402,38 @@ class TreeSet : protected Elements<T> {
 		return { *this, 0 };
 	}
 
-	/*! \brief Iterator refering to the past-the-end element in this set
+	/*! \brief Constant iterator refering to the past-the-end element in this set
 	 * \return Iterator to the element past the end of this set
 	 */
 	inline ConstIterator end() const {
+		return { *this, 0 };
+	}
+
+	/*! \brief Iterator to the highest element in this set
+	 * \return Iterator to the highest element
+	 */
+	inline ReverseIterator rbegin() {
+		return { *this, max_node(_root) };
+	}
+
+	/*! \brief Constant iterator to the highest element in this set
+	 * \return Iterator to the highest element
+	 */
+	inline ConstReverseIterator rbegin() const {
+		return { *this, max_node(_root) };
+	}
+
+	/*! \brief Iterator refering to the before-the-start element in this set
+	 * \return Iterator to the element before the begin of this set
+	 */
+	inline ReverseIterator rend() {
+		return { *this, 0 };
+	}
+
+	/*! \brief Constant iterator refering to thebefore-the-start element in this set
+	 * \return Iterator to the element past the begin of this set
+	 */
+	inline ConstReverseIterator rend() const {
 		return { *this, 0 };
 	}
 
@@ -533,12 +584,7 @@ class TreeSet : protected Elements<T> {
 
 	/*! \brief Clear all elements in set */
 	void clear() {
-		for (size_t i = 1; i < Elements<T>::_next; i++)
-			if (Elements<T>::_node[i].tree.active)
-				Elements<T>::_node[i].data.~T();
-
-		Elements<T>::_next = 1;
-		Elements<T>::_count = 0;
+		Elements<T>::clear();
 		_root = 0;
 	}
 
@@ -808,18 +854,15 @@ class TreeSet : protected Elements<T> {
 			assert(parent == 0);
 			assert(Elements<T>::_count == 0);
 			_root = element;
-		} else {
-			auto & p = Elements<T>::_node[parent].tree;
-			if ((parent == 0 && contains_node(e.data, parent, c)) || c == 0) {
-				assert(p.active);
-				return { Iterator(*this, parent), false };
-			} else if (c < 0) {
-				assert(p.right == 0);
-				p.right = element;
-			} else /* if (c > 0) */ {
-				assert(p.left == 0);
-				p.left = element;
-			}
+		} else if ((parent == 0 && contains_node(e.data, parent = _root, c)) || c == 0) {
+			assert(Elements<T>::_node[parent].tree.active);
+			return { Iterator(*this, parent), false };
+		} else if (c < 0) {
+			assert(Elements<T>::_node[parent].tree.right == 0);
+			Elements<T>::_node[parent].tree.right = element;
+		} else /* if (c > 0) */ {
+			assert(Elements<T>::_node[parent].tree.left == 0);
+			Elements<T>::_node[parent].tree.left = element;
 		}
 		e.tree.active = true;
 		e.tree.balance = 0;
