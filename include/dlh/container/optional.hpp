@@ -14,9 +14,18 @@ class Optional {
  public:
 	Optional() : _assigned(false), _used(false) {}
 
+	Optional(const Optional& other) : _assigned(other._assigned) {
+		if (_assigned)
+			new (&_value) T(other._value);
+	}
+
+	Optional(Optional&& other) = default;
+
 	Optional(const T& value) : _assigned(true), _value(value) {}
 
-	Optional(T&& value) : _assigned(true), _value(move(value)) {}
+	Optional(T&& value) : _assigned(true), _value(value) {
+		value.~T();
+	}
 
 	template <class... ARGS>
 	explicit Optional(const ARGS&... args) : _assigned(true), _value(args...) {}
