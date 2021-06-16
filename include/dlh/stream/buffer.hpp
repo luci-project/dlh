@@ -354,28 +354,3 @@ inline BufferStream& noprefix(BufferStream& os) {
 	os.prefix(false);
 	return os;
 }
-
-/*! \brief Wrapper for vsnprintf
- * \param str Target buffer to store the formated string
- * \param size Size of the target buffer
- * \param format format string
- * \param ap value identifying a variable arguments list
- * \return Bytes written
- */
-inline int vsnprintf(char *str, size_t size, const char *format, va_list ap) {
-	return BufferStream(str, size).format(format, ap);
-}
-
-/*! \brief Wrapper for snprintf
- * \param str Target buffer to store the formated string
- * \param size Size of the target buffer
- * \param format format string
- * \return Bytes written
- */
-inline int snprintf(char *str, size_t size, const char *format, ...) {
-	va_list args;
-	va_start(args, format);
-	size_t ret = vsnprintf(str, size, format, args);
-	va_end(args);
-	return ret;
-}
