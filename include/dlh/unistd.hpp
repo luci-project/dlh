@@ -144,10 +144,11 @@ typedef enum : int {
 struct stat {
 	unsigned long   st_dev;
 	unsigned long   st_ino;
-	unsigned        st_mode;
 	unsigned long   st_nlink;
+	unsigned        st_mode;
 	unsigned        st_uid;
 	unsigned        st_gid;
+	unsigned        __pad0;
 	unsigned long   st_rdev;
 	off_t           st_size;
 	long            st_blksize;
@@ -155,6 +156,7 @@ struct stat {
 	struct timespec st_atim;
 	struct timespec st_mtim;
 	struct timespec st_ctim;
+	long            __unused[3];
 };
 
 // Memory Mapping (m*)
