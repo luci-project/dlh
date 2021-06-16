@@ -47,7 +47,7 @@ template<class T> class Vector {
 	 */
 	explicit Vector(size_t capacity) : _element(nullptr), _size(capacity), _capacity(capacity) {
 		if (capacity > 0) {
-			_element = malloc(capacity * sizeof(T));
+			_element = reinterpret_cast<T*>(malloc(capacity * sizeof(T)));
 			assert(_element != nullptr);
 		}
 	}
@@ -141,7 +141,7 @@ template<class T> class Vector {
 	 */
 	inline void reserve(size_t capacity) {
 		if (capacity > this->_capacity) {
-			_element = reinterpret_cast<T*>(realloc(_element, capacity * sizeof(T)));
+			_element = reinterpret_cast<T*>(realloc(reinterpret_cast<void *>(_element), capacity * sizeof(T)));
 			this->_capacity = capacity;
 		}
 	}
@@ -248,7 +248,7 @@ template<class T> class Vector {
 	 * \param i index
 	 */
 	inline T & operator[](int i) {
-		assert(i > 0 && static_cast<size_t>(i) < _size);
+		assert(i >= 0 && static_cast<size_t>(i) < _size);
 		return _element[i];
 	}
 
@@ -334,11 +334,11 @@ template<class T> class Vector {
 		}
 
 		bool operator==(const Vector<T>::Iterator& other) const {
-			return *i == *other.i;
+			return i == other.i;
 		}
 
 		bool operator!=(const Vector<T>::Iterator& other) const {
-			return *i != *other.i;
+			return i != other.i;
 		}
 	};
 

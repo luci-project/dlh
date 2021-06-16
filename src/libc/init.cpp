@@ -19,6 +19,7 @@ extern "C" void _init() {};
 extern "C" void _fini(){};
 
 __attribute__((__noinline__)) void __dlh_init (char **envp, char *name) {
+	(void)name;
 	environ = envp;
 
 /*
@@ -57,6 +58,7 @@ __attribute__((__noinline__)) void __dlh_init (char **envp, char *name) {
 }
 
 extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char **,char **), int argc, char **argv, void *atexit) {
+	(void)atexit;
 	char **envp = argv+argc+1;
 
 	__dlh_init(envp, argv[0]);

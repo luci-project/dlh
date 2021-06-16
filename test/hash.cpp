@@ -1,6 +1,7 @@
 #include <dlh/stream/output.hpp>
 #include <dlh/container/hash.hpp>
 #include <dlh/container/tree.hpp>
+#include <dlh/utils/iterator.hpp>
 
 
 int main(int argc, const char *argv[]) {
@@ -39,7 +40,6 @@ int main(int argc, const char *argv[]) {
 	s.insert(42);
 	s.insert(52);
 
-	auto n = s;
 	for (auto i : s)
 		cout << ' ' << i;
 	cout << endl << endl;
