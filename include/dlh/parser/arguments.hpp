@@ -1,9 +1,10 @@
 #pragma once
 
-#include <dlh/string.hpp>
+#include <dlh/container/initializer_list.hpp>
 #include <dlh/container/vector.hpp>
 #include <dlh/parser/string.hpp>
 #include <dlh/utils/log.hpp>
+#include <dlh/string.hpp>
 
 namespace Parser {
 
@@ -25,15 +26,15 @@ struct Arguments : Opts {
 			long long Opts::* ll;
 			unsigned long long Opts::* ull;
 			bool Opts::* b;
-			std::vector<const char *> Opts::* vstr;
-			std::vector<short> Opts::* vs;
-			std::vector<unsigned short> Opts::* vus;
-			std::vector<int> Opts::* vi;
-			std::vector<unsigned int> Opts::* vu;
-			std::vector<long> Opts::* vl;
-			std::vector<unsigned long> Opts::* vul;
-			std::vector<long long> Opts::* vll;
-			std::vector<unsigned long long> Opts::* vull;
+			Vector<const char *> Opts::* vstr;
+			Vector<short> Opts::* vs;
+			Vector<unsigned short> Opts::* vus;
+			Vector<int> Opts::* vi;
+			Vector<unsigned int> Opts::* vu;
+			Vector<long> Opts::* vl;
+			Vector<unsigned long> Opts::* vul;
+			Vector<long long> Opts::* vll;
+			Vector<unsigned long long> Opts::* vull;
 			void * ptr;
 		} m;
 
@@ -50,15 +51,15 @@ struct Arguments : Opts {
 		Member(long long Opts::* ll)                         : t(M_LL),   m({.ll = ll}),     is_vector(false) {}
 		Member(unsigned long long Opts::* ull)               : t(M_ULL),  m({.ull = ull}),   is_vector(false) {}
 		Member(bool Opts::* b)                               : t(M_B),    m({.b = b}),       is_vector(false) {}
-		Member(std::vector<const char *> Opts::* vstr)       : t(M_VSTR), m({.vstr = vstr}), is_vector(true) {}
-		Member(std::vector<short> Opts::* vs)                : t(M_VS),   m({.vs = vs}),     is_vector(true) {}
-		Member(std::vector<unsigned short> Opts::* vus)      : t(M_VUS),  m({.vs = vus}),    is_vector(true) {}
-		Member(std::vector<int> Opts::* vi)                  : t(M_VI),   m({.vi = vi}),     is_vector(true) {}
-		Member(std::vector<unsigned> Opts::* vu)             : t(M_VU),   m({.vu = vu}),     is_vector(true) {}
-		Member(std::vector<long> Opts::* vl)                 : t(M_VL),   m({.vl = vl}),     is_vector(true) {}
-		Member(std::vector<unsigned long> Opts::* vul)       : t(M_VUL),  m({.vul = vul}),   is_vector(true) {}
-		Member(std::vector<long long> Opts::* vll)           : t(M_VLL),  m({.vll = vll}),   is_vector(true) {}
-		Member(std::vector<unsigned long long> Opts::* vull) : t(M_VULL), m({.vull = vull}), is_vector(true) {}
+		Member(Vector<const char *> Opts::* vstr)            : t(M_VSTR), m({.vstr = vstr}), is_vector(true) {}
+		Member(Vector<short> Opts::* vs)                     : t(M_VS),   m({.vs = vs}),     is_vector(true) {}
+		Member(Vector<unsigned short> Opts::* vus)           : t(M_VUS),  m({.vs = vus}),    is_vector(true) {}
+		Member(Vector<int> Opts::* vi)                       : t(M_VI),   m({.vi = vi}),     is_vector(true) {}
+		Member(Vector<unsigned> Opts::* vu)                  : t(M_VU),   m({.vu = vu}),     is_vector(true) {}
+		Member(Vector<long> Opts::* vl)                      : t(M_VL),   m({.vl = vl}),     is_vector(true) {}
+		Member(Vector<unsigned long> Opts::* vul)            : t(M_VUL),  m({.vul = vul}),   is_vector(true) {}
+		Member(Vector<long long> Opts::* vll)                : t(M_VLL),  m({.vll = vll}),   is_vector(true) {}
+		Member(Vector<unsigned long long> Opts::* vull)      : t(M_VULL), m({.vull = vull}), is_vector(true) {}
 
 		bool is_bool() const {
 			return t == M_B;
@@ -218,8 +219,8 @@ struct Arguments : Opts {
 	};
 
  private:
-	std::vector<Parameter> args;
-	std::vector<const char *> positional, terminal;
+	Vector<Parameter> args;
+	Vector<const char *> positional, terminal;
 	validate_t validate_positional, validate_terminal;
 
 	Arguments() = default;
@@ -233,7 +234,7 @@ struct Arguments : Opts {
 	}
 
  public:
-	Arguments(const std::initializer_list<Parameter> & list, validate_t validate_positional = nullptr, validate_t validate_terminal = nullptr) : validate_positional(validate_positional), validate_terminal(validate_terminal) {
+	Arguments(const initializer_list<Parameter> & list, validate_t validate_positional = nullptr, validate_t validate_terminal = nullptr) : validate_positional(validate_positional), validate_terminal(validate_terminal) {
 		for (auto arg : list) {
 			// Check if parameter is unqiue
 			bool skip = false;
@@ -267,7 +268,7 @@ struct Arguments : Opts {
 		}
 	}
 
-	Arguments(const std::initializer_list<Parameter> & list) : Arguments(list, [](const char * str) -> bool { if (str != nullptr && *str == '-') { LOG_ERROR << "Positional parameter '" << str << "' looks like its not meant to be positional!" << endl; return false; } else { return true; } }, [](const char *) -> bool { return true; }) {}
+	Arguments(const initializer_list<Parameter> & list) : Arguments(list, [](const char * str) -> bool { if (str != nullptr && *str == '-') { LOG_ERROR << "Positional parameter '" << str << "' looks like its not meant to be positional!" << endl; return false; } else { return true; } }, [](const char *) -> bool { return true; }) {}
 
 	~Arguments() = default;
 
@@ -426,7 +427,7 @@ struct Arguments : Opts {
 		return positional.size() > 0;
 	}
 
-	std::vector<const char *> get_positional() {
+	Vector<const char *> get_positional() {
 		return positional;
 	}
 
@@ -434,7 +435,7 @@ struct Arguments : Opts {
 		return terminal.size() > 0;
 	}
 
-	std::vector<const char *> get_terminal() {
+	Vector<const char *> get_terminal() {
 		return terminal;
 	}
 
