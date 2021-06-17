@@ -22,6 +22,7 @@ class TreeSet : public Elements<T> {
 	/*! \brief base binary search tree iterator
 	 */
 	struct BaseIterator {
+		friend class TreeSet<T, C>;
 		const TreeSet<T, C> &ref;
 		mutable uint32_t i;
 
@@ -90,7 +91,7 @@ class TreeSet : public Elements<T> {
 	using typename Elements<T>::Node;
 
 	/*! \brief Create new balanced binary search tree
-	 * \return capacity initial capacity
+	 * \param capacity initial capacity
 	 */
 	explicit TreeSet(size_t capacity = 0) {
 		if (capacity > 0) {
@@ -104,7 +105,7 @@ class TreeSet : public Elements<T> {
 	TreeSet(const TreeSet<T, C> &) = default;
 
 	/*! \brief Copy constructor for a binary search tree from an element container
-	 * \return elements Elements container
+	 * \param elements Elements container
 	 */
 	TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
 		Elements<T>::_count = 0;
@@ -123,7 +124,7 @@ class TreeSet : public Elements<T> {
 	}
 
 	/*! \brief Move constructor for a binary search tree from an element container
-	 * \return elements container
+	 * \param elements container
 	 */
 	TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		Elements<T>::_count = 0;
@@ -301,10 +302,11 @@ class TreeSet : public Elements<T> {
 	}
 
 	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
 	 * \param position iterator to element (must be valid)
 	 * \return removed Node
 	 */
-	Node && extract(const Iterator & position) {
+	Node && extract(const BaseIterator & position) {
 		assert(position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active);
 		auto & e = Elements<T>::_node[position.i].tree;
 
@@ -323,15 +325,83 @@ class TreeSet : public Elements<T> {
 		return move(Elements<T>::_node[position.i]);
 	}
 
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const Iterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ConstIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ReverseIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ConstReverseIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const BaseIterator & position) {
+		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
+			return { move(extract(position).data) };
+		else
+			return {};
+	}
+
 	/*! \brief Remove value from set
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
 	Optional<T> erase(const Iterator & position) {
-		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
-			return { move(extract(position).data) };
-		else
-			return {};
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ConstIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ConstReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
 	/*! \brief Remove value from set
@@ -1096,9 +1166,13 @@ class TreeSet : public Elements<T> {
 template<typename K, typename V, typename C = Comparison>
 class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using Base = TreeSet<KeyValue<K,V>, C>;
+	using typename Base::BaseIterator;
 
  public:
 	using typename Base::Iterator;
+	using typename Base::ConstIterator;
+	using typename Base::ReverseIterator;
+	using typename Base::ConstReverseIterator;
 	using typename Base::begin;
 	using typename Base::lowest;
 	using typename Base::lower;
@@ -1107,6 +1181,8 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using typename Base::higher;
 	using typename Base::highest;
 	using typename Base::end;
+	using typename Base::rbegin;
+	using typename Base::rend;
 	using typename Base::find;
 	using typename Base::contains;
 	using typename Base::resize;
@@ -1125,12 +1201,28 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 		return Base::insert(KeyValue<K,V>(move(key), move(value)));
 	}
 
-	inline Optional<V> erase(const Iterator & position) {
+	inline Optional<V> erase(const BaseIterator & position) {
 		auto i = Base::erase(position);
 		if (i)
 			return { move(i.value().value) };
 		else
 			return {};
+	}
+
+	inline Optional<V> erase(const Iterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ConstIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ConstReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
 	template<typename O>

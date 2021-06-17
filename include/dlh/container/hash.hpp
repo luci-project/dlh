@@ -34,6 +34,7 @@ class HashSet : public Elements<T> {
 	/*! \brief base hash set iterator
 	 */
 	struct BaseIterator {
+		friend class HashSet<T, C>;
 		const HashSet<T, C> &ref;
 		mutable uint32_t i;
 
@@ -86,7 +87,7 @@ class HashSet : public Elements<T> {
 	using typename Elements<T>::Node;
 
 	/*! \brief Create new hash set
-	 * \return capacity initial capacity
+	 * \param capacity initial capacity
 	 */
 	explicit HashSet(size_t capacity = 0) {
 		resize(capacity);
@@ -94,7 +95,7 @@ class HashSet : public Elements<T> {
 	}
 
 	/*! \brief Convert to hash set
-	 * \return set Elements container
+	 * \param set Elements container
 	 */
 	HashSet(const HashSet<T>& set) : Elements<T>(set), _bucket_capacity(set._bucket_capacity), _bucket(nullptr) {
 		const size_t size = _bucket_capacity * sizeof(uint32_t);
@@ -107,7 +108,7 @@ class HashSet : public Elements<T> {
 	}
 
 	/*! \brief Convert to hash set
-	 * \return elements Elements container
+	 * \param elements Elements container
 	 */
 	HashSet(const Elements<T>& elements) : Elements<T>(elements) {
 		if (!empty()) {
@@ -119,7 +120,7 @@ class HashSet : public Elements<T> {
 	}
 
 	/*! \brief Convert to hash set
-	 * \return elements Elements container
+	 * \param elements Elements container
 	 */
 	HashSet(HashSet<T, C> && set) : Elements<T>(move(set)), _bucket_capacity(set._bucket_capacity), _bucket(set._bucket) {
 		set._bucket_capacity = 0;
@@ -127,7 +128,7 @@ class HashSet : public Elements<T> {
 	}
 
 	/*! \brief Convert to hash set
-	 * \return elements Elements container
+	 * \param elements Elements container
 	 */
 	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		if (!empty()) {
@@ -426,10 +427,11 @@ class HashSet : public Elements<T> {
 
 
 	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
 	 * \param position iterator to element (must be valid)
 	 * \return removed Node
 	 */
-	Node && extract(const Iterator & position) {
+	Node && extract(const BaseIterator & position) {
 		assert(position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active);
 		auto & e = Elements<T>::_node[position.i];
 
@@ -459,15 +461,83 @@ class HashSet : public Elements<T> {
 		return move(Elements<T>::_node[position.i]);
 	}
 
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const Iterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ConstIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ReverseIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Extract value from set
+	 * \note must be re-inserted before performing any other operations on the set
+	 * \param position iterator to element (must be valid)
+	 * \return removed Node
+	 */
+	Node && extract(const ConstReverseIterator & position) {
+		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const BaseIterator & position) {
+		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active)
+			return { move(extract(position).data) };
+		else
+			return {};
+	}
+
 	/*! \brief Remove value from set
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
 	Optional<T> erase(const Iterator & position) {
-		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active)
-			return { move(extract(position).data) };
-		else
-			return {};
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ConstIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	/*! \brief Remove value from set
+	 * \param position iterator to element
+	 * \return removed value (if valid iterator)
+	 */
+	Optional<T> erase(const ConstReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
 	/*! \brief Remove value from set
@@ -713,11 +783,17 @@ class HashSet : public Elements<T> {
 template<typename K, typename V, typename C = Comparison, size_t L = 150>
 class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 	using Base = HashSet<KeyValue<K,V>, C, L>;
+	using typename Base::BaseIterator;
 
  public:
 	using typename Base::Iterator;
+	using typename Base::ConstIterator;
+	using typename Base::ReverseIterator;
+	using typename Base::ConstReverseIterator;
 	using typename Base::begin;
 	using typename Base::end;
+	using typename Base::rbegin;
+	using typename Base::rend;
 	using typename Base::find;
 	using typename Base::contains;
 	using typename Base::resize;
@@ -737,12 +813,28 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 		return Base::insert(KeyValue<K,V>(move(key), move(value)));
 	}
 
-	inline Optional<V> erase(const Iterator & position) {
+	inline Optional<V> erase(const BaseIterator & position) {
 		auto i = Base::erase(position);
 		if (i)
 			return { move(i.value().value) };
 		else
 			return {};
+	}
+
+	inline Optional<V> erase(const Iterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ConstIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
+	}
+
+	inline Optional<V> erase(const ConstReverseIterator & position) {
+		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
 	template<typename O>
