@@ -11,7 +11,7 @@ CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 #   -fno-rtti -fno-exceptions -Wno-write-strings -fno-stack-protector -mno-red-zone
 SOURCES = $(shell find $(SOURCE_FOLDER)/ -name "*.cpp")
 OBJECTS = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
-DEPFILES = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d))
+DEPFILES = $(patsubst $(SOURCE_FOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d)) $(patsubst %.cpp,$(BUILDDIR)/%.d,$(wildcard test/*.cpp))
 LIBNAME = dlh
 TARGET = lib$(LIBNAME).a
 
@@ -26,6 +26,11 @@ test-%: test/%.cpp $(TARGET) $(MAKEFILE_LIST)
 	@echo "Build		$@ ($<)"
 	@mkdir -p $(@D)
 	$(VERBOSE) $(CXX) $(CXXFLAGS) -no-pie -o $@ $< -L. -l$(LIBNAME)
+
+$(BUILDDIR)/test/%.d: test/%.cpp $(MAKEFILE_LIST)
+	@echo "DEP		$<"
+	@mkdir -p $(@D)
+	$(VERBOSE) $(CXX) $(CXXFLAGS) -MM -MT $(BUILDDIR)/$*.o -MF $@ $<
 
 $(BUILDDIR)/%.d: $(SOURCE_FOLDER)/%.cpp $(MAKEFILE_LIST)
 	@echo "DEP		$<"
