@@ -114,7 +114,7 @@ class HashSet : public Elements<T> {
 			assert(!Elements<T>::_node[0].hash.active);
 			_bucket_capacity = buckets(Elements<T>::_capacity);
 			_bucket = reinterpret_cast<uint32_t *>(Elements<T>::reserved());
-			bucketize( true);
+			bucketize(true);
 		}
 	}
 
