@@ -97,10 +97,9 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param set Elements container
 	 */
-	HashSet(const HashSet<T>& set) : Elements<T>(set), _bucket_capacity(set._bucket_capacity), _bucket(nullptr) {
+	HashSet(const HashSet<T>& set) : Elements<T>(set, set._bucket_capacity * sizeof(uint32_t)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {
 		const size_t size = _bucket_capacity * sizeof(uint32_t);
 		if (size > 0) {
-			_bucket = reinterpret_cast<uint32_t *>(malloc(size));
 			assert(_bucket != nullptr);
 			memcpy(_bucket, set._bucket, size);
 			assert(!Elements<T>::_node[0].hash.active);
@@ -110,32 +109,31 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
-	HashSet(const Elements<T>& elements) : Elements<T>(elements) {
+	HashSet(const Elements<T>& elements) : Elements<T>(elements, buckets(elements._capacity) * sizeof(uint32_t)) {
 		if (!empty()) {
 			assert(!Elements<T>::_node[0].hash.active);
 			_bucket_capacity = buckets(Elements<T>::_capacity);
-			_bucket = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), _bucket_capacity));
-			bucketize(true, true);
+			_bucket = reinterpret_cast<uint32_t *>(Elements<T>::reserved());
+			bucketize( true);
 		}
 	}
 
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
-	HashSet(HashSet<T, C> && set) : Elements<T>(move(set)), _bucket_capacity(set._bucket_capacity), _bucket(set._bucket) {
-		set._bucket_capacity = 0;
-		set._bucket = nullptr;
-	}
+	HashSet(HashSet<T, C> && set) : Elements<T>(move(set)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {}
 
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
 	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		if (!empty()) {
-			assert(!Elements<T>::_node[0].hash.active);
 			_bucket_capacity = buckets(Elements<T>::_capacity);
-			_bucket = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), _bucket_capacity));
-			bucketize(true, true);
+			assert(!Elements<T>::_node[0].hash.active);
+			if (Elements<T>::resize(Elements<T>::_capacity, _bucket_capacity * sizeof(uint32_t))) {
+				_bucket = reinterpret_cast<uint32_t *>(Elements<T>::reserved());
+				bucketize(true);
+			}
 		}
 	}
 
@@ -156,10 +154,7 @@ class HashSet : public Elements<T> {
 
 	/*! \brief Destructor
 	 */
-	virtual ~HashSet() {
-		if (_bucket != nullptr)
-			free(_bucket);
-	}
+	virtual ~HashSet() {}
 
 	/*! \brief binary search tree iterator
 	 */
@@ -578,29 +573,21 @@ class HashSet : public Elements<T> {
 
 		// reorder node slots
 		bool need_bucketize = reorder();
-		bool buckets_zeroed = false;
 
 		bool s = capacity == Elements<T>::_capacity;
 		// Resize element container
-		if (!s && Elements<T>::resize(capacity)) {
+		if (!s && Elements<T>::resize(capacity, buckets(capacity) * sizeof(uint32_t))) {
 			// NULL Element (let's waste it)
 			Elements<T>::_node[0].hash.active = false;
 
-			// resize hash buckets
-			auto bucket_cap = buckets(capacity);
-			auto bucket_ptr = reinterpret_cast<uint32_t *>(calloc(sizeof(uint32_t), bucket_cap));
-			if (bucket_ptr != nullptr) {
-				free(_bucket);
-				_bucket = bucket_ptr;
-				_bucket_capacity = bucket_cap;
-				s = buckets_zeroed = need_bucketize = true;
-			}
-
+			_bucket = reinterpret_cast<uint32_t *>(Elements<T>::reserved());
+			_bucket_capacity = buckets(capacity);
+			s = need_bucketize = true;
 		}
 
 		// Bucketize (if either reordering or resizing of hash buckets was successful)
 		if (need_bucketize)
-			bucketize(buckets_zeroed);
+			bucketize();
 
 		return s;
 	}
@@ -702,12 +689,10 @@ class HashSet : public Elements<T> {
 
 	/*! \brief Reorganize buckets
 	 * Required if bucket capacity has changed
-	 * \param is_zero are the bucket slots already zeroed?
 	 * \param rehash calculate hash value (replacing cached value)
 	 */
-	void bucketize(bool is_zero = false, bool rehash = false) {
-		if (!is_zero)
-			memset(_bucket, 0, _bucket_capacity * sizeof(uint32_t));
+	void bucketize(bool rehash = false) {
+		memset(_bucket, 0, _bucket_capacity * sizeof(uint32_t));
 
 		for (size_t i = 1; i <= Elements<T>::_count; i++) {
 			if (Elements<T>::_node[i].hash.active) {

@@ -57,12 +57,13 @@ struct Elements {
 	constexpr Elements() : _capacity(0), _next(1), _count(0), _node(nullptr) {}
 
 	/*! \brief Copy constructor
+	 * \param reserve additional space to reserve
 	 * \param e Element container to copy
 	 */
-	Elements(const Elements<T>& e) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(nullptr) {
+	Elements(const Elements<T>& e, size_t reserve = 0) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(nullptr) {
 		if (e._capacity > 0) {
 			auto s = e._capacity * sizeof(Node);
-			_node = reinterpret_cast<Node*>(malloc(s));
+			_node = reinterpret_cast<Node*>(malloc(s + reserve));
 			assert(_node != nullptr);
 			if (is_integral<T>::value || is_reference<T>::value)
 				memcpy(reinterpret_cast<void*>(_node), reinterpret_cast<void*>(e._node), s);
@@ -91,19 +92,25 @@ struct Elements {
 
 	/*! \brief Resize element slots to capacity
 	 * \param capacity the new capacity
-	 * \return `true` if resize was successful
+	 * \param reserve additional space to reserve
+	 * \return `true` on success, `false` on error
 	 */
-	bool resize(uint32_t capacity) {
-		if (capacity != _capacity) {
-			void * ptr = realloc(reinterpret_cast<void*>(_node), capacity * sizeof(Node));
-			if (ptr == nullptr) {
-				return false;
-			} else {
-				_node = reinterpret_cast<Node *>(ptr);
-				_capacity = capacity;
-			}
+	bool resize(uint32_t capacity, size_t reserve = 0) {
+		void * ptr = realloc(reinterpret_cast<void*>(_node), capacity * sizeof(Node) + reserve);
+		if (ptr == nullptr) {
+			return false;
+		} else {
+			_node = reinterpret_cast<Node *>(ptr);
+			_capacity = capacity;
+			return true;
 		}
-		return true;
+	}
+
+	/*! \brief get pointer to the reserved space
+	 * \return pointer to end of Element nodes space
+	 */
+	inline void * reserved() const {
+		return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(_node) + _capacity * sizeof(Node));
 	}
 
 
