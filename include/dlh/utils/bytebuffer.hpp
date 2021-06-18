@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dlh/assert.hpp>
 #include <dlh/types.hpp>
 
 template<size_t CAPACITY>
