@@ -17,5 +17,12 @@ class Mutex {
 	bool trylock();
 
 	void unlock();
+};
 
+class Guarded {
+	Mutex & _mutex;
+
+ public:
+	Guarded(Mutex & mutex) : _mutex(mutex) { _mutex.lock(); }
+	~Guarded() { _mutex.unlock(); }
 };
