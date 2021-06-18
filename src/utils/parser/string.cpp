@@ -41,14 +41,14 @@ bool string(long long & target, const char * value) {
 bool string(unsigned long & target, const char * value) {
 	unsigned long long v = 0;
 	bool r = string(v, value);
-	target = static_cast<uintptr_t>(v);
+	target = static_cast<unsigned long>(v);
 	return v > static_cast<unsigned long>(-1) ? false : r ;
 }
 
 bool string(long & target, const char * value) {
 	long long v = 0;
 	bool r = string(v, value);
-	target = static_cast<intptr_t>(v);
+	target = static_cast<long>(v);
 	return v > __LONG_MAX__ || v < (-__LONG_MAX__ - 1) ? false : r ;
 }
 
