@@ -7,13 +7,19 @@
 
 #include "internal/alloc_buddy.hpp"
 
-
-#ifndef ALLOC_LOG2
-// Default: 2^31 = 2GB
-#define ALLOC_LOG2 31
+#ifndef MIN_ALLOC_LOG2
+// Minimum size to  alloc
+// Default: 2^10 = 1024 Bytes
+#define MIN_ALLOC_LOG2 10
 #endif
 
-static Allocator::Buddy<4, ALLOC_LOG2> allocator;
+#ifndef MAX_ALLOC_LOG2
+// Maximum total space to alloc
+// Default: 2^30 = 1GB
+#define MAX_ALLOC_LOG2 30
+#endif
+
+static Allocator::Buddy<MIN_ALLOC_LOG2, MAX_ALLOC_LOG2> allocator;
 
 static Mutex mutex;
 
@@ -21,18 +27,18 @@ void * malloc(size_t size) {
 	if (size == 0) {
 		return nullptr;
 	} else {
-		mutex.lock();
+		Guarded section(mutex);
+
 		uintptr_t ptr = allocator.malloc(size);
-		mutex.unlock();
 		return reinterpret_cast<void*>(ptr);
 	}
 }
 
 void free(void *ptr) {
 	if (ptr != nullptr) {
-		mutex.lock();
+		Guarded section(mutex);
+
 		allocator.free(reinterpret_cast<uintptr_t>(ptr));
-		mutex.unlock();
 	}
 }
 
@@ -42,18 +48,21 @@ void *realloc(void *ptr, size_t size) {
 
 	void *new_ptr = nullptr;
 
-	mutex.lock();
+	Guarded section(mutex);
+
 	// Allocate (of size > 0)
-	if (size > 0 && (new_ptr = reinterpret_cast<void*>(allocator.malloc(size))) != nullptr && ptr != nullptr) {
-		// Copy contents
-		memcpy(new_ptr, ptr, Math::min(size, allocator.size(reinterpret_cast<uintptr_t>(ptr))));
+	if (size > 0) {
+		if (allocator.resize(reinterpret_cast<uintptr_t>(ptr), size))
+			return ptr;
+		else if ((new_ptr = reinterpret_cast<void*>(allocator.malloc(size))) != nullptr && ptr != nullptr)
+			// Copy contents
+			memcpy(new_ptr, ptr, Math::min(size, allocator.size(reinterpret_cast<uintptr_t>(ptr))));
 	}
 
 	// Free old allocation
 	if (ptr != nullptr)
 		allocator.free(reinterpret_cast<uintptr_t>(ptr));
 
-	mutex.unlock();
 	return new_ptr;
 }
 
@@ -66,8 +75,8 @@ void * calloc(size_t nmemb, size_t size) {
 
 	// Initialize memory
 	void *new_ptr = malloc(bytes);
-	if (new_ptr != nullptr) {
+	if (new_ptr != nullptr)
 		memset(new_ptr, 0, bytes);
-	}
+
 	return new_ptr;
 }

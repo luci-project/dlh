@@ -417,6 +417,22 @@ class Buddy {
 		return 0;
 	}
 
+	/*! \brief Resize memory (only possible if it will stay in the same bucket)
+	 * \param ptr pointer to the start of a memory allocated using malloc
+	 * \param request the new size
+	 * \return `true` if resize in this bucket was successful, `false` otherwise
+	 */
+	bool resize(uintptr_t ptr, size_t request) {
+		if (ptr != 0 && ptr >= base_ptr && ptr <= max_ptr) {
+			size_t & current_size = *reinterpret_cast<size_t *>(ptr - HEADER_SIZE);
+			if (bucket_for_request(current_size + HEADER_SIZE) == bucket_for_request(request + HEADER_SIZE)) {
+				current_size = request;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/*! \brief Free allocated memory
 	 * \param ptr pointer to the start of a memory allocated using malloc
 	 */
