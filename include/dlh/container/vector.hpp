@@ -234,6 +234,28 @@ template<class T> class Vector {
 		emplace_back(forward<T>(value));
 	}
 
+	/*! \brief Creates an element at the front
+	 * \param args Arguments to create the value
+	 */
+	template<typename... ARGS>
+	inline void emplace_front(ARGS&&... args) {
+		emplace(0, forward<ARGS>(args)...);
+	}
+
+	/*! \brief Adds an element to the front
+	 * \param value the value of the element to append
+	 */
+	inline void push_front(const T& value) {
+		emplace(0, value);
+	}
+
+	/*! \brief Adds an element to the front
+	 * \param value the value of the element to append
+	 */
+	inline void push_front(T&& value) {
+		emplace(0, forward<T>(value));
+	}
+
 	/*! \brief Creats element at the specified location
 	 * \param pos position
 	 * \param args Arguments to create the value
@@ -274,6 +296,14 @@ template<class T> class Vector {
 	inline Optional<T> pop_back() {
 		return 0 == _size ? Optional<T>() : Optional<T>(_element[--_size]);
 	}
+
+	/*! \brief Remove the first element
+	 * \return first element
+	 */
+	inline Optional<T> pop_front() {
+		return remove(0);
+	}
+
 
 	/*! \brief Remove element at the specified location
 	 * \param pos position
