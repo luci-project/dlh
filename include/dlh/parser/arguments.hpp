@@ -154,6 +154,9 @@ struct Arguments : Opts {
 		validate_t validate;
 		bool present;
 
+		constexpr Parameter(const char name_short, const char * name_long, const char * name_arg, Member member, bool required, const char * help_text, validate_t validate = nullptr)
+		: name_short(name_short), name_long(name_long), name_arg(name_arg), member(member), required(required), help_text(help_text), validate(validate), present(false) {}
+
 		bool matches(const char * name) {
 			return name[0] == '-'
 			   && (   (name_short != '\0' && name[1] == name_short)
@@ -234,8 +237,8 @@ struct Arguments : Opts {
 	}
 
  public:
-	Arguments(const initializer_list<Parameter> & list, validate_t validate_positional = nullptr, validate_t validate_terminal = nullptr) : validate_positional(validate_positional), validate_terminal(validate_terminal) {
-		for (auto arg : list) {
+	Arguments(const std::initializer_list<Parameter> & list, validate_t validate_positional, validate_t validate_terminal = nullptr) : validate_positional(validate_positional), validate_terminal(validate_terminal) {
+		for (const auto & arg : list) {
 			// Check if parameter is unqiue
 			bool skip = false;
 			if (arg.name_short == '\0' && arg.name_long == nullptr) {
@@ -268,7 +271,7 @@ struct Arguments : Opts {
 		}
 	}
 
-	Arguments(const initializer_list<Parameter> & list) : Arguments(list, [](const char * str) -> bool { if (str != nullptr && *str == '-') { LOG_ERROR << "Positional parameter '" << str << "' looks like its not meant to be positional!" << endl; return false; } else { return true; } }, [](const char *) -> bool { return true; }) {}
+	Arguments(const std::initializer_list<Parameter> & list) : Arguments(list, [](const char * str) -> bool { if (str != nullptr && *str == '-') { LOG_ERROR << "Positional parameter '" << str << "' looks like its not meant to be positional!" << endl; return false; } else { return true; } }, [](const char *) -> bool { return true; }) {}
 
 	~Arguments() = default;
 
