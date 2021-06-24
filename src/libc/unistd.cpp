@@ -28,7 +28,7 @@ extern "C" pid_t getppid() {
 	return syscall(SYS_getppid);
 }
 
-extern "C" int getrlimit(int resource, struct rlimit *rlim) {
+extern "C" int getrlimit(rlimit_t resource, struct rlimit *rlim) {
 	unsigned long k_rlim[2];
 	int ret = syscall(SYS_prlimit64, 0, resource, 0, rlim);
 	if (!ret || errno != ENOSYS)

@@ -4,6 +4,8 @@
 #include <dlh/errno.hpp>
 #include <dlh/types.hpp>
 
+extern char **environ;
+
 #define PATH_MAX 4096
 
 // Architecture-specific state (arch_prctl)
@@ -21,6 +23,28 @@ enum : int {
 	W_OK = 2,
 	R_OK = 4
 };
+
+
+// Ressource Limits
+typedef enum : int {
+	RLIMIT_CPU        =  0,	/* CPU time in sec */
+	RLIMIT_FSIZE      =  1,	/* Maximum filesize */
+	RLIMIT_DATA       =  2,	/* max data size */
+	RLIMIT_STACK      =  3,	/* max stack size */
+	RLIMIT_CORE       =  4,	/* max core file size */
+	RLIMIT_RSS        =  5,	/* max resident set size */
+	RLIMIT_NPROC      =  6,	/* max number of processes */
+	RLIMIT_NOFILE     =  7,	/* max number of open files */
+	RLIMIT_MEMLOCK    =  8,	/* max locked-in-memory address space */
+	RLIMIT_AS         =  9,	/* address space limit */
+	RLIMIT_LOCKS      = 10,	/* maximum file locks held */
+	RLIMIT_SIGPENDING = 11,	/* max number of pending signals */
+	RLIMIT_MSGQUEUE   = 12,	/* maximum bytes in POSIX mqueues */
+	RLIMIT_NICE       = 13,	/* max nice prio allowed to raise to 0-39 for nice level 19 .. -20 */
+	RLIMIT_RTPRIO     = 14,	/* maximum realtime priority */
+	RLIMIT_RTTIME     = 15	/* timeout for RT tasks in us */
+} rlimit_t;
+
 
 // futex
 struct timespec {
@@ -170,13 +194,22 @@ struct stat {
 #define PROT_GROWSDOWN  0x01000000
 #define PROT_GROWSUP    0x02000000
 
-#define MAP_FAILED    ((void*)-1)
 
-#define MAP_STACK     0x00
-#define MAP_SHARED    0x01
-#define MAP_PRIVATE   0x02
-#define MAP_FIXED     0x10
-#define MAP_ANONYMOUS 0x20
+#define MAP_FAILED          ((void*)-1)
+
+#define MAP_SHARED          0x01
+#define MAP_PRIVATE         0x02
+#define MAP_FIXED           0x10
+#define MAP_ANONYMOUS       0x20
+
+#define MAP_POPULATE        0x008000	/* populate (prefault) pagetables */
+#define MAP_NONBLOCK        0x010000	/* do not block on IO */
+#define MAP_STACK           0x020000	/* give out an address that is best suited for process/thread stacks */
+#define MAP_HUGETLB         0x040000	/* create a huge page mapping */
+#define MAP_SYNC            0x080000	/* perform synchronous page faults for the mapping */
+#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+#define MAP_UNINITIALIZED   0x4000000	/* For anonymous mmap, memory could be uninitialized */
+
 
 #define MS_ASYNC      1
 #define MS_INVALIDATE 2
@@ -225,6 +258,45 @@ typedef enum : int {
 #define SIG_UNBLOCK        1	/* for unblocking signals */
 #define SIG_SETMASK        2	/* for setting the signal mask */
 
+// inotify
+#define IN_CLOEXEC       O_CLOEXEC
+#define IN_NONBLOCK      O_NONBLOCK
+#define IN_ACCESS        0x00000001	/* File was accessed.  */
+#define IN_MODIFY        0x00000002	/* File was modified.  */
+#define IN_ATTRIB        0x00000004	/* Metadata changed.  */
+#define IN_CLOSE_WRITE   0x00000008	/* Writtable file was closed.  */
+#define IN_CLOSE_NOWRITE 0x00000010	/* Unwrittable file closed.  */
+#define IN_CLOSE         (IN_CLOSE_WRITE | IN_CLOSE_NOWRITE) /* Close.  */
+#define IN_OPEN          0x00000020	/* File was opened.  */
+#define IN_MOVED_FROM    0x00000040	/* File was moved from X.  */
+#define IN_MOVED_TO      0x00000080	/* File was moved to Y.  */
+#define IN_MOVE          (IN_MOVED_FROM | IN_MOVED_TO) /* Moves.  */
+#define IN_CREATE        0x00000100	/* Subfile was created.  */
+#define IN_DELETE        0x00000200	/* Subfile was deleted.  */
+#define IN_DELETE_SELF   0x00000400	/* Self was deleted.  */
+#define IN_MOVE_SELF     0x00000800	/* Self was moved.  */
+#define IN_UNMOUNT       0x00002000	/* Backing fs was unmounted.  */
+#define IN_Q_OVERFLOW    0x00004000	/* Event queued overflowed.  */
+#define IN_IGNORED       0x00008000	/* File was ignored.  */
+#define IN_CLOSE         (IN_CLOSE_WRITE | IN_CLOSE_NOWRITE)	/* Close.  */
+#define IN_MOVE          (IN_MOVED_FROM | IN_MOVED_TO)		/* Moves.  */
+#define IN_ONLYDIR       0x01000000	/* Only watch the path if it is a directory.  */
+#define IN_DONT_FOLLOW   0x02000000	/* Do not follow a sym link.  */
+#define IN_EXCL_UNLINK   0x04000000	/* Exclude events on unlinked objects.  */
+#define IN_MASK_CREATE   0x10000000	/* Only create watches.  */
+#define IN_MASK_ADD      0x20000000	/* Add to the mask of an already existing watch.  */
+#define IN_ISDIR         0x40000000	/* Event occurred against dir.  */
+#define IN_ONESHOT       0x80000000	/* Only send event once.  */
+
+/* Structure describing an inotify event.  */
+struct inotify_event {
+	int wd;
+	uint32_t mask;
+	uint32_t cookie;
+	uint32_t len;
+	char name[];
+};
+
 // Exit
 #define	EXIT_FAILURE  1
 #define	EXIT_SUCCESS  0
@@ -238,7 +310,7 @@ extern "C" pid_t gettid();
 extern "C" pid_t getpid();
 extern "C" pid_t getppid();
 
-extern "C" int getrlimit(int resource, struct rlimit *rlim);
+extern "C" int getrlimit(rlimit_t resource, struct rlimit *rlim);
 extern "C" int arch_prctl(arch_code_t code, unsigned long addr);
 
 extern "C" int raise(signal_t sig);
@@ -264,6 +336,7 @@ extern "C" int stat(const char * __restrict__ path, struct stat * __restrict__ b
 extern "C" int lstat(const char * __restrict__ path, struct stat * __restrict__ buf);
 
 extern "C" int memfd_create(const char *name, unsigned flags);
+
 
 extern "C" int inotify_init();
 extern "C" int inotify_init1(int flags);
