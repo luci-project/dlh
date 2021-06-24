@@ -1,11 +1,12 @@
 #pragma once
 
+#include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
 #include <dlh/stream/output.hpp>
 
 template<class T>
 class Optional {
-	const bool _assigned;
+	bool _assigned;
 	union {
 		bool _used;
 		T _value;
@@ -43,7 +44,16 @@ class Optional {
 		return &_value;
 	}
 
+	const T* operator->() const {
+		assert(_assigned);
+	}
+
 	T& operator*() & {
+		assert(_assigned);
+		return _value;
+	}
+
+	const T& operator*() const & {
 		assert(_assigned);
 		return _value;
 	}
@@ -54,6 +64,11 @@ class Optional {
 	}
 
 	T& value() & {
+		assert(_assigned);
+		return _value;
+	}
+
+	const T& value() const & {
 		assert(_assigned);
 		return _value;
 	}
@@ -79,23 +94,43 @@ class Optional {
 		return _assigned;
 	}
 
-	template<typename O>
-	bool operator==(const Optional<O>& other) {
-		return _assigned == other._assigned || _value == other.value;
+	void clear() {
+		if (_assigned) {
+			_value.~T();
+			_assigned = false;
+		}
 	}
 
 	template<typename O>
-	bool operator==(const O& other) {
+	Optional & operator=(const Optional<O>& other) {
+		if ((_assigned = other._assigned))
+			new (&_value) T(other._value);
+		return *this;
+	}
+
+	Optional & operator=(const T& other) {
+		new (&_value) T(other);
+		_assigned = true;
+		return *this;
+	}
+
+	template<typename O>
+	bool operator==(const Optional<O>& other) const {
+		return _assigned == other._assigned || _value == other._value;
+	}
+
+	template<typename O>
+	bool operator==(const O& other) const {
 		return _assigned ? _value == other : false;
 	}
 
 	template<typename O>
-	bool operator!=(const Optional<O>& other) {
-		return _assigned != other._assigned || _value != other.value;
+	bool operator!=(const Optional<O>& other) const {
+		return _assigned != other._assigned || _value != other._value;
 	}
 
 	template<typename O>
-	bool operator!=(const O& other) {
+	bool operator!=(const O& other) const {
 		return _assigned ? _value != other : true;
 	}
 };
