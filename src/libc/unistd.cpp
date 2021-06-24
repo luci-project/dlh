@@ -5,6 +5,17 @@
 //TODO use sysconf
 #define PAGE_SIZE 4096
 
+extern "C" int nanosleep(const struct timespec *req, struct timespec *rem) {
+	return syscall(SYS_nanosleep, req, rem);
+}
+
+extern "C" unsigned sleep(unsigned seconds) {
+	struct timespec tv = { .tv_sec = seconds, .tv_nsec = 0 };
+	if (nanosleep(&tv, &tv))
+		return tv.tv_sec;
+	return 0;
+}
+
 extern "C" pid_t gettid() {
 	return syscall(SYS_gettid);
 }

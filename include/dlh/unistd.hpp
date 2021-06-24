@@ -4,6 +4,8 @@
 #include <dlh/errno.hpp>
 #include <dlh/types.hpp>
 
+#define PATH_MAX 4096
+
 // Architecture-specific state (arch_prctl)
 typedef enum : int {
 	ARCH_SET_GS = 0x1001,
@@ -170,6 +172,7 @@ struct stat {
 
 #define MAP_FAILED    ((void*)-1)
 
+#define MAP_STACK     0x00
 #define MAP_SHARED    0x01
 #define MAP_PRIVATE   0x02
 #define MAP_FIXED     0x10
@@ -228,6 +231,9 @@ typedef enum : int {
 
 
 // Syscall Wrapper
+extern "C" int nanosleep(const struct timespec *req, struct timespec *rem);
+extern "C" unsigned sleep(unsigned seconds);
+
 extern "C" pid_t gettid();
 extern "C" pid_t getpid();
 extern "C" pid_t getppid();
