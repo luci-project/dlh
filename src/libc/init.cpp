@@ -1,5 +1,8 @@
 #include <dlh/types.hpp>
 #include <dlh/unistd.hpp>
+#include <dlh/utils/thread.hpp>
+
+#include "internal/syscall.hpp"
 
 char **environ;
 
@@ -18,9 +21,13 @@ extern void(*__fini_array_end[]) ();
 extern "C" void _init() {};
 extern "C" void _fini(){};
 
-__attribute__((__noinline__)) void __dlh_init (char **envp, char *name) {
+static Thread main_tcb;
+
+__attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
 	(void)name;
 	environ = envp;
+
+	syscall(SYS_arch_prctl, ARCH_SET_FS, reinterpret_cast<uintptr_t>(&main_tcb));
 
 /*
 	size_t i, *auxv, aux[AUX_CNT] = { 0 };

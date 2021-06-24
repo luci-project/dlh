@@ -1,11 +1,10 @@
 #include <dlh/errno.hpp>
 #include <dlh/string.hpp>
+#include <dlh/utils/thread.hpp>
 #include <dlh/stream/output.hpp>
 
 extern "C" int *__errno_location() {
-	static int e;
-	// TODO: TLS
-	return &e;
+	return &(Thread::local_errno());
 }
 
 extern "C" const char *__errno_string(int e) {
