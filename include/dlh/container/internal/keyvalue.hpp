@@ -10,7 +10,11 @@ struct KeyValue {
 
 	KeyValue() : key(), value() { }
 
+	KeyValue(const K& key) : key(key), value() { }
+
 	KeyValue(const K& key, const V& value) : key(key), value(value) { }
+
+	KeyValue(K&& key) : key(move(key)), value() { }
 
 	KeyValue(K&& key, V&& value) : key(move(key)), value(move(value)) { }
 

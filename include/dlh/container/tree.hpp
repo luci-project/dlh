@@ -1204,11 +1204,11 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 #endif
 
 	inline Pair<Iterator,bool> insert(const K& key, const V& value) {
-		return Base::insert(KeyValue<K,V>(key, value));
+		return Base::emplace(key, value);
 	}
 
 	inline Pair<Iterator,bool> insert(K&& key, V&& value) {
-		return Base::insert(KeyValue<K,V>(move(key), move(value)));
+		return Base::emplace(move(key), move(value));
 	}
 
 	inline Optional<V> erase(const BaseIterator & position) {
@@ -1264,11 +1264,11 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 
 	template<typename O>
 	inline V & operator[](const O& key) {
-		return (*(Base::insert(key).first)).value;
+		return (*(Base::emplace(key).first)).value;
 	}
 
 	template<typename O>
 	inline V & operator[](O&& key) {
-		return (*(Base::insert(move(key).first))).value;
+		return (*(Base::emplace(move(key)).first)).value;
 	}
 };

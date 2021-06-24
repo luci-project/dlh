@@ -52,6 +52,9 @@ int main(int argc, const char *argv[]) {
 		if (x.first)
 			cout << "   * " << x.first->key << ", " << (*x.first).value << endl;
 	}
+	m["bar"] = 23;
+	m["baz"] = -42;
+	m["bar"] *= -1;
 
 	auto i = m.find(StrPtr("foo"));
 	if (i)
