@@ -4,17 +4,22 @@
  */
 namespace Math {
 	template <typename T>
-	auto abs(const T a) {
+	inline auto abs(const T a) {
 		return (a >= 0 ? a : -a);
 	}
 
 	template <typename T, typename U>
-	auto min(const T a, const U b) {
+	inline auto min(const T a, const U b) {
 		return a > b ? b : a;
 	}
 
 	template <typename T, typename U>
-	auto max(const T a, const U b) {
+	inline auto max(const T a, const U b) {
 		return a > b ? a : b;
+	}
+
+	template <typename T, typename U>
+	inline auto align(const T value, const U boundary) {
+		return (value + boundary - 1) & (-boundary);
 	}
 }  // namespace Math
