@@ -12,7 +12,11 @@ bool writeable(const char * path);
 
 bool executable(const char * path);
 
-void * contents(const char * path, size_t & size);
+char * contents(const char * path, size_t & size);
+inline char * contents(const char * path) {
+	size_t size;
+	return contents(path, size);
+}
 
 Vector<const char *> lines(const char * path);
 

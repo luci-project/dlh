@@ -22,7 +22,7 @@ bool executable(const char * path) {
 	return ::access(path, X_OK ) == 0;
 }
 
-void * contents(const char * path, size_t & size) {
+char * contents(const char * path, size_t & size) {
 	errno = 0;
 	int fd = ::open(path, O_RDONLY);
 	if (fd < 0) {
@@ -45,13 +45,13 @@ void * contents(const char * path, size_t & size) {
 		return nullptr;
 	} else {
 		LOG_VERBOSE << "Mapped '" << path << "' (" << size << " bytes)" << endl;
-		return addr;
+		return reinterpret_cast<char *>(addr);
 	}
 }
 
 Vector<const char *> lines(const char * path) {
 	size_t size;
-	return String::split(reinterpret_cast<char *>(File::contents(path, size)), '\n');
+	return String::split(File::contents(path, size), '\n');
 }
 
 }  // Namespace File

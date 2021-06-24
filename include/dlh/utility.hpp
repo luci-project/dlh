@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dlh/types.hpp>
 #include <dlh/type_traits.hpp>
 
 extern "C++" {
