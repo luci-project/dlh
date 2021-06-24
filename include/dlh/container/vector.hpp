@@ -8,6 +8,7 @@
 #include <dlh/types.hpp>
 #include <dlh/utility.hpp>
 #include <dlh/container/optional.hpp>
+#include <dlh/container/initializer_list.hpp>
 #include <dlh/stream/buffer.hpp>
 
 /*! \brief Vector class influenced by standard [template/cxx] library
@@ -32,6 +33,46 @@ template<class T> class Vector {
 		reserve(0 < _capacity ? 2 * _capacity : 16);
 	}
 
+	/*! \brief base vector iterator
+	 */
+	struct BaseIterator {
+		friend class Vector<T>;
+		const Vector<T> &ref;
+		mutable const T* i;
+
+		BaseIterator(const Vector<T> &ref, const T* p) : ref(ref), i(p) {}
+
+		inline void next() const {
+			i++;
+		}
+
+		inline void prev() const {
+			i--;
+		}
+
+		inline const T& operator*() const {
+			assert(i >= ref._element && i < ref._element + ref._size);
+			return *i;
+		}
+
+		inline const T* operator->() const {
+			assert(i >= ref._element && i < ref._element + ref._size);
+			return i;
+		}
+
+		inline bool operator==(BaseIterator& other) const {
+			return i == other.i;
+		}
+
+		inline bool operator!=(BaseIterator& other) const {
+			return i != other.i;
+		}
+
+		inline operator bool() const {
+			return i >= ref._element && i < ref._element + ref._size;
+		}
+	};
+
  public:
 	Vector(const Vector&) = default;
 	Vector(Vector&&) = default;
@@ -43,7 +84,6 @@ template<class T> class Vector {
 	/*! \brief Constructor with initial _capacity
 	 * \param capacity number of initial values
 	 * \param init initial values
-	 * \param invalid object for invalid returns
 	 */
 	explicit Vector(size_t capacity) : _element(nullptr), _size(capacity), _capacity(capacity) {
 		if (capacity > 0) {
@@ -55,7 +95,6 @@ template<class T> class Vector {
 	/*! \brief Range constructor
 	 * \param first First element in range
 	 * \param last Last element in range
-	 * \param invalid object for invalid returns
 	 */
 	template<typename I>
 	explicit Vector(I first, I last) : Vector(0) {
@@ -63,11 +102,21 @@ template<class T> class Vector {
 			emplace_back(*i);
 	}
 
+
+	/*! \brief Initializer list constructor
+	 * \param flist initializer list
+	 */
+	template<typename O>
+	Vector(const std::initializer_list<O> & list) : Vector(list.size()) {
+		for (const auto & arg : list)
+			emplace_back(arg);
+	}
+
 	/*! \brief Copy constructor
 	 * \param other other vector
 	 */
-	template<typename I>
-	explicit Vector(const Vector & other) : Vector(other.begin(), other.end()) {}
+	template<typename O>
+	explicit Vector(const Vector<O> & other) : Vector(other.begin(), other.end()) {}
 
 
 	/*! \brief Destructor
@@ -255,7 +304,8 @@ template<class T> class Vector {
 	/*! \brief Copy Assignment
 	 * \param other
 	 */
-	Vector<T>& operator=(const Vector<T>& other) {
+	template<typename O>
+	Vector<T>& operator=(const Vector<O>& other) {
 		// No self assignment
 		if (this != &other) {
 			resize(0);
@@ -274,7 +324,8 @@ template<class T> class Vector {
 	 * \param other vector
 	 * \return reference to vector
 	 */
-	Vector<T> & operator+=(const Vector<T>& other) {
+	template<typename O>
+	Vector<T> & operator+=(const Vector<O>& other) {
 		reserve(_size + other._size);
 		for (size_t i = 0; i < other._size; ++i)
 			push_back(i);
@@ -286,7 +337,8 @@ template<class T> class Vector {
 	 * \param element element
 	 * \return reference to vector
 	 */
-	Vector<T> & operator+=(const T& element) {
+	template<typename O>
+	Vector<T> & operator+=(const O& element) {
 		push_back(element);
 		return *this;
 	}
@@ -295,7 +347,8 @@ template<class T> class Vector {
 	 * \param other vector
 	 * \return new vector with all elements of this and other vector
 	 */
-	Vector<T> operator+(const Vector<T>& other) const {
+	template<typename O>
+	Vector<T> operator+(const Vector<O>& other) const {
 		Vector<T> r = *this;
 		r += other;
 		return r;
@@ -305,7 +358,8 @@ template<class T> class Vector {
 	 * \param element element to Concatenate
 	 * \return new vector with all elements of this vector and element
 	 */
-	Vector<T> operator+(const T& element) const {
+	template<typename O>
+	Vector<T> operator+(const O& element) const {
 		Vector<T> r = *this;
 		r += element;
 		return r;
@@ -313,41 +367,126 @@ template<class T> class Vector {
 
 	/*! \brief Vector iterator
 	 */
-	class Iterator {
-		T* i;
+	class Iterator  : public BaseIterator {
+		friend class Vector<T>;
+		Iterator(Vector<T> &ref, const T* p) : BaseIterator(ref, p) {}
 
-	 public:  //NOLINT
-		explicit Iterator(T* p) : i(p) {}
+	public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
 
 		Iterator& operator++() {
-			i++;
+			BaseIterator::next();
 			return *this;
 		}
 
-		Iterator& operator--() {
-			i--;
-			return *this;
+		inline T& operator*() {
+			return const_cast<T&>(BaseIterator::operator*());
 		}
 
-		T& operator*() {
-			return *i;
-		}
-
-		bool operator==(const Vector<T>::Iterator& other) const {
-			return i == other.i;
-		}
-
-		bool operator!=(const Vector<T>::Iterator& other) const {
-			return i != other.i;
+		inline T* operator->() {
+			return const_cast<T*>(BaseIterator::operator->());
 		}
 	};
 
-	inline Vector<T>::Iterator begin() const {
-		return Vector<T>::Iterator(_element);
+	/*! \brief Constant Vector iterator
+	 */
+	class ConstIterator  : public BaseIterator {
+		friend class Vector<T>;
+		ConstIterator(const Vector<T> &ref, const T* p) : BaseIterator(ref, p) {}
+
+	public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		ConstIterator& operator++() {
+			BaseIterator::next();
+			return *this;
+		}
+	};
+
+	/*! \brief Vector iterator
+	 */
+	class ReverseIterator  : public BaseIterator {
+		friend class Vector<T>;
+		ReverseIterator(Vector<T> &ref, const T* p) : BaseIterator(ref, p) {}
+
+	public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		ReverseIterator& operator++() {
+			BaseIterator::prev();
+			return *this;
+		}
+
+		inline T& operator*() {
+			return const_cast<T&>(BaseIterator::operator*());
+		}
+
+		inline T* operator->() {
+			return const_cast<T*>(BaseIterator::operator->());
+		}
+	};
+
+	/*! \brief Constant Vector iterator
+	 */
+	class ConstReverseIterator  : public BaseIterator {
+		friend class Vector<T>;
+		ConstReverseIterator(const Vector<T> &ref, const T* p) : BaseIterator(ref, p) {}
+
+	public:
+		using BaseIterator::operator*;
+		using BaseIterator::operator->;
+		using BaseIterator::operator==;
+		using BaseIterator::operator!=;
+		using BaseIterator::operator bool;
+
+		ConstReverseIterator& operator++() {
+			BaseIterator::prev();
+			return *this;
+		}
+	};
+
+	inline Iterator begin() {
+		return { *this, _element };
 	}
 
-	inline Vector<T>::Iterator end() const {
-		return Vector<T>::Iterator(_element + _size);
+	inline ConstIterator begin() const {
+		return { *this, _element };
+	}
+
+	inline Iterator end() {
+		return { *this, _element + _size };
+	}
+
+	inline ConstIterator end() const {
+		return { *this, _element + _size };
+	}
+
+	inline ReverseIterator rbegin() {
+		return { *this, _element + _size - 1};
+	}
+
+	inline ConstReverseIterator rbegin() const {
+		return { *this, _element + _size - 1};
+	}
+
+	inline ReverseIterator rend() {
+		return { *this, _element - 1 };
+	}
+
+	inline ConstReverseIterator rend() const {
+		return { *this, _element - 1 };
 	}
 };
 

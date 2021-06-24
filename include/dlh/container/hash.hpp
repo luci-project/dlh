@@ -5,8 +5,9 @@
 #include <dlh/string.hpp>
 #include <dlh/utility.hpp>
 #include <dlh/utils/comparison.hpp>
-#include <dlh/container/optional.hpp>
 #include <dlh/container/pair.hpp>
+#include <dlh/container/optional.hpp>
+#include <dlh/container/initializer_list.hpp>
 #include <dlh/container/internal/elements.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
@@ -150,6 +151,15 @@ class HashSet : public Elements<T> {
 		for (I i = begin; i != end; ++i)
 			emplace(*i);
 		assert(empty() || !Elements<T>::_node[0].hash.active);
+	}
+
+	/*! \brief Initializer list constructor
+	 * \param flist initializer list
+	 */
+	template<typename I>
+	HashSet(const std::initializer_list<I> & list) : HashSet(list.size()) {
+		for (const auto & arg : list)
+			emplace(arg);
 	}
 
 	/*! \brief Destructor
