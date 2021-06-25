@@ -412,14 +412,14 @@ struct Arguments : Opts {
 		return !error;
 	}
 
-	bool has(const char * name) {
+	bool has(const char * name) const {
 		for (auto arg : args)
 			if (arg.matches(name))
 				return arg.present;
 		return false;
 	}
 
-	bool has(Member & member) {
+	bool has(Member & member) const {
 		for (auto arg : args)
 			if (member == arg.member)
 				return arg.present;
@@ -434,11 +434,19 @@ struct Arguments : Opts {
 		return positional;
 	}
 
+	const Vector<const char *> & get_positional() const {
+		return positional;
+	}
+
 	bool has_terminal() {
 		return terminal.size() > 0;
 	}
 
 	Vector<const char *> get_terminal() {
+		return terminal;
+	}
+
+	const Vector<const char *> & get_terminal() const {
 		return terminal;
 	}
 
@@ -456,6 +464,10 @@ struct Arguments : Opts {
 	}
 
 	Opts get_all() {
+		return static_cast<Opts>(*this);
+	}
+
+	const Opts & get_all() const {
 		return static_cast<Opts>(*this);
 	}
 };
