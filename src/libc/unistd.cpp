@@ -44,6 +44,26 @@ extern "C" int arch_prctl(arch_code_t code, unsigned long addr) {
 	return syscall(SYS_arch_prctl, code, addr);
 }
 
+extern "C" int prctl(prctl_t option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5) {
+	return syscall(SYS_prctl, option, arg2, arg3, arg4, arg5);
+}
+
+asm(R"(
+.type __restore,@function
+.align 16
+__restore:
+	movl $15, %eax
+	syscall
+)");
+extern "C" void __restore();
+
+extern "C" int sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old) {
+	//__syscall(SYS_rt_sigprocmask, SIG_UNBLOCK, 3UL << 32, 0, 8);
+	struct sigaction tmp = *sa;
+	tmp.sa_flags |= SA_RESTORER;
+	tmp.sa_restorer = __restore;
+	return syscall(SYS_rt_sigaction, sig, &tmp, old, sizeof(tmp.sa_mask[0]));
+}
 
 extern "C" int raise(signal_t sig) {
 	// TODO
