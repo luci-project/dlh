@@ -124,3 +124,8 @@ _start:
 	# Endless loop
 1:	jmp 1b
 )");
+
+
+void __stack_chk_fail(void) {
+	crash();
+}
