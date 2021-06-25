@@ -3,61 +3,64 @@
 #include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
 
-/*! \brief Linked list
+/*! \brief Generic linked list node
  * influenced by standard [template/cxx] librarys `list`
- * \tparam T type for container
+ * \tparam T type for payload
  */
 template<typename T>
+struct ListNode : public T {
+	ListNode * _prev;
+	ListNode * _next;
+
+	ListNode(const T& value) : T(value), _prev(nullptr), _next(nullptr) {}
+
+	ListNode(T&& value) : T(move(value)), _prev(nullptr), _next(nullptr) {}
+
+	template <class... ARGS>
+	explicit ListNode(const ARGS&... args) : T(args...), _prev(nullptr), _next(nullptr) {}
+
+	template <class... ARGS>
+	explicit ListNode(ARGS&&... args) : T(forward<ARGS>(args)...), _prev(nullptr), _next(nullptr) {}
+};
+
+/*! \brief Linked list
+ * \tparam T type for payload
+ * \tparam N type for node container
+ * \tparam NEXT pointer to member pointing to next element
+ * \tparam PREV pointer to member pointing to previous element
+ */
+template<typename T, typename N = ListNode<T>, N* N::* NEXT = &ListNode<T>::_next, N* N::* PREV = &ListNode<T>::_prev>
 class List {
-	struct Node {
-		Node * _prev;
-		Node * _next;
-
-		T _data;
-
-		Node(const T& value) : _prev(nullptr), _next(nullptr), _data(value) {}
-
-		Node(T&& value) : _prev(nullptr), _next(nullptr), _data(value) {
-			value.~T();
-		}
-
-		template <class... ARGS>
-		explicit Node(const ARGS&... args) : _prev(nullptr), _next(nullptr), _data(args...) {}
-
-		template <class... ARGS>
-		explicit Node(ARGS&&... args) : _prev(nullptr), _next(nullptr), _data(forward<ARGS>(args)...) {}
-	};
-
-	Node * _head = nullptr;
-	Node * _tail = nullptr;
+	N * _head = nullptr;
+	N * _tail = nullptr;
 	size_t _size = 0;
 
 	/*! \brief base hash set iterator
 	 */
 	struct BaseIterator {
-		friend class List<T>;
-		mutable Node * i;
+		friend class List<T, N, NEXT, PREV>;
+		mutable N * i;
 
-		BaseIterator(Node * node) : i(node) {}
+		BaseIterator(N * node) : i(node) {}
 
 		inline void next() const {
 			assert(i != nullptr);
-			i = i->_next;
+			i = i->*NEXT;
 		}
 
 		inline void prev() const {
 			assert(i != nullptr);
-			i = i->_prev;
+			i = i->*PREV;
 		}
 
 		inline const T& operator*() const {
 			assert(i != nullptr);
-			return i->_data;
+			return *reinterpret_cast<T*>(i);
 		}
 
 		inline const T* operator->() const {
 			assert(i != nullptr);
-			return &(i->_data);
+			return reinterpret_cast<T*>(i);
 		}
 
 		inline bool operator==(BaseIterator& other) const {
@@ -65,7 +68,8 @@ class List {
 		}
 
 		inline bool operator==(const T& other) const {
-			return i->_data == other;
+			assert(i != nullptr);
+			return *reinterpret_cast<T*>(i) == other;
 		}
 
 		inline bool operator!=(BaseIterator& other) const {
@@ -73,7 +77,8 @@ class List {
 		}
 
 		inline bool operator!=(const T& other) const {
-			return i->_data != other;
+			assert(i != nullptr);
+			return *reinterpret_cast<T*>(i) != other;
 		}
 
 		inline operator bool() const {
@@ -106,8 +111,8 @@ class List {
 	/*! \brief binary search tree iterator
 	 */
 	class Iterator : public BaseIterator {
-		friend class List<T>;
-		Iterator(Node * p) : BaseIterator(p) {}
+		friend class List<T, N, NEXT, PREV>;
+		Iterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -133,8 +138,8 @@ class List {
 	/*! \brief constant binary search tree iterator
 	 */
 	class ConstIterator : public BaseIterator {
-		friend class List<T>;
-		ConstIterator(Node * p) : BaseIterator(p) {}
+		friend class List<T, N, NEXT, PREV>;
+		ConstIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -153,8 +158,8 @@ class List {
 	/*! \brief Reverse binary search tree iterator
 	 */
 	class ReverseIterator : public BaseIterator {
-		friend class List<T>;
-		ReverseIterator(Node * p) : BaseIterator(p) {}
+		friend class List<T, N, NEXT, PREV>;
+		ReverseIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -180,8 +185,8 @@ class List {
 	/*! \brief constant binary search tree iterator
 	 */
 	class ConstReverseIterator : public BaseIterator {
-		friend class List<T>;
-		ConstReverseIterator(Node * p) : BaseIterator(p) {}
+		friend class List<T, N, NEXT, PREV>;
+		ConstReverseIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -262,19 +267,19 @@ class List {
 		if (position.i == nullptr)
 			return emplace_back(forward<ARGS>(args)...);
 
-		Node * node = new Node(forward<ARGS>(args)...);
+		N * node = new N(forward<ARGS>(args)...);
 
-		node->_next = position.i;
-		if ((node->_prev = position.i->_prev) == nullptr) {
+		node->*NEXT = position.i;
+		if ((node->*PREV = position.i->*PREV) == nullptr) {
 			assert(_head == position.i);
 			_head = node;
 		} else {
-			node->_prev->_next = node;
+			node->*PREV->*NEXT = node;
 		}
-		position.i->_prev = node;
+		position.i->*PREV = node;
 
-		assert((node->_next == nullptr && _tail == node) || (node->_next->_prev == node && _tail != node));
-		assert((node->_prev == nullptr && _head == node) || (node->_prev->_next == node && _head != node));
+		assert((node->*NEXT == nullptr && _tail == node) || (node->*NEXT->*PREV == node && _tail != node));
+		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
 		return { node };
@@ -295,19 +300,19 @@ class List {
 	 */
 	template<typename... ARGS>
 	Iterator emplace_front(ARGS&&... args) {
-		Node * node = new Node(forward<ARGS>(args)...);
+		N * node = new N(forward<ARGS>(args)...);
 
-		if ((node->_next = _head) != nullptr) {
-			assert(_head->_prev == nullptr);
-			_head->_prev = node;
+		if ((node->*NEXT = _head) != nullptr) {
+			assert(_head->*PREV == nullptr);
+			_head->*PREV = node;
 		} else if (_tail == nullptr) {
 			_tail = node;
 		}
-		node->_prev = nullptr;
+		node->*PREV = nullptr;
 		_head = node;
 
-		assert((node->_next == nullptr && _tail == node) || (node->_next->_prev == node && _tail != node));
-		assert((node->_prev == nullptr && _head == node) || (node->_prev->_next == node && _head != node));
+		assert((node->*NEXT == nullptr && _tail == node) || (node->*NEXT->*PREV == node && _tail != node));
+		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
 		return { node };
@@ -327,19 +332,19 @@ class List {
 	 */
 	template<typename... ARGS>
 	Iterator emplace_back(ARGS&&... args) {
-		Node * node = new Node(forward<ARGS>(args)...);
+		N * node = new N(forward<ARGS>(args)...);
 
-		if ((node->_prev = _tail) != nullptr) {
-			assert(_tail->_next == nullptr);
-			_tail->_next = node;
+		if ((node->*PREV = _tail) != nullptr) {
+			assert(_tail->*NEXT == nullptr);
+			_tail->*NEXT = node;
 		} else if (_head == nullptr) {
 			_head = node;
 		}
-		node->_next = nullptr;
+		node->*NEXT = nullptr;
 		_tail = node;
 
-		assert((node->_next == nullptr && _tail == node) || (node->_next->_prev == node && _tail != node));
-		assert((node->_prev == nullptr && _head == node) || (node->_prev->_next == node && _head != node));
+		assert((node->*NEXT == nullptr && _tail == node) || (node->*NEXT->*PREV == node && _tail != node));
+		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
 		return { node };
@@ -380,7 +385,7 @@ class List {
 	 */
 	T& front() {
 		assert(_head != nullptr);
-		return *_head;
+		return *reinterpret_cast<T*>(_head);
 	}
 
 	/*! \brief Access element at front
@@ -388,7 +393,7 @@ class List {
 	 */
 	const T& front() const {
 		assert(_head != nullptr);
-		return *_head;
+		return *reinterpret_cast<T*>(_head);
 	}
 
 	/*! \brief Access element at back
@@ -396,7 +401,7 @@ class List {
 	 */
 	T& back() {
 		assert(_tail != nullptr);
-		return *_tail;
+		return *reinterpret_cast<T*>(_tail);
 	}
 
 	/*! \brief Access element at back
@@ -404,7 +409,7 @@ class List {
 	 */
 	const T& back() const {
 		assert(_tail != nullptr);
-		return *_tail;
+		return *reinterpret_cast<T*>(_tail);
 	}
 
 	/*! \brief Test whether container is empty
@@ -434,27 +439,27 @@ class List {
 	 * \param node Element to remove
 	 * \return Poitner to the next element
 	 */
-	Node * erase(Node * node) {
+	N * erase(N * node) {
 		if (node == nullptr)
 			return nullptr;
 
-		auto next = node->_next;
-		auto prev = node->_prev;
+		auto next = node->*NEXT;
+		auto prev = node->*PREV;
 
 		if (next == nullptr) {
 			assert(_tail == node);
 			_tail = prev;
 		} else {
-			assert(next->_prev == node);
-			next->_prev = prev;
+			assert(next->*PREV == node);
+			next->*PREV = prev;
 		}
 
 		if (prev == nullptr) {
 			assert(_head == node);
 			_head = next;
 		} else {
-			assert(prev->_next == node);
-			prev->_next = next;
+			assert(prev->*NEXT == node);
+			prev->*NEXT = next;
 		}
 
 		delete node;
