@@ -3,8 +3,9 @@
 #include <dlh/utility.hpp>
 #include <dlh/unistd.hpp>
 
-struct ThreadControlBlock {
-	ThreadControlBlock * tcb;
+class Thread {
+	// Thread Control Block
+	Thread * tcb;
 	union DynamicThreadVector {
 		size_t counter;
 		struct dtv_pointer {
@@ -18,20 +19,15 @@ struct ThreadControlBlock {
 			return pointer.val != reinterpret_cast<void*>(-1);
 		}
 	} * dtv;
-	void * selfptr;
+	Thread * selfptr;
 	int multiple_threads = 1;
 	int gscope_flag = 0;
 	uintptr_t sysinfo = 0;
 	uintptr_t stack_guard = 0x2badc0de;
 	uintptr_t pointer_guard = 0x1badc0de;
-	void * __padding[81] = { nullptr };
+	void * __padding[77] = { nullptr };
 
-	constexpr ThreadControlBlock(DynamicThreadVector * dtv, void * selfptr = nullptr) : tcb(this), dtv(dtv), selfptr(selfptr) {}
-};
-
-static_assert(sizeof(ThreadControlBlock) == 0x2c0, "Wrong ThreadControlBlock size");
-
-class Thread : public ThreadControlBlock {
+	// Custom fields (in reserved space)
 	bool detached = false;
 	int tls_errno = 0;
 	int exit_code = 0;
@@ -40,7 +36,7 @@ class Thread : public ThreadControlBlock {
 	size_t map_size;
 
  public:
-	constexpr Thread(DynamicThreadVector * dtv = nullptr, void * base = nullptr, size_t size = 0, bool detach = false) : ThreadControlBlock(dtv, this), detached(detach), map_base(base), map_size(size) {}
+	constexpr Thread(DynamicThreadVector * dtv = nullptr, void * base = nullptr, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), detached(detach), map_base(base), map_size(size) {}
 
 	static Thread * create(int (*func)(void*), void * arg = nullptr, bool detach = false, size_t stack_size = 1048576, size_t tls_size = 0xd40, DynamicThreadVector * dtv = nullptr, bool hidden = false);
 
@@ -70,7 +66,7 @@ class Thread : public ThreadControlBlock {
 		struct Thread *s;
 		asm volatile("mov %%fs:%c1,%0"
 		             : "=r" (s)
-		             : "i" (__builtin_offsetof(ThreadControlBlock, selfptr))
+		             : "i" (__builtin_offsetof(Thread, selfptr))
 		);
 		return s;
 	}
@@ -79,3 +75,5 @@ class Thread : public ThreadControlBlock {
 		return self()->tls_errno;
 	}
 };
+
+static_assert(sizeof(Thread) == 0x2c0, "Wrong Thread[ControlBlock] size");

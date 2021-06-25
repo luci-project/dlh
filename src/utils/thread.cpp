@@ -46,7 +46,7 @@ extern "C" void __start_child(Thread * that, int (*func)(void*), void * arg) {
 }
 
 Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stack_size, size_t tls_size, DynamicThreadVector * dtv, bool hidden) {
-	unsigned flags = CLONE_THREAD | CLONE_SIGHAND | CLONE_VM | CLONE_SETTLS | CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_SYSVSEM | CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID;
+	unsigned flags = /* CLONE_THREAD | CLONE_SIGHAND | */ CLONE_VM | CLONE_SETTLS | CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_SYSVSEM | CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID;
 
 	if (hidden)
 		flags |= CLONE_UNTRACED;

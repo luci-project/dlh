@@ -24,3 +24,11 @@ extern "C" int __cxa_atexit(void (*func)(void *), void * arg, void * dso_handle)
 
 	return 0;
 }
+
+static void call(void *p) {
+	((void (*)(void))(uintptr_t)p)();
+}
+
+int atexit(void (*func)(void)) {
+	return __cxa_atexit(call, (void *)(uintptr_t)func, 0);
+}
