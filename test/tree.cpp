@@ -4,7 +4,7 @@
 
 int main(int argc, const char *argv[]) {
 	cout << "TreeSet (using some integers):";
-	TreeSet<int> s;
+	TreeSet<int> s = { 888, 999 };
 	s.insert(13);
 	s.insert(3);
 	s.insert(42);
@@ -42,7 +42,8 @@ int main(int argc, const char *argv[]) {
 	s.check();
 	#endif
 
-	for (auto i : s)
+	TreeSet<int> t(s);
+	for (auto i : t)
 		cout << ' ' << i;
 	cout << endl;
 

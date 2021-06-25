@@ -95,15 +95,15 @@ class TreeSet : public Elements<T> {
 	 * \param capacity initial capacity
 	 */
 	explicit TreeSet(size_t capacity = 0) {
-		if (capacity > 0) {
-			Elements<T>::resize(capacity);
-			Elements<T>::_node[0].tree.active = false;
-		}
+		if (capacity > 0)
+			resize(capacity + 1);
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
-	/*! \brief Default copy constructor for a binary search tree from a tree set
+	/*! \brief Copy constructor for a binary search tree from a tree set
+	 * \param other Tree Set
 	 */
-	TreeSet(const TreeSet<T, C> &) = default;
+	TreeSet(const TreeSet<T, C> & other) : Elements<T>(other), _root(other._root) {}
 
 	/*! \brief Copy constructor for a binary search tree from an element container
 	 * \param elements Elements container
@@ -118,10 +118,11 @@ class TreeSet : public Elements<T> {
 		assert(Elements<T>::_next == elements._next);
 	}
 
-	/*! \brief Default move constructor for a binary search tree from a tree set
+	/*! \brief Move constructor for a binary search tree from a tree set
+	 * \param other Tree Set
 	 */
-	TreeSet(TreeSet<T, C> && set) : Elements<T>(move(set)), _root(set._root) {
-		set._root = 0;
+	TreeSet(TreeSet<T, C> && other) : Elements<T>(move(other)), _root(other._root) {
+		other._root = 0;
 	}
 
 	/*! \brief Move constructor for a binary search tree from an element container
@@ -140,12 +141,19 @@ class TreeSet : public Elements<T> {
 	/*! \brief Range constructor
 	 * \param begin First element in range
 	 * \param end End of range
-	 * \param capacity_reserve space to reserve
+	 * \param initial_capacity space to reserve (or determined automatically if zero)
 	 */
 	template<typename I>
-	explicit TreeSet(const I & begin, const I & end, size_t capacity_reserve = 0) : TreeSet(capacity_reserve) {
+	explicit TreeSet(const I & begin, const I & end, size_t initial_capacity = 0) {
+		if (initial_capacity == 0)
+			for (I i = begin; i != end; ++i)
+				initial_capacity++;
+
+		resize(initial_capacity + 1);
+
 		for (I i = begin; i != end; ++i)
 			emplace(*i);
+
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
@@ -153,9 +161,13 @@ class TreeSet : public Elements<T> {
 	 * \param flist initializer list
 	 */
 	template<typename I>
-	TreeSet(const std::initializer_list<I> & list) : TreeSet(list.size()) {
-		for (const auto & arg : list)
-			emplace(arg);
+	TreeSet(const std::initializer_list<I> & list) {
+		if (list.size() > 0) {
+			resize(list.size() + 1);
+			for (const auto & arg : list)
+				emplace(arg);
+		}
+		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Destructor
@@ -349,25 +361,7 @@ class TreeSet : public Elements<T> {
 	 * \param position iterator to element (must be valid)
 	 * \return removed Node
 	 */
-	Node && extract(const ConstIterator & position) {
-		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
-	}
-
-	/*! \brief Extract value from set
-	 * \note must be re-inserted before performing any other operations on the set
-	 * \param position iterator to element (must be valid)
-	 * \return removed Node
-	 */
 	Node && extract(const ReverseIterator & position) {
-		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
-	}
-
-	/*! \brief Extract value from set
-	 * \note must be re-inserted before performing any other operations on the set
-	 * \param position iterator to element (must be valid)
-	 * \return removed Node
-	 */
-	Node && extract(const ConstReverseIterator & position) {
 		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
 	}
 
@@ -394,23 +388,7 @@ class TreeSet : public Elements<T> {
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
-	Optional<T> erase(const ConstIterator & position) {
-		return erase(reinterpret_cast<const BaseIterator &>(position));
-	}
-
-	/*! \brief Remove value from set
-	 * \param position iterator to element
-	 * \return removed value (if valid iterator)
-	 */
 	Optional<T> erase(const ReverseIterator & position) {
-		return erase(reinterpret_cast<const BaseIterator &>(position));
-	}
-
-	/*! \brief Remove value from set
-	 * \param position iterator to element
-	 * \return removed value (if valid iterator)
-	 */
-	Optional<T> erase(const ConstReverseIterator & position) {
 		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
@@ -628,12 +606,17 @@ class TreeSet : public Elements<T> {
 	}
 
 	/*! \brief Resize set capacity
+	 * \note first element is reserved for NULL, hence the usable capacity is one less
+	 * \note minimum capacity is 16
 	 * \param capacity new capacity (has to be equal or greater than `size()`)
 	 * \return `true` if resize was successfully, `false` otherwise
 	 */
 	bool resize(size_t capacity) {
 		if (capacity <= Elements<T>::_count || capacity > UINT32_MAX)
 			return false;
+
+		if (capacity < 16)
+			capacity = 16;
 
 		// reorder node slots
 		reorder();

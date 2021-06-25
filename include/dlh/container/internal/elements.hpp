@@ -42,7 +42,6 @@ struct Elements {
 		}
 
 		Node & operator=(const Node& other) {
-			cerr << "baz" << endl;
 			mem = other.mem;
 			if (generic.active)
 				new (&data) T(other.data);

@@ -6,7 +6,7 @@
 
 int main(int argc, const char *argv[]) {
 	cout << "HashSet (using some integers):";
-	HashSet<int> s;
+	HashSet<int> s = { 888, 999 };
 	s.insert(13);
 	s.insert(3);
 	s.insert(42);

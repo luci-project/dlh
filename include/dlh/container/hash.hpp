@@ -91,7 +91,8 @@ class HashSet : public Elements<T> {
 	 * \param capacity initial capacity
 	 */
 	explicit HashSet(size_t capacity = 0) {
-		resize(capacity);
+		if (capacity > 0)
+			resize(capacity + 1);
 		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
@@ -144,12 +145,19 @@ class HashSet : public Elements<T> {
 	/*! \brief Range constructor
 	 * \param begin First element in range
 	 * \param end End of range
-	 * \param initial_capacity space to reserve
+	 * \param initial_capacity space to reserve (or determined automatically if zero)
 	 */
 	template<typename I>
-	explicit HashSet(const I & begin, const I & end, size_t initial_capacity = 0) : HashSet(initial_capacity) {
+	explicit HashSet(const I & begin, const I & end, size_t initial_capacity = 0) {
+		if (initial_capacity == 0)
+			for (I i = begin; i != end; ++i)
+				initial_capacity++;
+
+		resize(initial_capacity + 1);
+
 		for (I i = begin; i != end; ++i)
 			emplace(*i);
+
 		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
@@ -157,9 +165,14 @@ class HashSet : public Elements<T> {
 	 * \param flist initializer list
 	 */
 	template<typename I>
-	HashSet(const std::initializer_list<I> & list) : HashSet(list.size()) {
-		for (const auto & arg : list)
-			emplace(arg);
+	HashSet(const std::initializer_list<I> & list) {
+		if (list.size() > 0) {
+			resize(list.size() + 1);
+
+			for (const auto & arg : list)
+				emplace(arg);
+		}
+		assert(empty() || !Elements<T>::_node[0].hash.active);
 	}
 
 	/*! \brief Destructor
@@ -480,25 +493,7 @@ class HashSet : public Elements<T> {
 	 * \param position iterator to element (must be valid)
 	 * \return removed Node
 	 */
-	Node && extract(const ConstIterator & position) {
-		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
-	}
-
-	/*! \brief Extract value from set
-	 * \note must be re-inserted before performing any other operations on the set
-	 * \param position iterator to element (must be valid)
-	 * \return removed Node
-	 */
 	Node && extract(const ReverseIterator & position) {
-		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
-	}
-
-	/*! \brief Extract value from set
-	 * \note must be re-inserted before performing any other operations on the set
-	 * \param position iterator to element (must be valid)
-	 * \return removed Node
-	 */
-	Node && extract(const ConstReverseIterator & position) {
 		return move(extract(reinterpret_cast<const BaseIterator &>(position)));
 	}
 
@@ -525,23 +520,7 @@ class HashSet : public Elements<T> {
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
 	 */
-	Optional<T> erase(const ConstIterator & position) {
-		return erase(reinterpret_cast<const BaseIterator &>(position));
-	}
-
-	/*! \brief Remove value from set
-	 * \param position iterator to element
-	 * \return removed value (if valid iterator)
-	 */
 	Optional<T> erase(const ReverseIterator & position) {
-		return erase(reinterpret_cast<const BaseIterator &>(position));
-	}
-
-	/*! \brief Remove value from set
-	 * \param position iterator to element
-	 * \return removed value (if valid iterator)
-	 */
-	Optional<T> erase(const ConstReverseIterator & position) {
 		return erase(reinterpret_cast<const BaseIterator &>(position));
 	}
 
@@ -574,12 +553,17 @@ class HashSet : public Elements<T> {
 	}
 
 	/*! \brief Resize set capacity
+	 * \note first element is reserved for NULL, hence the usable capacity is one less
+	 * \note minimum capacity is 16
 	 * \param capacity new capacity (has to be equal or greater than `size()`)
 	 * \return `true` if resize was successfully, `false` otherwise
 	 */
 	bool resize(size_t capacity) {
 		if (capacity <= Elements<T>::_count || capacity > UINT32_MAX)
 			return false;
+
+		if (capacity < 16)
+			capacity = 16;
 
 		// reorder node slots
 		bool need_bucketize = reorder();
