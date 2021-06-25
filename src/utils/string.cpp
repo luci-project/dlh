@@ -5,11 +5,14 @@ namespace String {
 Vector<const char *> split(char * source, const char delimiter) {
 	Vector<const char *> r;
 	if (source != nullptr) {
-		r.push_back(source);
+		bool push_next = true;
 		for (; *source != '\0'; ++source)
 			if (*source == delimiter) {
 				*source = '\0';
-				r.push_back(source + 1);
+				push_next = true;
+			} else if (push_next) {
+				r.push_back(source);
+				push_next = false;
 			}
 	}
 	return r;
