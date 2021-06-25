@@ -6,6 +6,7 @@
 
 extern char **environ;
 
+#define NAME_MAX 4096
 #define PATH_MAX 4096
 
 // Architecture-specific state (arch_prctl)
@@ -152,6 +153,7 @@ typedef enum : int {
 #define F_SEAL_WRITE        0x0008
 #define F_SEAL_FUTURE_WRITE 0x0010
 
+// File stat (*stat)
 #define S_IRWXU 00700
 #define S_IRUSR 00400
 #define S_IWUSR 00200
@@ -165,8 +167,26 @@ typedef enum : int {
 #define S_IWOTH 00002
 #define S_IXOTH 00001
 
+#define S_IFMT   00170000
+#define S_IFSOCK  0140000
+#define S_IFLNK   0120000
+#define S_IFREG   0100000
+#define S_IFBLK   0060000
+#define S_IFDIR   0040000
+#define S_IFCHR   0020000
+#define S_IFIFO   0010000
+#define S_ISUID   0004000
+#define S_ISGID   0002000
+#define S_ISVTX   0001000
 
-// File stat (*stat)
+#define S_ISLNK(m)  (((m) & S_IFMT) == S_IFLNK)
+#define S_ISREG(m)  (((m) & S_IFMT) == S_IFREG)
+#define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
+#define S_ISCHR(m)  (((m) & S_IFMT) == S_IFCHR)
+#define S_ISBLK(m)  (((m) & S_IFMT) == S_IFBLK)
+#define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
+#define S_ISSOCK(m) (((m) & S_IFMT) == S_IFSOCK)
+
 struct stat {
 	unsigned long   st_dev;
 	unsigned long   st_ino;
@@ -184,6 +204,12 @@ struct stat {
 	struct timespec st_ctim;
 	long            __unused[3];
 };
+
+
+// MemFD
+#define MFD_CLOEXEC       0x0001U
+#define MFD_ALLOW_SEALING 0x0002U
+#define MFD_HUGETLB       0x0004U
 
 // Memory Mapping (m*)
 #define PROT_NONE       0x0
@@ -214,6 +240,7 @@ struct stat {
 #define MS_ASYNC      1
 #define MS_INVALIDATE 2
 #define MS_SYNC       4
+
 
 // Signals
 typedef enum : int {
@@ -315,6 +342,7 @@ extern "C" int arch_prctl(arch_code_t code, unsigned long addr);
 
 extern "C" int raise(signal_t sig);
 extern "C" [[noreturn]] void abort();
+extern "C" [[noreturn]] void crash();
 extern "C" [[noreturn]] void exit(int code);
 
 extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long off);

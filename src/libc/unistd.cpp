@@ -54,10 +54,15 @@ extern "C" int raise(signal_t sig) {
 	return ret;
 }
 
-
 extern "C" [[noreturn]] void abort() {
 	raise(SIGABRT);
 	raise(SIGKILL);
+	crash();
+}
+
+extern "C" [[noreturn]] void crash() {
+	asm volatile( "hlt" : : : "memory" );
+	*(volatile char *)0=0;
 	while(1) {}
 }
 
