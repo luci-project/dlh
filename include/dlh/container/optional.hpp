@@ -90,6 +90,15 @@ class Optional {
 		return _assigned;
 	}
 
+	template <class... ARGS>
+	void emplace(ARGS&&... args) {
+		if (_assigned)
+			_value.~T();
+		else
+			_assigned = true;
+		new (&_value) T(forward<ARGS>(args)...);
+	}
+
 	bool has_value() const {
 		return _assigned;
 	}
