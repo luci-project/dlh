@@ -20,4 +20,10 @@ inline char * contents(const char * path) {
 
 Vector<const char *> lines(const char * path);
 
+bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen);
+
+inline bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen) {
+	size_t pathlen;
+	return absolute(path, buffer, bufferlen, pathlen);
+}
 }  // Namespace File

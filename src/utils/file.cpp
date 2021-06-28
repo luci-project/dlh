@@ -3,6 +3,7 @@
 #include <dlh/unistd.hpp>
 #include <dlh/utils/log.hpp>
 #include <dlh/utils/string.hpp>
+#include <dlh/stream/buffer.hpp>
 
 namespace File {
 
@@ -52,6 +53,44 @@ char * contents(const char * path, size_t & size) {
 Vector<const char *> lines(const char * path) {
 	size_t size;
 	return String::split(File::contents(path, size), '\n');
+}
+
+void __procfdname(char *buf, unsigned fd) {
+	unsigned i, j;
+	for (i=0; (buf[i] = "/proc/self/fd/"[i]); i++);
+	if (!fd) {
+		buf[i] = '0';
+		buf[i+1] = 0;
+		return;
+	}
+	for (j=fd; j; j/=10, i++);
+	buf[i] = 0;
+	for (; fd; fd/=10) buf[--i] = '0' + fd%10;
+}
+
+bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {
+	int fd = open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE);
+	bool success = false;
+	if (fd == -1) {
+		LOG_ERROR << "Unable to open path '" << path << "': " << strerror(errno) << endl;
+	} else {
+		StringStream<32> procfd;
+		procfd << "/proc/self/fd/" << fd;
+		errno = 0;
+		auto r = readlink(procfd.str(), buffer, bufferlen - 1);
+		if (r == -1) {
+			LOG_ERROR << "Unable to get absolute path: " << strerror(errno) << endl;
+			r = 0;
+			pathlen = 0;
+		} else {
+			pathlen = static_cast<size_t>(r);
+			success = true;
+		}
+		buffer[r] = '\0';
+
+		close(fd);
+	}
+	return success;
 }
 
 }  // Namespace File

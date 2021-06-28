@@ -17,7 +17,7 @@ public:
 	const T* _array;
 	size_t _len;
 
-public:
+ public:
 	constexpr initializer_list(const T* array, size_t len) : _array(array), _len(len) { }
 
 	constexpr initializer_list() : _array(nullptr), _len(0) { }

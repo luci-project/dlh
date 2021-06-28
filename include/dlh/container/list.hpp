@@ -104,7 +104,7 @@ class List {
 
 	/*! \brief Destructor
 	 */
-	virtual ~List() {
+	~List() {
 		clear();
 	}
 

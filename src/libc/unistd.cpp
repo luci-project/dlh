@@ -119,6 +119,10 @@ extern "C" int access(const char *filename, int amode) {
 	return __syscall_ret(r);
 }
 
+extern "C" ssize_t readlink(const char * __restrict__ path, char * __restrict__ buf, size_t bufsize) {
+	return syscall(SYS_readlink, path, buf, bufsize);
+}
+
 extern "C" int open(const char *filename, int flags, int mode) {
 	int fd = __syscall(SYS_open, filename, flags, mode);
 	if (fd >= 0 && (flags & O_CLOEXEC))

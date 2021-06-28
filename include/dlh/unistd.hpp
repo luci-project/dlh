@@ -519,6 +519,7 @@ extern "C" int munmap(void *start, size_t len);
 extern "C" int msync(void *start, size_t len, int flags);
 
 extern "C" int access(const char *filename, int amode);
+extern "C" ssize_t readlink(const char * __restrict__ path, char * __restrict__ buf, size_t bufsize);
 extern "C" int open(const char *filename, int flags, int mode = 0);
 extern "C" ssize_t read(int fd, void *buf, size_t count);
 extern "C" ssize_t write(int fd, const void *buf, size_t size);
