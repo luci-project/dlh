@@ -116,7 +116,7 @@ _start:
 	andq $-16, %rsp
 
 	# 1st arg: application entry
-	mov $main, %rdi
+	movabs $main, %rdi
 
 	# call helper function
 	call __dlh_start_main

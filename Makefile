@@ -8,8 +8,9 @@ CXX ?= g++
 
 CXXFLAGS ?= -Og -g
 CXXFLAGS += -I include
-CXXFLAGS += -fno-builtin -ffunction-sections -fdata-sections
-CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -mno-red-zone -fno-pic
+CXXFLAGS += -fno-builtin -ffunction-sections -fdata-sections -fvisibility=hidden
+CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -mno-red-zone
+CXXFLAGS += -fno-jump-tables -fno-plt -fPIE
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 
