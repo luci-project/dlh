@@ -65,6 +65,7 @@ struct alignas(16) Auxiliary {
 		return a_un.a_ptr;
 	}
 
+	static Auxiliary * data(Auxiliary::type type);
 	static Auxiliary vector(Auxiliary::type type);
 
 	Auxiliary(type t = AT_NULL, long int v = 0) : a_type(t), a_un({v}) {}
