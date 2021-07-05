@@ -110,6 +110,12 @@ class Optional {
 		}
 	}
 
+	Optional & operator=(const Optional<T>& other) {
+		if ((_assigned = other._assigned))
+			new (&_value) T(other._value);
+		return *this;
+	}
+
 	template<typename O>
 	Optional & operator=(const Optional<O>& other) {
 		if ((_assigned = other._assigned))
