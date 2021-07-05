@@ -264,10 +264,19 @@ class List {
 	 */
 	template<typename... ARGS>
 	Iterator emplace(const BaseIterator & position, ARGS&&... args) {
-		if (position.i == nullptr)
-			return emplace_back(forward<ARGS>(args)...);
+		return insert(position, new N(forward<ARGS>(args)...));
+	}
 
-		N * node = new N(forward<ARGS>(args)...);
+	/*! \brief Insert node element before postition
+	 * \param position iterator to the element where this element should be created
+	 * \param node pointer to node element to be inserted
+	 * \return iterator to the inserted element
+	 */
+	Iterator insert(const BaseIterator & position, N * node) {
+		if (position.i == nullptr)
+			return push_back(node);
+
+		assert(node != nullptr);
 
 		node->*NEXT = position.i;
 		if ((node->*PREV = position.i->*PREV) == nullptr) {
@@ -300,7 +309,15 @@ class List {
 	 */
 	template<typename... ARGS>
 	Iterator emplace_front(ARGS&&... args) {
-		N * node = new N(forward<ARGS>(args)...);
+		return push_front(new N(forward<ARGS>(args)...));
+	}
+
+	/*! \brief Insert node element at front
+	 * \param node pointer to node element to be inserted
+	 * \return iterator to the inserted element
+	 */
+	Iterator push_front(N * node) {
+		assert(node != nullptr);
 
 		if ((node->*NEXT = _head) != nullptr) {
 			assert(_head->*PREV == nullptr);
@@ -332,7 +349,15 @@ class List {
 	 */
 	template<typename... ARGS>
 	Iterator emplace_back(ARGS&&... args) {
-		N * node = new N(forward<ARGS>(args)...);
+		return push_back(new N(forward<ARGS>(args)...));
+	}
+
+	/*! \brief Insert node element at back
+	 * \param node pointer to node element to be inserted
+	 * \return iterator to the inserted element
+	 */
+	Iterator push_back(N * node) {
+		assert(node != nullptr);
 
 		if ((node->*PREV = _tail) != nullptr) {
 			assert(_tail->*NEXT == nullptr);
@@ -356,6 +381,45 @@ class List {
 	 */
 	Iterator push_back(const T & value) {
 		return emplace_back(value);
+	}
+
+	/*! \brief Extract node from list
+	 * \param position iterator to the element which should be removed
+	 * \return pointer to extracted node
+	 */
+	N * extract(const BaseIterator & position) {
+		if (position.i == nullptr)
+			return nullptr;
+		extract(position.i);
+		return position.i;
+	}
+
+	/*! \brief Extract node
+	 * \param node Element to extract
+	 */
+	void extract(N * node) {
+		assert(node != nullptr);
+
+		auto next = node->*NEXT;
+		auto prev = node->*PREV;
+
+		if (next == nullptr) {
+			assert(_tail == node);
+			_tail = prev;
+		} else {
+			assert(next->*PREV == node);
+			next->*PREV = prev;
+		}
+
+		if (prev == nullptr) {
+			assert(_head == node);
+			_head = next;
+		} else {
+			assert(prev->*NEXT == node);
+			prev->*NEXT = next;
+		}
+
+		_size--;
 	}
 
 	/*! \brief Erase element at position
@@ -437,33 +501,15 @@ class List {
  private:
 	/*! \brief Erase element at position
 	 * \param node Element to remove
-	 * \return Poitner to the next element
+	 * \return Pointer to the next element
 	 */
 	N * erase(N * node) {
 		if (node == nullptr)
 			return nullptr;
 
 		auto next = node->*NEXT;
-		auto prev = node->*PREV;
-
-		if (next == nullptr) {
-			assert(_tail == node);
-			_tail = prev;
-		} else {
-			assert(next->*PREV == node);
-			next->*PREV = prev;
-		}
-
-		if (prev == nullptr) {
-			assert(_head == node);
-			_head = next;
-		} else {
-			assert(prev->*NEXT == node);
-			prev->*NEXT = next;
-		}
-
+		extract(node);
 		delete node;
-		_size--;
 		return next;
 	}
 };
