@@ -29,6 +29,6 @@ static void call(void *p) {
 	((void (*)(void))(uintptr_t)p)();
 }
 
-int atexit(void (*func)(void)) {
+extern "C" int atexit(void (*func)(void)) {
 	return __cxa_atexit(call, (void *)(uintptr_t)func, 0);
 }

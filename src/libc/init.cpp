@@ -21,6 +21,9 @@ extern void(*__fini_array_end[]) ();
 extern "C" void _init() {};
 extern "C" void _fini(){};
 
+void * __dlh_stack_pointer = nullptr;
+void (*__dlh_atexit)() = nullptr;
+
 static Thread main_tcb;
 
 __attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
@@ -64,8 +67,14 @@ __attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
 	*/
 }
 
-extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char **,char **), int argc, char **argv, void *atexit) {
-	(void)atexit;
+extern "C" int atexit(void (*func)(void));
+extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char **,char **), void * sp, void (*exit_func)(void)) {
+	__dlh_stack_pointer = sp;
+	__dlh_atexit = exit_func;
+
+	int argc = *reinterpret_cast<int *>(sp);
+	char **argv = reinterpret_cast<char **>(sp) + 1;
+
 	char **envp = argv+argc+1;
 
 	__dlh_init(envp, argv[0]);
@@ -81,6 +90,9 @@ extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char 
 	for (size_t i = 0; i < size; i++) {
 		(*__init_array_start[i])();
 	}
+
+	if (exit_func != nullptr)
+		atexit(exit_func);
 
 	int r = main(argc, argv, envp);
 
@@ -103,14 +115,10 @@ _start:
 	# Set base pointer to zero (ABI)
 	xor %rbp, %rbp
 
-	# 4th arg: ptr to register with atexit()
-	mov %rdx, %rcx
+	# 3rd arg: ptr to register with atexit() -- already in rdx
 
-	# 2nd arg: argument count
-	pop %rsi
-
-	# 3rd arg: argument array
-	mov %rsp, %rdx
+	# 2nd arg: stack with arguments
+	mov %rsp, %rsi
 
 	# Align stack pointer
 	andq $-16, %rsp
