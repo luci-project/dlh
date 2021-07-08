@@ -3,7 +3,7 @@
 #include <dlh/utility.hpp>
 #include <dlh/unistd.hpp>
 
-class Thread {
+struct Thread {
 	// Thread Control Block
 	Thread * tcb;
 	union DynamicThreadVector {
@@ -35,7 +35,6 @@ class Thread {
 	void *map_base;
 	size_t map_size;
 
- public:
 	constexpr Thread(DynamicThreadVector * dtv = nullptr, void * base = nullptr, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), detached(detach), map_base(base), map_size(size) {}
 
 	static Thread * create(int (*func)(void*), void * arg = nullptr, bool detach = false, size_t stack_size = 1048576, size_t tls_size = 0xd40, DynamicThreadVector * dtv = nullptr, bool hidden = false);

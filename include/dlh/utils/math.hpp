@@ -20,6 +20,6 @@ namespace Math {
 
 	template <typename T, typename U>
 	inline auto align(const T value, const U boundary) {
-		return (value + boundary - 1) & (-boundary);
+		return boundary > 1 ? (value + boundary - 1) & (-boundary) : value;
 	}
 }  // namespace Math
