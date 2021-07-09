@@ -60,6 +60,7 @@ Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stac
 
 	register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(reinterpret_cast<uintptr_t>(map_base) + tls_size_aligned);
 	if (new (that) Thread(dtv, map_base, map_size, detach) == that) {
+		that->multiple_threads = 1;
 		void** top_of_stack = reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(map_base) + map_size - 16);
 		*(--top_of_stack) = arg;
 		*(--top_of_stack) = reinterpret_cast<void*>(func);

@@ -20,7 +20,7 @@ struct Thread {
 		}
 	} * dtv;
 	Thread * selfptr;
-	int multiple_threads = 1;
+	int multiple_threads = 0;
 	int gscope_flag = 0;
 	uintptr_t sysinfo = 0;
 	uintptr_t stack_guard = 0x2badc0de;
