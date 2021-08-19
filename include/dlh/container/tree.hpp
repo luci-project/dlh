@@ -97,7 +97,7 @@ class TreeSet : public Elements<T> {
 	explicit TreeSet(size_t capacity = 0) {
 		if (capacity > 0)
 			resize(capacity + 1);
-		assert(empty() || !Elements<T>::_node[0].hash.active);
+		assert(empty() || !Elements<T>::_node[0].tree.active);
 	}
 
 	/*! \brief Copy constructor for a binary search tree from a tree set
