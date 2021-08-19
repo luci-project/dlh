@@ -71,21 +71,42 @@ class BufferStream {
 
  public:
 	/*! \brief Default constructor. Initial number system is decimal. */
-	BufferStream(char * buffer, size_t len) : _bufptr(buffer), _len(len), _pos(0) {
-		reset();
-		buffer[len - 1] = '\0';
+	BufferStream(char * buffer, size_t len) : _bufptr(buffer), _len(buffer == nullptr ? 0 : len), _pos(0) {
+		clear();
 	}
 
 	/*! \brief Destructor */
 	virtual ~BufferStream() { flush(); }
 
-	/*! \brief get current string */
+	/*! \brief get current string
+	 * \return pointer to current (!) null byte terminated buffer (might be invalid after next stream operation)
+	 */
 	const char * str();
+
+	/*! \brief get current string
+	 * \param len will contain the length of the string (excluding null byte character)
+	 * \return pointer to current (!) null byte terminated buffer
+	 */
+	const char * str(size_t & len) {
+		const char * buf = str();  // might change _pos
+		len = _len < 1 ? 0 : _pos;
+		return buf;
+	}
+
 
 	/*! \brief Flush the buffer.
 	 * (only for derived classes, has no effect in BufferStream)
 	 */
 	virtual void flush() {};
+
+	/*! \brief clear the buffer.
+	 */
+	void clear() {
+		reset();
+		_pos = 0;
+		if (_len > 0)
+			_bufptr[_len - 1] = '\0';
+	};
 
 	/*! \brief set alignment for fields with specified width
 	 * \param left `true` for right-, `false` for left alignment
