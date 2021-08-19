@@ -19,7 +19,18 @@ namespace Math {
 	}
 
 	template <typename T, typename U>
-	inline auto align(const T value, const U boundary) {
+	inline auto align_up(const T value, const U boundary) {
 		return boundary > 1 ? (value + boundary - 1) & (-boundary) : value;
 	}
+
+	template <typename T, typename U>
+	inline auto align_down(const T value, const U boundary) {
+		return boundary > 1 ? value & (-boundary) : value;
+	}
+
+	template <typename T, typename U>
+	inline auto align(const T value, const U boundary) {
+		return align_up(value, boundary);
+	}
+
 }  // namespace Math
