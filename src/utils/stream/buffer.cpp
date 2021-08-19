@@ -376,6 +376,8 @@ size_t BufferStream::format(const char * format, va_list args) {
 	// Reset modifiers
 	reset();
 	size_t n = _pos - start;
+	// 0 Byte
+	str();
 	flush();
 	return n;
 }
