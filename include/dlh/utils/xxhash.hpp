@@ -174,6 +174,11 @@ class XXHash64 {
 		return true;
 	}
 
+	template<typename T>
+	bool add(T input) {
+		return add(&input, sizeof(T));
+	}
+
 	template<size_t CAPACITY>
 	bool add(const ByteBuffer<CAPACITY> & bb) {
 		return add(bb.buffer(), bb.size());
