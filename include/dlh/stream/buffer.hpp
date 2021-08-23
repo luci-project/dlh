@@ -375,3 +375,12 @@ inline BufferStream& noprefix(BufferStream& os) {
 	os.prefix(false);
 	return os;
 }
+
+/*! \brief Set settings to default
+ *  \param os Reference to stream to be modified.
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+inline BufferStream& reset(BufferStream& os) {
+	os.reset();
+	return os;
+}
