@@ -40,7 +40,7 @@ char * contents(const char * path, size_t & size) {
 	}
 	size = sb.st_size;
 
-	auto addr = Syscall::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	auto addr = Syscall::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd.value(), 0);
 	Syscall::close(fd.value());
 	if (!addr.valid()) {
 		LOG_ERROR << "Mmap file " << path << " failed: " << addr.error_message() << endl;
