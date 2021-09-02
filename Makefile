@@ -46,7 +46,7 @@ $(BUILDDIR)/%.d: $(SRCFOLDER)/%.cpp $(BUILDDIR) $(MAKEFILE_LIST)
 $(BUILDDIR)/%.o: $(SRCFOLDER)/%.cpp $(BUILDDIR) $(MAKEFILE_LIST)
 	@echo "CXX		$<"
 	@mkdir -p $(@D)
-	$(VERBOSE) $(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(VERBOSE) $(CXX) $(CXXFLAGS) -D__MODULE__="DLH" -c -o $@ $<
 
 clean::
 	$(VERBOSE) rm -rf $(BUILDDIR)
