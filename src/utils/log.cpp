@@ -48,7 +48,7 @@ static const char * level_name[] = {
 	"\e[7m TRACE \e[0;40m"
 };
 
-Log& Log::entry(Level level, const char * file, unsigned line) {
+Log& Log::entry(Level level, const char * file, unsigned line, const char * module) {
 	flush();
 	severity = level;
 	if (level <= limit && level > NONE) {
@@ -56,14 +56,17 @@ Log& Log::entry(Level level, const char * file, unsigned line) {
 		if (fd <= 2) {
 			*this << level_name[level];
 			size_t p = _pos;
+			*this << ' ';
+			if (module != nullptr)
+				*this << module << ':';
 			if (file != nullptr) {
-				*this << ' ' << file;
+				*this << file;
 				if (line > 0)
 					*this << ':' << line;
+				*this << ' ';
 			}
-			*this << ' ';
 			// Pad file name
-			while (_pos - p < 32)
+			while (_pos - p < 36)
 				*this << '.';
 			*this << "\e[49m ";
 		} else {

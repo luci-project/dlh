@@ -33,7 +33,7 @@ class Log : public OutputStream<2048> {
 	void flush() override;
 
 	/*! \brief New log entry */
-	Log& entry(Level level, const char * file = nullptr, unsigned line = 0);
+	Log& entry(Level level, const char * file = nullptr, unsigned line = 0, const char * module = nullptr);
 
  private:
 	/*! \brief Level of current message */
@@ -47,7 +47,13 @@ extern Log logger;
 
 #define LOG logger
 
-#define LOG_LEVEL(LEVEL) if (LOG.visible(LEVEL)) LOG.entry(LEVEL, __BASE_FILE__, __LINE__)
+#ifndef __MODULE__
+#define __MODULE_NAME__ nullptr
+#else
+#include <dlh/utils/macro.hpp>
+#define __MODULE_NAME__ STR(__MODULE__)
+#endif
+#define LOG_LEVEL(LEVEL) if (LOG.visible(LEVEL)) LOG.entry(LEVEL, __BASE_FILE__, __LINE__, __MODULE_NAME__)
 
 #define LOG_FATAL   LOG_LEVEL(Log::FATAL)
 #define LOG_ERROR   LOG_LEVEL(Log::ERROR)
