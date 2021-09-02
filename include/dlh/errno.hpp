@@ -1,7 +1,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
-typedef enum : int {
+enum Errno : int {
 	ENONE           = 0,
 	EPERM           = 1,
 	ENOENT          = 2,
@@ -137,7 +137,7 @@ typedef enum : int {
 	ENOTRECOVERABLE = 131,
 	ERFKILL         = 132,
 	EHWPOISON       = 133
-} errno_t;
+};
 
 #ifndef errno
 #define errno           (*__errno_location())

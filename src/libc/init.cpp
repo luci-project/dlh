@@ -1,7 +1,6 @@
 #include <dlh/types.hpp>
-#include <dlh/unistd.hpp>
+#include <dlh/syscall.hpp>
 #include <dlh/utils/thread.hpp>
-
 #include "internal/syscall.hpp"
 
 char **environ;
@@ -30,7 +29,7 @@ __attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
 	(void)name;
 	environ = envp;
 
-	syscall(SYS_arch_prctl, ARCH_SET_FS, reinterpret_cast<uintptr_t>(&main_tcb));
+	Syscall::arch_prctl(ARCH_SET_FS, reinterpret_cast<uintptr_t>(&main_tcb));
 
 /*
 	size_t i, *auxv, aux[AUX_CNT] = { 0 };
@@ -103,7 +102,7 @@ extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char 
 
 	_fini();
 
-	exit(r);
+	Syscall::exit(r);
 }
 
 
@@ -135,5 +134,5 @@ _start:
 
 
 void __stack_chk_fail(void) {
-	crash();
+	Syscall::crash();
 }

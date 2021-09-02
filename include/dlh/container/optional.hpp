@@ -46,6 +46,7 @@ class Optional {
 
 	const T* operator->() const {
 		assert(_assigned);
+		return const_cast<const T*>(&_value);
 	}
 
 	T& operator*() & {
@@ -131,7 +132,7 @@ class Optional {
 
 	template<typename O>
 	bool operator==(const Optional<O>& other) const {
-		return _assigned == other._assigned || _value == other._value;
+		return _assigned == other._assigned && (!_assigned || _value == other._value);
 	}
 
 	template<typename O>
@@ -141,7 +142,7 @@ class Optional {
 
 	template<typename O>
 	bool operator!=(const Optional<O>& other) const {
-		return _assigned != other._assigned || _value != other._value;
+		return _assigned != other._assigned || (_assigned && _value != other._value);
 	}
 
 	template<typename O>

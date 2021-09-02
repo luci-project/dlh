@@ -1,7 +1,5 @@
 #pragma once
 
-#include <dlh/errno.hpp>
-
 typedef enum : long {
 	SYS_read = 0,
 	SYS_write = 1,
@@ -400,13 +398,6 @@ static inline long __syscall6(syscall_t __n, long __a1, long __a2, long __a3, lo
 	return __ret;
 }
 
-static long __syscall_ret(unsigned long r) {
-	if (r > -4096UL) {
-		errno = -r;
-		return -1;
-	}
-	return r;
-}
 
 #define __scc(X) ((long) (X))
 #define __syscall1(n,a) __syscall1(n,__scc(a))
@@ -423,4 +414,3 @@ static long __syscall_ret(unsigned long r) {
 #define __SYSCALL_DISP(b,...) __SYSCALL_CONCAT(b,__SYSCALL_NARGS(__VA_ARGS__))(__VA_ARGS__)
 
 #define __syscall(...) __SYSCALL_DISP(__syscall,__VA_ARGS__)
-#define syscall(...) __syscall_ret(__syscall(__VA_ARGS__))

@@ -1,10 +1,11 @@
 #include <dlh/utils/log.hpp>
 #include <dlh/errno.hpp>
-#include <dlh/unistd.hpp>
+#include <dlh/syscall.hpp>
 
 
 bool Log::output(int fd) {
-	if (fcntl(fd, F_GETFD) != -1 || errno != EBADF) {
+	auto fcntl = Syscall::fcntl(fd, F_GETFD);
+	if (fcntl.value() != -1 || fcntl.error() != EBADF) {
 		this->fd = fd;
 		return true;
 	} else {
@@ -14,11 +15,11 @@ bool Log::output(int fd) {
 
 bool Log::output(const char * file, bool truncate) {
 	if (file != nullptr) {
-		int fd = open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND));
-		if (fd > 0) {
+		auto fd = Syscall::open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND));
+		if (fd.valid()) {
 			if (this->fd > 2)
-				close(this->fd);
-			this->fd = fd;
+				Syscall::close(this->fd);
+			this->fd = fd.value();
 			return true;
 		}
 	}

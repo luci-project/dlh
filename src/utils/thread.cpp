@@ -1,7 +1,7 @@
 #include <dlh/utils/thread.hpp>
 #include <dlh/utils/math.hpp>
 #include <dlh/assert.hpp>
-#include <dlh/errno.hpp>
+#include <dlh/syscall.hpp>
 #include <dlh/stream/output.hpp>
 #include "../libc/internal/syscall.hpp"
 
@@ -42,7 +42,7 @@ extern "C" void __start_child(Thread * that, int (*func)(void*), void * arg) {
 	int r = func(arg);
 
 	that->exit(r);
-	exit(r);
+	Syscall::exit(r);
 }
 
 Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stack_size, size_t tls_size, DynamicThreadVector * dtv, bool hidden) {
@@ -53,15 +53,15 @@ Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stac
 
 	auto tls_size_aligned = Math::align(tls_size, 16);
 	size_t map_size = tls_size_aligned + Math::align(sizeof(Thread), 16) + Math::align(stack_size, 16);
-	void * map_base = mmap(nullptr, map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
-	if (map_base == nullptr)
+	auto mmap = Syscall::mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
+	if (!mmap.success())
 		return nullptr;
 
 
-	register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(reinterpret_cast<uintptr_t>(map_base) + tls_size_aligned);
-	if (new (that) Thread(dtv, map_base, map_size, detach) == that) {
+	register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(mmap.value() + tls_size_aligned);
+	if (new (that) Thread(dtv, mmap.value(), map_size, detach) == that) {
 		that->multiple_threads = 1;
-		void** top_of_stack = reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(map_base) + map_size - 16);
+		void** top_of_stack = reinterpret_cast<void**>(mmap.value() + map_size - 16);
 		*(--top_of_stack) = arg;
 		*(--top_of_stack) = reinterpret_cast<void*>(func);
 		*(--top_of_stack) = that;
@@ -85,7 +85,7 @@ Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stac
 		}
 	}
 	// Clean up on failure
-	munmap(map_base, map_size);
+	Syscall::munmap(mmap.value(), map_size);
 	return nullptr;
 }
 
@@ -107,7 +107,7 @@ void Thread::exit(int ret) {
 	              "mov %4,%%rax\n\t"
 	              "syscall\n\t"
 	              "hlt\n\t"
-	              :: "a"(SYS_munmap), "D"(map_base), "S"(map_size), "d"(detached && map_base != nullptr), "i"(SYS_exit): "rcx", "r11", "memory");
+	              :: "a"(SYS_munmap), "D"(map_base), "S"(map_size), "d"(detached && map_base != 0), "i"(SYS_exit): "rcx", "r11", "memory");
 }
 
 int Thread::kill(signal_t sig) {
@@ -121,8 +121,8 @@ void Thread::detach() {
 	if (!detached) {
 		// TODO: racy without locks...
 		if (tid <= 0) {
-			if (map_base != nullptr)
-				munmap(map_base, map_size);
+			if (map_base != 0)
+				Syscall::munmap(map_base, map_size);
 		} else {
 			detached = true;
 		}
@@ -135,13 +135,13 @@ bool Thread::join(int & exit_code) {
 	if (tid != -1) {
 		pid_t tmp;
 		while ((tmp = tid) > 0)
-			if (futex((int*)&tid, FUTEX_WAIT, tmp, nullptr, NULL, 0) != 0)
+			if (Syscall::futex((int*)&tid, FUTEX_WAIT, tmp, nullptr, NULL, 0).value() != 0)
 				return false;
 
 		if (__atomic_exchange_n(&tid, -1, __ATOMIC_RELEASE) == 0) {
 			exit_code = this->exit_code;
-			if (!detached && map_base != nullptr)
-				munmap(map_base, map_size);
+			if (!detached && map_base != 0)
+				Syscall::munmap(map_base, map_size);
 			return true;
 		}
 	}

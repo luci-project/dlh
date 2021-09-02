@@ -1,5 +1,7 @@
 #include <dlh/utils/mutex.hpp>
-#include <dlh/unistd.hpp>
+#include <dlh/stream/output.hpp>
+#include <dlh/syscall.hpp>
+#include <dlh/assert.hpp>
 
 Mutex::Mutex() : var(FUTEX_UNLOCKED) {}
 
@@ -10,9 +12,20 @@ bool Mutex::lock(const struct timespec * __restrict__ at) {
 			state = __atomic_exchange_n(&var, FUTEX_LOCKED_WITH_WAITERS, __ATOMIC_RELEASE);
 
 		while (state != FUTEX_UNLOCKED) {
-			if (futex((int*)&var, FUTEX_WAIT, FUTEX_LOCKED_WITH_WAITERS, at, NULL, 0) == ETIMEDOUT)
-				return false;
+			auto futex = Syscall::futex((int*)&var, FUTEX_WAIT, FUTEX_LOCKED_WITH_WAITERS, at, NULL, 0);
+			switch (futex.error()) {
+				case ENONE:
+				case EINTR:
+				case EAGAIN:
+					break;
 
+				case ETIMEDOUT:
+					return false;
+
+				default:
+					cerr << "Mutex::lock (futex) failed with " << futex.error_message() << endl;
+					assert(false);
+			}
 			state = __atomic_exchange_n(&var, FUTEX_LOCKED_WITH_WAITERS, __ATOMIC_RELEASE);
 		}
 	}
@@ -26,5 +39,6 @@ bool Mutex::trylock() {
 
 void Mutex::unlock() {
 	if (__atomic_exchange_n(&var,  FUTEX_UNLOCKED, __ATOMIC_RELEASE) != FUTEX_LOCKED)
-		futex((int*)&var, FUTEX_WAKE, 1, NULL, NULL, 0);
+		if (!Syscall::futex((int*)&var, FUTEX_WAKE, 1, NULL, NULL, 0).valid())
+			assert(false);
 }

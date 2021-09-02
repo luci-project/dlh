@@ -29,7 +29,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
-#include <dlh/unistd.hpp>
+#include <dlh/syscall.hpp>
 
 namespace Allocator {
 
@@ -206,7 +206,7 @@ class Buddy {
 	 */
 	bool update_max_ptr(uintptr_t new_value) {
 		if (new_value > max_ptr) {
-			if (brk(reinterpret_cast<void*>(new_value))) {
+			if (!Syscall::brk(new_value).success()) {
 				return false;
 			}
 			max_ptr = new_value;
@@ -327,7 +327,11 @@ class Buddy {
 		// beginning, the tree has a single node that represents the smallest
 		// possible allocation size. More memory will be reserved later as needed.
 		if (base_ptr == 0) {
-			base_ptr = max_ptr = reinterpret_cast<uintptr_t>(sbrk(0));
+			auto sbrk = Syscall::sbrk(0);
+			if (!sbrk.valid()) {
+				return 0;
+			}
+			base_ptr = max_ptr = sbrk.value();
 			bucket_limit = BUCKET_COUNT - 1;
 			if (!update_max_ptr(reinterpret_cast<uintptr_t>(base_ptr) + sizeof(List))) {
 				return 0;

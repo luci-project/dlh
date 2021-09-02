@@ -1,6 +1,6 @@
 #include <dlh/utils/file.hpp>
-#include <dlh/errno.hpp>
-#include <dlh/unistd.hpp>
+
+#include <dlh/syscall.hpp>
 #include <dlh/utils/log.hpp>
 #include <dlh/utils/string.hpp>
 #include <dlh/stream/buffer.hpp>
@@ -8,45 +8,46 @@
 namespace File {
 
 bool exists(const char * path) {
-	return ::access(path, F_OK ) == 0;
+	return Syscall::access(path, F_OK).success();
 }
 
 bool readable(const char * path) {
-	return ::access(path, R_OK ) == 0;
+	return Syscall::access(path, R_OK).success();
 }
 
 bool writeable(const char * path) {
-	return ::access(path, W_OK ) == 0;
+	return Syscall::access(path, W_OK).success();
 }
 
 bool executable(const char * path) {
-	return ::access(path, X_OK ) == 0;
+	return Syscall::access(path, X_OK).success();
 }
 
 char * contents(const char * path, size_t & size) {
 	errno = 0;
-	int fd = ::open(path, O_RDONLY);
-	if (fd < 0) {
-		LOG_ERROR << "Reading file " << path << " failed: " << strerror(errno) << endl;
+	auto fd = Syscall::open(path, O_RDONLY);
+	if (!fd.valid()) {
+		LOG_ERROR << "Reading file " << path << " failed: " << fd.error_message() << endl;
 		return nullptr;
 	}
 
 	struct stat sb;
-	if (::fstat(fd, &sb) == -1) {
-		LOG_ERROR << "Stat file " << path << " failed: " << strerror(errno) << endl;
-		::close(fd);
+	auto fstat = Syscall::fstat(fd.value(), &sb);
+	if (!fstat.success()) {
+		LOG_ERROR << "Stat file " << path << " failed: " << fstat.error_message() << endl;
+		Syscall::close(fd.value());
 		return nullptr;
 	}
 	size = sb.st_size;
 
-	void * addr = ::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-	::close(fd);
-	if (addr == MAP_FAILED) {
-		LOG_ERROR << "Mmap file " << path << " failed: " << strerror(errno) << endl;
+	auto addr = Syscall::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	Syscall::close(fd.value());
+	if (!addr.valid()) {
+		LOG_ERROR << "Mmap file " << path << " failed: " << addr.error_message() << endl;
 		return nullptr;
 	} else {
 		LOG_VERBOSE << "Mapped '" << path << "' (" << size << " bytes)" << endl;
-		return reinterpret_cast<char *>(addr);
+		return reinterpret_cast<char *>(addr.value());
 	}
 }
 
@@ -69,26 +70,24 @@ void __procfdname(char *buf, unsigned fd) {
 }
 
 bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {
-	int fd = open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE);
+	auto fd = Syscall::open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE);
 	bool success = false;
-	if (fd == -1) {
-		LOG_ERROR << "Unable to open path '" << path << "': " << strerror(errno) << endl;
+	if (!fd.valid()) {
+		LOG_ERROR << "Unable to open path '" << path << "': " << fd.error_message() << endl;
 	} else {
 		StringStream<32> procfd;
-		procfd << "/proc/self/fd/" << fd;
-		errno = 0;
-		auto r = readlink(procfd.str(), buffer, bufferlen - 1);
-		if (r == -1) {
-			LOG_ERROR << "Unable to get absolute path: " << strerror(errno) << endl;
-			r = 0;
+		procfd << "/proc/self/fd/" << fd.value();
+		auto r = Syscall::readlink(procfd.str(), buffer, bufferlen - 1);
+		if (!r.valid()) {
+			LOG_ERROR << "Unable to get absolute path: " << r.error_message() << endl;
+			buffer[0] = '\0';
 			pathlen = 0;
 		} else {
-			pathlen = static_cast<size_t>(r);
+			pathlen = static_cast<size_t>(r.value());
+			buffer[pathlen] = '\0';
 			success = true;
 		}
-		buffer[r] = '\0';
-
-		close(fd);
+		Syscall::close(fd.value());
 	}
 	return success;
 }

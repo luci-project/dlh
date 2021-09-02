@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dlh/unistd.hpp>
+#include <dlh/syscall.hpp>
 #include <dlh/stream/string.hpp>
 
 template<size_t BUFFERSZ>
@@ -20,11 +20,11 @@ class OutputStream : public StringStream<BUFFERSZ> {
 	virtual void flush() override {
 		size_t l = 0;
 		while (l < this->_pos) {
-			ssize_t r = ::write(fd, this->_bufptr + l, this->_pos - l);
-			if (r < 0)
+			auto r = Syscall::write(fd, this->_bufptr + l, this->_pos - l);
+			if (!r.valid())
 				break;
 			else
-				l += r;
+				l += r.value();
 		}
 		this->_pos = 0;
 	}
