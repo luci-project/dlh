@@ -66,7 +66,7 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 				*this << ' ';
 			}
 			// Pad file name
-			while (_pos - p < 36)
+			while (_pos - p < 38)
 				*this << '.';
 			*this << "\e[49m ";
 		} else {
