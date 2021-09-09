@@ -2,13 +2,17 @@
 
 extern char **environ;
 
-Auxiliary * Auxiliary::data(Auxiliary::type type) {
+Auxiliary * Auxiliary::begin() {
 	static int envc = -1;
 	if (envc == -1)
 		for (envc = 0; environ[envc] != nullptr; envc++) {}
 
+	return reinterpret_cast<Auxiliary *>(environ + envc + 1);
+}
+
+Auxiliary * Auxiliary::data(Auxiliary::type type) {
 	// Read current auxiliary vectors
-	Auxiliary * auxv = reinterpret_cast<Auxiliary *>(environ + envc + 1);
+	Auxiliary * auxv = begin();
 	for (int auxc = 0 ; auxv[auxc].a_type != Auxiliary::AT_NULL; auxc++)
 		if (auxv[auxc].a_type == type)
 			return auxv + auxc;
