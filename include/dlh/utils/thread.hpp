@@ -13,18 +13,18 @@ struct Thread {
 			void *to_free;
 		} pointer;
 
-		constexpr DynamicThreadVector(void * val = reinterpret_cast<void*>(-1)) : pointer{val, 0} {}
+		constexpr DynamicThreadVector(void * val = nullptr) : pointer{val, 0} {}
 
 		inline bool allocated() const {
-			return pointer.val != reinterpret_cast<void*>(-1);
+			return pointer.val != nullptr;
 		}
 	} * dtv;
 	Thread * selfptr;
 	int multiple_threads = 0;
 	int gscope_flag = 0;
 	uintptr_t sysinfo = 0;
-	uintptr_t stack_guard = 0x2badc0de;
-	uintptr_t pointer_guard = 0x1badc0de;
+	uintptr_t stack_guard = 0;
+	uintptr_t pointer_guard = 0;
 	void * __padding[77] = { nullptr };
 
 	// Custom fields (in reserved space)
@@ -51,11 +51,12 @@ struct Thread {
 
 	bool join(int & exit_code);
 
+	void setup_guards(void* random);
+
 	inline bool join() {
 		int e;
 		return join(e);
 	}
-
 
 	inline bool active() const {
 		return tid > 0;

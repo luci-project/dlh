@@ -1,6 +1,7 @@
 #include <dlh/utils/thread.hpp>
 #include <dlh/utils/math.hpp>
 #include <dlh/assert.hpp>
+#include <dlh/string.hpp>
 #include <dlh/syscall.hpp>
 #include <dlh/stream/output.hpp>
 #include "../libc/internal/syscall.hpp"
@@ -146,4 +147,10 @@ bool Thread::join(int & exit_code) {
 		}
 	}
 	return false;
+}
+
+void Thread::setup_guards(void* random) {
+	memcpy(&stack_guard, random, sizeof(stack_guard));
+	stack_guard &= ~(uintptr_t) 0xff;
+	memcpy(&pointer_guard, (char*)random + sizeof(pointer_guard), sizeof(pointer_guard));
 }
