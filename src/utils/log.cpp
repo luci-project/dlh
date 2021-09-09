@@ -52,6 +52,7 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 	flush();
 	severity = level;
 	if (level <= limit && level > NONE) {
+		reset();
 		// STDOUT / STDERR with ANSI color codes
 		if (fd <= 2) {
 			*this << level_name[level];

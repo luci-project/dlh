@@ -35,6 +35,9 @@ class Log : public OutputStream<2048> {
 	/*! \brief New log entry */
 	Log& entry(Level level, const char * file = nullptr, unsigned line = 0, const char * module = nullptr);
 
+	/*! \brief Append to log entry */
+	Log& append() { return *this; }
+
  private:
 	/*! \brief Level of current message */
 	Level severity;
@@ -54,6 +57,7 @@ extern Log logger;
 #define __MODULE_NAME__ STR(__MODULE__)
 #endif
 #define LOG_LEVEL(LEVEL) if (LOG.visible(LEVEL)) LOG.entry(LEVEL, __BASE_FILE__, __LINE__, __MODULE_NAME__)
+#define LOG_LEVEL_APPEND(LEVEL) if (LOG.visible(LEVEL)) LOG.append()
 
 #define LOG_FATAL   LOG_LEVEL(Log::FATAL)
 #define LOG_ERROR   LOG_LEVEL(Log::ERROR)
@@ -62,3 +66,11 @@ extern Log logger;
 #define LOG_VERBOSE LOG_LEVEL(Log::VERBOSE)
 #define LOG_DEBUG   LOG_LEVEL(Log::DEBUG)
 #define LOG_TRACE   LOG_LEVEL(Log::TRACE)
+
+#define LOG_FATAL_APPEND   LOG_LEVEL_APPEND(Log::FATAL)
+#define LOG_ERROR_APPEND   LOG_LEVEL_APPEND(Log::ERROR)
+#define LOG_WARNING_APPEND LOG_LEVEL_APPEND(Log::WARNING)
+#define LOG_INFO_APPEND    LOG_LEVEL_APPEND(Log::INFO)
+#define LOG_VERBOSE_APPEND LOG_LEVEL_APPEND(Log::VERBOSE)
+#define LOG_DEBUG_APPEND   LOG_LEVEL_APPEND(Log::DEBUG)
+#define LOG_TRACE_APPEND   LOG_LEVEL_APPEND(Log::TRACE)
