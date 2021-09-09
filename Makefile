@@ -14,10 +14,11 @@ CXXFLAGS += -fno-jump-tables -fno-plt -fPIE
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 
-SOURCES = $(shell find $(SRCFOLDER)/ -name "*.cpp")
-OBJECTS = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o))
-DEPFILES = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d)) $(patsubst %.cpp,$(BUILDDIR)/%.d,$(wildcard test/*.cpp))
 LIBNAME = dlh
+BUILDINFO = $(BUILDDIR)/.build_$(LIBNAME).o
+SOURCES = $(shell find $(SRCFOLDER)/ -name "*.cpp")
+OBJECTS = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o)) $(BUILDINFO)
+DEPFILES = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d)) $(patsubst %.cpp,$(BUILDDIR)/%.d,$(wildcard test/*.cpp))
 TARGET = lib$(LIBNAME).a
 TESTS := $(patsubst test/%.cpp,test-%,$(wildcard test/*.cpp))
 
@@ -25,7 +26,8 @@ all: $(TARGET)
 
 %.a: $(OBJECTS) $(MAKEFILE_LIST)
 	@echo "AR		$@"
-	$(VERBOSE) $(AR) rcs $@ $^
+	@rm -f $@
+	$(VERBOSE) $(AR) rcs $@ $(OBJECTS)
 
 tests: $(TESTS)
 
@@ -46,7 +48,13 @@ $(BUILDDIR)/%.d: $(SRCFOLDER)/%.cpp $(BUILDDIR) $(MAKEFILE_LIST)
 $(BUILDDIR)/%.o: $(SRCFOLDER)/%.cpp $(BUILDDIR) $(MAKEFILE_LIST)
 	@echo "CXX		$<"
 	@mkdir -p $(@D)
-	$(VERBOSE) $(CXX) $(CXXFLAGS) -D__MODULE__="DLH" -c -o $@ $<
+	$(VERBOSE) $(CXX) $(CXXFLAGS) -D__MODULE__="$(LIBNAME)" -c -o $@ $<
+
+$(BUILDINFO): FORCE
+	@echo "CXX		$@"
+	@echo 'const char * build_$(LIBNAME)_version() { return "$(shell git describe --dirty --always --tags)"; } ' \
+	'const char * build_$(LIBNAME)_date() { return "$(shell date -R)"; }' \
+	'const char * build_$(LIBNAME)_flags() { return "$(CXXFLAGS)"; }' | $(CXX) $(CXXFLAGS) -x c++ -c -o $@ -
 
 clean::
 	$(VERBOSE) rm -rf $(BUILDDIR)
@@ -62,5 +70,7 @@ $(DEPFILES):
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPFILES)
 endif
+
+FORCE:
 
 .PHONY: all tests clean mrproper
