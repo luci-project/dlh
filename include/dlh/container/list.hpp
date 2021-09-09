@@ -21,6 +21,8 @@ struct ListNode : public T {
 
 	template <class... ARGS>
 	explicit ListNode(ARGS&&... args) : T(forward<ARGS>(args)...), _prev(nullptr), _next(nullptr) {}
+
+	virtual ~ListNode() {}
 };
 
 /*! \brief Linked list
