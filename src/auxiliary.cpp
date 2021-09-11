@@ -1,4 +1,4 @@
-#include <dlh/utils/auxiliary.hpp>
+#include <dlh/auxiliary.hpp>
 
 extern char **environ;
 

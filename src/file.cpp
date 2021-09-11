@@ -1,8 +1,8 @@
-#include <dlh/utils/file.hpp>
+#include <dlh/file.hpp>
 
+#include <dlh/log.hpp>
+#include <dlh/string.hpp>
 #include <dlh/syscall.hpp>
-#include <dlh/utils/log.hpp>
-#include <dlh/utils/string.hpp>
 #include <dlh/stream/buffer.hpp>
 
 namespace File {
@@ -24,7 +24,6 @@ bool executable(const char * path) {
 }
 
 char * contents(const char * path, size_t & size) {
-	errno = 0;
 	auto fd = Syscall::open(path, O_RDONLY);
 	if (!fd.valid()) {
 		LOG_ERROR << "Reading file " << path << " failed: " << fd.error_message() << endl;

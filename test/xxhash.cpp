@@ -1,9 +1,12 @@
 #include <dlh/stream/output.hpp>
-#include <dlh/utils/xxhash.hpp>
-#include <dlh/alloc.hpp>
+#include <dlh/xxhash.hpp>
+#include <dlh/mem.hpp>
 
 int main(int argc, const char *argv[]) {
-	void * foo = malloc(123);
+	(void) argc;
+	(void) argv;
+
+	void * foo = Memory::alloc<void>(123);
 	XXHash64 a(0);
 	const char f[1337] = { 0 };
 	a.add("foobar", 6);

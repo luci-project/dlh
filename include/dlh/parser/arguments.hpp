@@ -3,8 +3,8 @@
 #include <dlh/container/initializer_list.hpp>
 #include <dlh/container/vector.hpp>
 #include <dlh/parser/string.hpp>
-#include <dlh/utils/log.hpp>
 #include <dlh/string.hpp>
+#include <dlh/log.hpp>
 
 namespace Parser {
 

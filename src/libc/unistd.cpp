@@ -1,10 +1,12 @@
-#include <dlh/unistd.hpp>
 #include <dlh/syscall.hpp>
+
+#ifdef DLH_LEGACY
+extern "C" int *__errno_location();
 
 template <typename T>
 static inline T reterrno(const Syscall::ReturnValue<T> & v) {
 	if (v.error() != ENONE)
-		errno = v.error();
+		*__errno_location() = v.error();
 	return v.value();
 }
 
@@ -14,18 +16,6 @@ extern "C" int nanosleep(const struct timespec *req, struct timespec *rem) {
 
 extern "C" unsigned sleep(unsigned seconds) {
 	return reterrno(Syscall::sleep(seconds));
-}
-
-extern "C" pid_t gettid() {
-	return Syscall::gettid();
-}
-
-extern "C" pid_t getpid() {
-	return Syscall::getpid();
-}
-
-extern "C" pid_t getppid() {
-	return Syscall::getppid();
 }
 
 extern "C" int getrlimit(rlimit_t resource, struct rlimit *rlim) {
@@ -46,18 +36,6 @@ extern "C" int sigaction(int sig, const struct sigaction * __restrict__ sa, stru
 
 extern "C" int raise(signal_t sig) {
 	return reterrno(Syscall::raise(sig));
-}
-
-extern "C" [[noreturn]] void abort() {
-	Syscall::abort();
-}
-
-extern "C" [[noreturn]] void crash() {
-	Syscall::crash();
-}
-
-extern "C" [[noreturn]] void exit(int code) {
-	Syscall::exit(code);
 }
 
 extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long off) {
@@ -154,4 +132,30 @@ extern "C" int brk(void *addr) {
 
 extern "C" void *sbrk(intptr_t inc) {
 	return reinterpret_cast<void *>(reterrno(Syscall::sbrk(inc)));
+}
+#endif
+
+
+extern "C" pid_t gettid() {
+	return Syscall::gettid();
+}
+
+extern "C" pid_t getpid() {
+	return Syscall::getpid();
+}
+
+extern "C" pid_t getppid() {
+	return Syscall::getppid();
+}
+
+extern "C" [[noreturn]] void abort() {
+	Syscall::abort();
+}
+
+extern "C" [[noreturn]] void crash() {
+	Syscall::crash();
+}
+
+extern "C" [[noreturn]] void exit(int code) {
+	Syscall::exit(code);
 }

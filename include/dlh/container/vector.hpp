@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include <dlh/alloc.hpp>
+#include <dlh/mem.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/types.hpp>
 #include <dlh/utility.hpp>
@@ -85,7 +85,7 @@ template<class T> class Vector {
 	explicit Vector(size_t capacity) : _size(0), _capacity(static_cast<int32_t>(capacity)) {
 		if (capacity > 0) {
 			assert(capacity <= INT32_MAX);
-			_element = reinterpret_cast<T*>(malloc(capacity * sizeof(T)));
+			_element = Memory::alloc<T>(capacity * sizeof(T));
 			assert(_element != nullptr);
 		}
 	}
@@ -144,7 +144,7 @@ template<class T> class Vector {
 	 */
 	~Vector() {
 		resize(0);
-		free(_element);
+		Memory::free(_element);
 	}
 
 	/*! \brief Vector iterator
@@ -357,7 +357,7 @@ template<class T> class Vector {
 	inline void reserve(size_t capacity) {
 		int32_t c = capacity < INT32_MAX ? static_cast<int32_t>(capacity) : (INT32_MAX - 1);
 		if (c > _capacity) {
-			_element = reinterpret_cast<T*>(realloc(reinterpret_cast<void *>(_element), c * sizeof(T)));
+			_element = Memory::realloc(_element, c * sizeof(T));
 			_capacity = c;
 		}
 	}
@@ -626,7 +626,7 @@ template<class T> class Vector {
 	 */
 	Vector<T>& operator=(Vector<T>&& other) {
 		resize(0);
-		free(_element);
+		Memory::free(_element);
 		_element = other._element;
 		other._element = nullptr;
 		_size = other._size;

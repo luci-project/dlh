@@ -3,7 +3,7 @@
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/utility.hpp>
-#include <dlh/utils/comparison.hpp>
+#include <dlh/comparison.hpp>
 #include <dlh/container/pair.hpp>
 #include <dlh/container/optional.hpp>
 #include <dlh/container/initializer_list.hpp>

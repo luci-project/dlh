@@ -1,6 +1,5 @@
 #pragma once
 
-#include <dlh/types.hpp>
 enum Errno : int {
 	ENONE           = 0,
 	EPERM           = 1,
@@ -139,14 +138,4 @@ enum Errno : int {
 	EHWPOISON       = 133
 };
 
-#ifndef errno
-#define errno           (*__errno_location())
-#endif
-
-extern "C" int *__errno_location();
-extern "C" const char *__errno_string(int e);
-
-extern "C" char * strerror_r(int errnum, char *buf, size_t buflen);
-extern "C" char * strerror(int errnum);
-
-extern "C" void perror(const char * msg);
+const char *__errno_string(int e);

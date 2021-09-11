@@ -28,6 +28,9 @@ struct Foo {
 
 
 int main(int argc, const char *argv[]) {
+	(void) argc;
+	(void) argv;
+
 	List<Foo, Foo, &Foo::n, &Foo::p> s;
 	auto p = s.push_front(13);
 	auto q = s.insert(p, 666);

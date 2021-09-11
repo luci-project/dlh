@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dlh/utils/strptr.hpp>
+#include <dlh/strptr.hpp>
 
 namespace std {
 

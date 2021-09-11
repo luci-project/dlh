@@ -1,7 +1,7 @@
 #pragma once
 
+#include <dlh/mem.hpp>
 #include <dlh/types.hpp>
-#include <dlh/alloc.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
 #include <dlh/type_traits.hpp>
@@ -62,10 +62,10 @@ struct Elements {
 	Elements(const Elements<T>& e, size_t reserve = 0) : _capacity(e._capacity), _next(e._next), _count(e._count), _node(nullptr) {
 		if (e._capacity > 0) {
 			auto s = e._capacity * sizeof(Node);
-			_node = reinterpret_cast<Node*>(malloc(s + reserve));
+			_node = Memory::alloc<Node>(s + reserve);
 			assert(_node != nullptr);
 			if (is_integral<T>::value || is_reference<T>::value)
-				memcpy(reinterpret_cast<void*>(_node), reinterpret_cast<void*>(e._node), s);
+				Memory::copy(_node, e._node, s);
 			else
 				for (size_t i = 0; i < e._next; i++)
 					_node[i] = e._node[i];
@@ -86,7 +86,7 @@ struct Elements {
 	virtual ~Elements() {
 		clear();
 		if (_node != nullptr)
-			free(_node);
+			Memory::free(_node);
 	}
 
 	/*! \brief Resize element slots to capacity
@@ -95,11 +95,11 @@ struct Elements {
 	 * \return `true` on success, `false` on error
 	 */
 	bool resize(uint32_t capacity, size_t reserve = 0) {
-		void * ptr = realloc(reinterpret_cast<void*>(_node), capacity * sizeof(Node) + reserve);
+		auto ptr = Memory::realloc(_node, capacity * sizeof(Node) + reserve);
 		if (ptr == nullptr) {
 			return false;
 		} else {
-			_node = reinterpret_cast<Node *>(ptr);
+			_node = ptr;
 			_capacity = capacity;
 			return true;
 		}

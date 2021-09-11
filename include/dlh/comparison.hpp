@@ -1,7 +1,7 @@
 #pragma once
 
 #include <dlh/string.hpp>
-#include <dlh/utils/strptr.hpp>
+#include <dlh/strptr.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
@@ -31,19 +31,19 @@ struct Comparison {
 	}
 
 	static inline int compare(const char * a, const char * b) {
-		return strcmp(a, b);
+		return String::compare(a, b);
 	}
 
 	static inline int compare(const char * a, const StrPtr & b) {
-		return strcmp(a, b.str);
+		return String::compare(a, b.str);
 	}
 
 	static inline int compare(const StrPtr & a, const char * b) {
-		return strcmp(a.str, b);
+		return String::compare(a.str, b);
 	}
 
 	static inline int compare(const StrPtr & a, const StrPtr & b) {
-		return strcmp(a.str, b.str);
+		return String::compare(a.str, b.str);
 	}
 
 

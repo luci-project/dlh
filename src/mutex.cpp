@@ -1,7 +1,7 @@
-#include <dlh/utils/mutex.hpp>
-#include <dlh/stream/output.hpp>
-#include <dlh/syscall.hpp>
+#include <dlh/mutex.hpp>
 #include <dlh/assert.hpp>
+#include <dlh/syscall.hpp>
+#include <dlh/stream/output.hpp>
 
 Mutex::Mutex() : var(FUTEX_UNLOCKED) {}
 

@@ -1,6 +1,6 @@
 #include <dlh/syscall.hpp>
 
-#include "internal/syscall.hpp"
+#include "syscall.hpp"
 
 namespace Syscall {
 template <typename T>
@@ -107,7 +107,6 @@ ReturnValue<int> raise(signal_t sig) {
 	__syscall(SYS_exit, (long)code);
 	__builtin_unreachable();
 }
-
 
 ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, int fd, long off) {
 	return retval<uintptr_t>(__syscall(SYS_mmap, start, len, prot, flags, fd, off));
@@ -248,3 +247,30 @@ ReturnValue<uintptr_t> sbrk(intptr_t inc) {
 		return { ENOMEM };
 }
 }  // namespace Syscall
+
+
+void warn(const char * msg) {
+	const int error_fd = 2;
+	if (msg != nullptr) {
+		size_t len = 0;
+		__syscall(SYS_write, error_fd, msg, len);
+	}
+}
+
+void warn(const char * msg, const char * detail) {
+	if (msg == nullptr && detail == nullptr) {
+		warn("(die)\n");
+	} else {
+		warn(msg);
+		if (msg != nullptr && detail != nullptr)
+			warn(": ");
+		warn(detail);
+		warn("\n");
+	}
+}
+
+[[noreturn]] void die(const char * msg, const char * detail) {
+	warn(msg, detail);
+	Syscall::exit(EXIT_FAILURE);
+	Syscall::crash();
+}

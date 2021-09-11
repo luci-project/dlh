@@ -28,7 +28,7 @@ struct StrPtr {
 	 * \param c character to search for
 	 * \return string starting at first occurence of character or full string if not found
 	 */
-	StrPtr chr(char c) const {
+	StrPtr find(char c) const {
 		if (str != nullptr)
 			for (const char * i = str; *i != '\0'; ++i)
 				if (*i == c)
@@ -40,7 +40,7 @@ struct StrPtr {
 	 * \param c character to search for
 	 * \return string starting after last occurence of character or full string if not found
 	 */
-	StrPtr rchr(char c) const {
+	StrPtr find_last(char c) const {
 		if (str != nullptr)
 			for (size_t l = len; l > 0; --l)
 				if (str[l] == c)
@@ -73,11 +73,11 @@ struct StrPtr {
 };
 
 static inline bool operator==(const StrPtr &a, const char * b) {
-	return a.str == b || strcmp(a.str, b) == 0;
+	return a.str == b || String::compare(a.str, b) == 0;
 }
 
 static inline bool operator==(const char * a, const StrPtr & b) {
-	return a == b.str || strcmp(a, b.str) == 0;
+	return a == b.str || String::compare(a, b.str) == 0;
 }
 
 static inline BufferStream& operator<<(BufferStream& bs, const StrPtr & s) {

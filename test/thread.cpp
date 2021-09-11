@@ -1,48 +1,45 @@
 #include <dlh/stream/output.hpp>
-#include <dlh/utils/thread.hpp>
-#include <dlh/unistd.hpp>
-#include <dlh/errno.hpp>
+#include <dlh/syscall.hpp>
 #include <dlh/string.hpp>
+#include <dlh/thread.hpp>
+#include <dlh/error.hpp>
 
 void term(int signum) {
-	write(2, "thread quit\n", 13);
-	exit(0);
+	(void) signum;
+	Syscall::write(2, "thread quit\n", 13);
+	Syscall::exit(0);
 }
 
 int foo(void * a) {
-cout << "start " << __errno_location() << endl;
+	cout << "start" << endl;
 	cout << "int foo(" << a << ")" << endl;
-	const char * name = "observer";
-	errno = 0;
 
 	struct sigaction action;
-	memset(&action, 0, sizeof(struct sigaction));
+	Memory::set(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = term;
-	auto sr = sigaction(SIGCHLD, &action, NULL);
-	if (sr == -1)
-		perror("sigaction");
+	Syscall::sigaction(SIGCHLD, &action, NULL).die_on_error("sigaction");
 
-cout << "start" << endl;
-
-	auto r = prctl(PR_SET_PDEATHSIG, SIGCHLD);
-	if (r == -1)
-		perror("Set signal");
+	cout << "start" << endl;
+	auto r = Syscall::prctl(PR_SET_PDEATHSIG, SIGCHLD).value_or_die("set signal");
 	cout << "Set signal " << r << endl;
 
 
-	sleep(8);
+	Syscall::sleep(8);
 	cout << "foo done" << endl;
 	return 42;
 }
 
 int main(int argc, const char *argv[]) {
-	cerr << "start " << __errno_location() << endl;
+	(void) argc;
+	(void) argv;
+
+	cerr << "start" << endl;
 	Thread * f = Thread::create(foo, (void*)0x23, true);
 	if (f == nullptr) {
 		cerr << "failed" << endl;
 		return 1;
 	}
-	sleep(4);
+	Syscall::sleep(4);
 	cerr << "main exit" << endl;
 	return 23;
 }

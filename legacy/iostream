@@ -6,7 +6,7 @@
 namespace std {
 
 using ::setbase;
-using ::setw
+using ::setw;
 using ::setfill;
 using ::flush;
 using ::endl;

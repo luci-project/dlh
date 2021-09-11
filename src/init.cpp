@@ -1,7 +1,8 @@
+#include <dlh/error.hpp>
 #include <dlh/types.hpp>
+#include <dlh/thread.hpp>
 #include <dlh/syscall.hpp>
-#include <dlh/utils/thread.hpp>
-#include "internal/syscall.hpp"
+#include "syscall.hpp"
 
 char **environ;
 
@@ -22,14 +23,14 @@ extern "C" void _fini(){};
 
 void * __dlh_stack_pointer = nullptr;
 void (*__dlh_atexit)() = nullptr;
-
-static Thread main_tcb;
-
 __attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
 	(void)name;
 	environ = envp;
 
+#ifdef DLH_LEGACY
+	static Thread main_tcb;
 	Syscall::arch_prctl(ARCH_SET_FS, reinterpret_cast<uintptr_t>(&main_tcb));
+#endif
 
 /*
 	size_t i, *auxv, aux[AUX_CNT] = { 0 };

@@ -53,7 +53,7 @@ extern Log logger;
 #ifndef __MODULE__
 #define __MODULE_NAME__ nullptr
 #else
-#include <dlh/utils/macro.hpp>
+#include <dlh/macro.hpp>
 #define __MODULE_NAME__ STR(__MODULE__)
 #endif
 #define LOG_LEVEL(LEVEL) if (LOG.visible(LEVEL)) LOG.entry(LEVEL, __BASE_FILE__, __LINE__, __MODULE_NAME__)

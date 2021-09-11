@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dlh/assert.hpp>
 #include <dlh/types.hpp>
 #include <dlh/type_traits.hpp>
 
@@ -29,6 +30,7 @@ constexpr T&& forward(typename remove_reference<T>::type && arg) noexcept {
 
 inline void *operator new(size_t n, void * ptr) {
 	(void)n;
+	assert(ptr != nullptr);
 	return ptr;
 }
 

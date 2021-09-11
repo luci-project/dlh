@@ -40,6 +40,9 @@ struct FooComp: public Comparison {
 };
 
 int main(int argc, const char *argv[]) {
+	(void) argc;
+	(void) argv;
+
 	TreeSet<Foo, FooComp> s;
 	s.insert(13);
 	s.insert(666);

@@ -1,7 +1,6 @@
-#include <dlh/utils/log.hpp>
-#include <dlh/errno.hpp>
+#include <dlh/log.hpp>
+#include <dlh/error.hpp>
 #include <dlh/syscall.hpp>
-
 
 bool Log::output(int fd) {
 	auto fcntl = Syscall::fcntl(fd, F_GETFD);

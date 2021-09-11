@@ -10,7 +10,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
-#include <dlh/utils/bytebuffer.hpp>
+#include <dlh/bytebuffer.hpp>
 
 class XXHash64 {
 	/// magic constants :-)

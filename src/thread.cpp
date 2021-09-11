@@ -1,10 +1,10 @@
-#include <dlh/utils/thread.hpp>
-#include <dlh/utils/math.hpp>
+#include <dlh/thread.hpp>
+#include <dlh/math.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/syscall.hpp>
 #include <dlh/stream/output.hpp>
-#include "../libc/internal/syscall.hpp"
+#include "syscall.hpp"
 
 // Clone
 #define CLONE_VM             0x00000100	/* Set if VM shared between processes.  */
@@ -150,7 +150,7 @@ bool Thread::join(int & exit_code) {
 }
 
 void Thread::setup_guards(void* random) {
-	memcpy(&stack_guard, random, sizeof(stack_guard));
+	Memory::copy(&stack_guard, random, sizeof(stack_guard));
 	stack_guard &= ~(uintptr_t) 0xff;
-	memcpy(&pointer_guard, (char*)random + sizeof(pointer_guard), sizeof(pointer_guard));
+	Memory::copy(&pointer_guard, (char*)random + sizeof(pointer_guard), sizeof(pointer_guard));
 }

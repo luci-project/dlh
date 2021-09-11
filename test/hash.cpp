@@ -1,7 +1,7 @@
 #include <dlh/stream/output.hpp>
 #include <dlh/container/hash.hpp>
 #include <dlh/container/tree.hpp>
-#include <dlh/utils/iterator.hpp>
+#include <dlh/iterator.hpp>
 
 
 int main(int argc, const char *argv[]) {

@@ -4,7 +4,7 @@
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/utility.hpp>
-#include <dlh/utils/comparison.hpp>
+#include <dlh/comparison.hpp>
 #include <dlh/container/pair.hpp>
 #include <dlh/container/optional.hpp>
 #include <dlh/container/initializer_list.hpp>
@@ -103,7 +103,7 @@ class HashSet : public Elements<T> {
 		const size_t size = _bucket_capacity * sizeof(uint32_t);
 		if (size > 0) {
 			assert(_bucket != nullptr);
-			memcpy(_bucket, set._bucket, size);
+			Memory::copy(_bucket, set._bucket, size);
 			assert(!Elements<T>::_node[0].hash.active);
 		}
 	}
@@ -622,7 +622,7 @@ class HashSet : public Elements<T> {
 	void clear() {
 		Elements<T>::clear();
 		if (_bucket != nullptr)
-			memset(_bucket, 0, sizeof(uint32_t) * _bucket_capacity);
+			Memory::set(_bucket, 0, sizeof(uint32_t) * _bucket_capacity);
 	}
 
  private:
@@ -686,7 +686,7 @@ class HashSet : public Elements<T> {
 	 * \param rehash calculate hash value (replacing cached value)
 	 */
 	void bucketize(bool rehash = false) {
-		memset(_bucket, 0, _bucket_capacity * sizeof(uint32_t));
+		Memory::set(_bucket, 0, _bucket_capacity * sizeof(uint32_t));
 
 		for (size_t i = 1; i <= Elements<T>::_count; i++) {
 			if (Elements<T>::_node[i].hash.active) {

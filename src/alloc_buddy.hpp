@@ -29,6 +29,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
+#include <dlh/assert.hpp>
 #include <dlh/syscall.hpp>
 
 namespace Allocator {
@@ -51,8 +52,11 @@ namespace Allocator {
  *                         has to be at least 4 (= 16 bytes)
  * \tparam MAX_ALLOC_LOG2  binary logarithm value of the maximum total memory
  *                         which is allocatable
+ * \tparam BLOCK_SIZE      allocation size will be a multiple of block size.
+ * \tparam USE_BRK         use program break (or memory map) syscall to request
+ *                         memory from the operating system
  */
-template<size_t MIN_ALLOC_LOG2, size_t MAX_ALLOC_LOG2>
+template<size_t MIN_ALLOC_LOG2, size_t MAX_ALLOC_LOG2, size_t BLOCK_SIZE, bool USE_BRK>
 class Buddy {
 	/*! \brief Header
 	 * Every allocation needs an header to store the allocation size while
@@ -190,13 +194,38 @@ class Buddy {
 	 * This is the starting address of the address range for this allocator. Every
 	 * returned allocation will be an offset of this pointer from 0 to MAX_ALLOC.
 	 */
-	uintptr_t base_ptr;
+	uintptr_t base_ptr = 0;
 
 	/*! \brief Current end of reserved memory
 	 * This is the maximum address that has ever been used by the allocator. It's
-	 * used to know when to call RESERVED function to request more memory.
+	 * used to know when to call reserve function to request more memory.
 	 */
-	uintptr_t max_ptr;
+	uintptr_t max_ptr = 0;
+
+	/*! \brief Reserve additional memory
+	 * \param size the requested memory size
+	 * \return address of the start of the newly allocated memory
+	 */
+	uintptr_t reserve(size_t size) {
+		size = Math::align_up(size, BLOCK_SIZE);
+
+		uintptr_t ptr = 0;
+		if (USE_BRK) {
+			auto sbrk = Syscall::sbrk(size);
+			ptr = sbrk.valid() ? static_cast<uintptr_t>(sbrk.value()) : 0;
+		} else {
+			auto mmap = Syscall::mmap(max_ptr == 0 ? 0x700000000000UL : max_ptr, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | (max_ptr == 0 ? 0 : MAP_FIXED_NOREPLACE) , 0, 0);
+			ptr = mmap.valid() ? mmap.value() : 0;
+		}
+
+		// Set end address
+		if (ptr != 0) {
+			assert(max_ptr == 0 || ptr == max_ptr);
+			max_ptr = ptr + size;
+		}
+
+		return ptr;
+	}
 
 	/*! \brief Prepare request for more reserved memory
 	 * \param new_value the requested new end for the reserved memory -- all
@@ -205,13 +234,7 @@ class Buddy {
 	 * \return `true` if the memory could be reserved, `false` otherwise
 	 */
 	bool update_max_ptr(uintptr_t new_value) {
-		if (new_value > max_ptr) {
-			if (!Syscall::brk(new_value).success()) {
-				return false;
-			}
-			max_ptr = new_value;
-		}
-		return true;
+		return new_value <= max_ptr || (new_value - base_ptr < MAX_ALLOC && reserve(new_value - max_ptr) != 0);
 	}
 
 	/*! \brief Map from the index of a node to the address of memory that node represents.
@@ -327,15 +350,17 @@ class Buddy {
 		// beginning, the tree has a single node that represents the smallest
 		// possible allocation size. More memory will be reserved later as needed.
 		if (base_ptr == 0) {
-			auto sbrk = Syscall::sbrk(0);
-			if (!sbrk.valid()) {
+			// GNU Libc: The address of a block returned by malloc or realloc
+			// in GNU systems is always a multiple of eight (or sixteen on 64-bit systems).
+			// Hence, `align_size` represents our target alignment.
+			size_t align_size = 2 * sizeof(void*);
+			if ((base_ptr = reserve(sizeof(List) + 2 * align_size)) == 0) {
 				return 0;
 			}
-			base_ptr = max_ptr = sbrk.value();
+			// By modifing our base_ptr we can achieve a correct alignment for all calls
+			base_ptr = Math::align_up(base_ptr, align_size) + align_size - HEADER_SIZE;
+
 			bucket_limit = BUCKET_COUNT - 1;
-			if (!update_max_ptr(reinterpret_cast<uintptr_t>(base_ptr) + sizeof(List))) {
-				return 0;
-			}
 			buckets[BUCKET_COUNT - 1].clear();
 			buckets[BUCKET_COUNT - 1].push(reinterpret_cast<List *>(base_ptr));
 		}
@@ -501,6 +526,7 @@ class Buddy {
 	}
 
 	// Sanity checks
+	static_assert(USE_BRK || (BLOCK_SIZE % 4096 == 0 && BLOCK_SIZE >= 4096), "For mmap BLOCK_SIZE must be a multiple of the page size (4096)");
 	static_assert(MIN_ALLOC >= sizeof(List), "Minimum allocation size has to be at least the size of a List item!");
 	static_assert(MIN_ALLOC_LOG2 < MAX_ALLOC_LOG2, "Minimum allocation has to be smaller than maximum allocation size!");
 };

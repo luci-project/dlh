@@ -137,7 +137,7 @@ BufferStream& BufferStream::operator<<(char c) {
 BufferStream& BufferStream::operator<<(const char* string) {
 	if (string != nullptr) {
 		if (_width > 0)
-			return writefill(string, strlen(string));
+			return writefill(string, String::len(string));
 		else  // slightly faster
 			while ((*string) != '\0' && _pos + 1 < _len) {
 				_bufptr[_pos++] = *(string++);

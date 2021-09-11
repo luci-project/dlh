@@ -1,12 +1,12 @@
 #include <dlh/stream/output.hpp>
-#include <dlh/utils/auxiliary.hpp>
-#include <dlh/unistd.hpp>
-#include <dlh/errno.hpp>
-#include <dlh/string.hpp>
+#include <dlh/auxiliary.hpp>
 
 extern char **environ;
 
 int main(int argc, const char *argv[]) {
+	(void) argc;
+	(void) argv;
+
 	cout << "Environment variables:" << endl;
 	static int envc = -1;
 	if (envc == -1)

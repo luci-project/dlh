@@ -1,8 +1,13 @@
 #pragma once
 
-#include <dlh/errno.hpp>
+#include <dlh/error.hpp>
 #include <dlh/types.hpp>
 #include <dlh/systypes.hpp>
+
+// Handy helpers for errors
+void warn(const char * msg);
+void warn(const char * msg, const char * detail);
+[[noreturn]] void die(const char * msg = nullptr, const char * detail = nullptr);
 
 /*! \brief Syscalls with errno in return structure */
 namespace Syscall {
@@ -20,17 +25,26 @@ class ReturnValue {
 	ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
 	ReturnValue(ReturnValue&& other) = default;
 
-	T* operator->() { return &_v; }
-	const T* operator->() const { return &_v; }
-	T& operator*() & { return _v; }
-	const T& operator*() const & { return _v; }
-	T& value() & { return _v; }
-	const T& value() const & { return _v; }
-	bool valid() const { return _e == ENONE; }
-	bool success() const { return _e == ENONE; }
-	Errno error() const { return _e; }
-	const char * error_message() const { return __errno_string(_e); }
-	operator bool() const { return valid(); }
+	inline T* operator->() { return &_v; }
+	inline const T* operator->() const { return &_v; }
+	inline T& operator*() & { return _v; }
+	inline const T& operator*() const & { return _v; }
+	inline bool valid() const { return _e == ENONE; }
+	inline bool success() const { return _e == ENONE; }
+	inline Errno error() const { return _e; }
+	inline const char * error_message() const { return __errno_string(_e); }
+	inline void warn_on_error(const char * msg = nullptr) const { if (!success()) warn(msg, error_message()); }
+	inline void exit_on_error(const char * msg = nullptr) const { if (!success()) die(msg, error_message()); }
+	inline void die_on_error(const char * msg = nullptr) const { if (!success()) die(msg, error_message()); }
+	inline T& value() & { return _v; }
+	inline const T& value() const & { return _v; }
+	inline T& value_or_exit(const char * msg = nullptr) & { exit_on_error(msg); return value(); }
+	inline const T& value_or_exit(const char * msg = nullptr) const & { exit_on_error(msg); return value(); }
+	inline T& value_or_die(const char * msg = nullptr) & { die_on_error(msg); return value(); }
+	inline const T& value_or_die(const char * msg = nullptr) const & { die_on_error(msg); return value(); }
+	inline T& value_or_default(const T& v) & { return success() ? value() : v; }
+	inline const T& value_or_default(const T& v) const & { return success() ? value() : v; }
+	inline operator bool() const { return valid(); }
 	template<typename O> ReturnValue & operator=(const ReturnValue<O>& other) { _e = other._e; _v = other._v; return *this; }
 	ReturnValue & operator=(const T& other) { _v = other; return *this; }
 	template<typename O> bool operator==(const ReturnValue<O>& other) const { return _e == other._e && _v == other._v; }
@@ -53,6 +67,7 @@ ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3 = 
 
 ReturnValue<int> sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old);
 ReturnValue<int> raise(signal_t sig);
+
 [[noreturn]] void abort();
 [[noreturn]] void crash();
 [[noreturn]] void exit(int code);

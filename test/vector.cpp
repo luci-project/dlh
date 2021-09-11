@@ -24,6 +24,9 @@ struct Foo {
 };
 
 int main(int argc, const char *argv[]) {
+	(void) argc;
+	(void) argv;
+
 	Vector<Foo> s;
 	auto p = s.push_front(13);
 	auto q = s.insert(p, 666);

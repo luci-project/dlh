@@ -13,6 +13,9 @@ CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -
 CXXFLAGS += -fno-jump-tables -fno-plt -fPIE
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
+ifeq ($(LEGACY), 1)
+CXXFLAGS += -DDLH_LEGACY
+endif
 
 LIBNAME = dlh
 BUILDINFO = $(BUILDDIR)/.build_$(LIBNAME).o
