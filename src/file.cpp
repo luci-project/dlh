@@ -25,23 +25,24 @@ bool executable(const char * path) {
 
 char * contents(const char * path, size_t & size) {
 	auto fd = Syscall::open(path, O_RDONLY);
-	if (!fd.valid()) {
+	if (fd.failed()) {
 		LOG_ERROR << "Reading file " << path << " failed: " << fd.error_message() << endl;
 		return nullptr;
 	}
 
 	struct stat sb;
-	auto fstat = Syscall::fstat(fd.value(), &sb);
-	if (!fstat.success()) {
+	if (auto fstat = Syscall::fstat(fd.value(), &sb)) {
+		size = sb.st_size;
+	} else {
 		LOG_ERROR << "Stat file " << path << " failed: " << fstat.error_message() << endl;
 		Syscall::close(fd.value());
 		return nullptr;
 	}
-	size = sb.st_size;
+
 
 	auto addr = Syscall::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd.value(), 0);
 	Syscall::close(fd.value());
-	if (!addr.valid()) {
+	if (addr.failed()) {
 		LOG_ERROR << "Mmap file " << path << " failed: " << addr.error_message() << endl;
 		return nullptr;
 	} else {
@@ -63,30 +64,28 @@ void __procfdname(char *buf, unsigned fd) {
 		buf[i+1] = 0;
 		return;
 	}
-	for (j=fd; j; j/=10, i++);
+	for (j=fd; j; j/=10, i++) {};
 	buf[i] = 0;
 	for (; fd; fd/=10) buf[--i] = '0' + fd%10;
 }
 
 bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {
-	auto fd = Syscall::open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE);
 	bool success = false;
-	if (!fd.valid()) {
-		LOG_ERROR << "Unable to open path '" << path << "': " << fd.error_message() << endl;
-	} else {
+	if (auto fd = Syscall::open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE)) {
 		StringStream<32> procfd;
 		procfd << "/proc/self/fd/" << fd.value();
-		auto r = Syscall::readlink(procfd.str(), buffer, bufferlen - 1);
-		if (!r.valid()) {
-			LOG_ERROR << "Unable to get absolute path: " << r.error_message() << endl;
-			buffer[0] = '\0';
-			pathlen = 0;
-		} else {
+		if (auto r = Syscall::readlink(procfd.str(), buffer, bufferlen - 1)) {
 			pathlen = static_cast<size_t>(r.value());
 			buffer[pathlen] = '\0';
 			success = true;
+		} else {
+			LOG_ERROR << "Unable to get absolute path: " << r.error_message() << endl;
+			buffer[0] = '\0';
+			pathlen = 0;
 		}
 		Syscall::close(fd.value());
+	} else {
+		LOG_ERROR << "Unable to open path '" << path << "': " << fd.error_message() << endl;
 	}
 	return success;
 }

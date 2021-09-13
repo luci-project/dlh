@@ -29,8 +29,8 @@ class ReturnValue {
 	inline const T* operator->() const { return &_v; }
 	inline T& operator*() & { return _v; }
 	inline const T& operator*() const & { return _v; }
-	inline bool valid() const { return _e == ENONE; }
 	inline bool success() const { return _e == ENONE; }
+	inline bool failed() const { return _e != ENONE; }
 	inline Errno error() const { return _e; }
 	inline const char * error_message() const { return __errno_string(_e); }
 	inline void warn_on_error(const char * msg = nullptr) const { if (!success()) warn(msg, error_message()); }
@@ -44,7 +44,7 @@ class ReturnValue {
 	inline const T& value_or_die(const char * msg = nullptr) const & { die_on_error(msg); return value(); }
 	inline T& value_or_default(const T& v) & { return success() ? value() : v; }
 	inline const T& value_or_default(const T& v) const & { return success() ? value() : v; }
-	inline operator bool() const { return valid(); }
+	inline operator bool() const { return success(); }
 	template<typename O> ReturnValue & operator=(const ReturnValue<O>& other) { _e = other._e; _v = other._v; return *this; }
 	ReturnValue & operator=(const T& other) { _v = other; return *this; }
 	template<typename O> bool operator==(const ReturnValue<O>& other) const { return _e == other._e && _v == other._v; }

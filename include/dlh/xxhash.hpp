@@ -174,13 +174,22 @@ class XXHash64 {
 		return true;
 	}
 
+	/*! \brief add a chunk of bytes
+	 * \param input address of a continuous block of data (or `0` to add zeros)
+	 * \param length number of bytes
+	 * \return `false` if parameters are invalid / zero
+	 */
+	inline bool add(const uintptr_t input, uint64_t length) {
+		return add(reinterpret_cast<const void*>(input), length);
+	}
+
 	template<typename T>
-	bool add(T input) {
+	inline bool add(T input) {
 		return add(&input, sizeof(T));
 	}
 
 	template<size_t CAPACITY>
-	bool add(const ByteBuffer<CAPACITY> & bb) {
+	inline bool add(const ByteBuffer<CAPACITY> & bb) {
 		return add(bb.buffer(), bb.size());
 	}
 

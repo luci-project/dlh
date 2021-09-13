@@ -19,13 +19,11 @@ class OutputStream : public StringStream<BUFFERSZ> {
 	 */
 	virtual void flush() override {
 		size_t l = 0;
-		while (l < this->_pos) {
-			auto r = Syscall::write(fd, this->_bufptr + l, this->_pos - l);
-			if (!r.valid())
-				break;
-			else
+		while (l < this->_pos)
+			if (auto r = Syscall::write(fd, this->_bufptr + l, this->_pos - l))
 				l += r.value();
-		}
+			else
+				break;
 		this->_pos = 0;
 	}
 

@@ -39,6 +39,6 @@ bool Mutex::trylock() {
 
 void Mutex::unlock() {
 	if (__atomic_exchange_n(&var,  FUTEX_UNLOCKED, __ATOMIC_RELEASE) != FUTEX_LOCKED)
-		if (!Syscall::futex((int*)&var, FUTEX_WAKE, 1, NULL, NULL, 0).valid())
+		if (Syscall::futex((int*)&var, FUTEX_WAKE, 1, NULL, NULL, 0).failed())
 			assert(false);
 }

@@ -53,19 +53,23 @@ struct alignas(16) Auxiliary {
 		void (*a_fcn) (void);
 	} a_un;
 
-	bool valid() const {
+	inline bool valid() const {
 		return a_type != AT_NULL;
 	}
 
-	long int value() const {
+	inline long int value() const {
 		return a_un.a_val;
 	}
 
-	void * pointer() const {
+	inline void * pointer() const {
 		return a_un.a_ptr;
 	}
 
-    static Auxiliary * begin();
+	inline operator bool() const {
+		return valid();
+	}
+
+	static Auxiliary * begin();
 
 	static Auxiliary * data(Auxiliary::type type);
 	static Auxiliary vector(Auxiliary::type type);

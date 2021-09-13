@@ -160,7 +160,7 @@ struct Arguments : Opts {
 		bool matches(const char * name) {
 			return name[0] == '-'
 			   && (   (name_short != '\0' && name[1] == name_short)
-			       || (name_long != nullptr && name[1] == '-' && strcmp(name + 2, name_long) == 0));
+			       || (name_long != nullptr && name[1] == '-' && String::compare(name + 2, name_long) == 0));
 		}
 
 		void help(BufferStream & out, Opts * opts = nullptr, size_t max_len = 70) {
@@ -203,16 +203,16 @@ struct Arguments : Opts {
 					text(7);
 				} else {
 					out << ' ' << name_arg;
-					text(8 + strlen(name_arg));
+					text(8 + String::len(name_arg));
 				}
 			}
 			if (name_long != nullptr) {
 				out << "    --" << name_long;
 				if (name_arg == nullptr)
-					text(7 + strlen(name_long));
+					text(7 + String::len(name_long));
 				else {
 					out << ' ' << name_arg;
-					text(8 + strlen(name_long) + strlen(name_arg));
+					text(8 + String::len(name_long) + String::len(name_arg));
 				}
 			}
 			while (!text(0)) {}
@@ -250,7 +250,7 @@ struct Arguments : Opts {
 						LOG_FATAL << "Parameter '-" << arg.name_short << "' is not unqiue!" << endl;
 						skip = true;
 						break;
-					} else if (arg.name_long != nullptr && other.name_long != nullptr && strcmp(arg.name_long, other.name_long) == 0) {
+					} else if (arg.name_long != nullptr && other.name_long != nullptr && String::compare(arg.name_long, other.name_long) == 0) {
 						LOG_FATAL << "Parameter '--" << arg.name_long << "' is not unqiue!" << endl;
 						skip = true;
 						break;
@@ -283,7 +283,7 @@ struct Arguments : Opts {
 
 		bool hasRequired = false;
 		bool hasOptional = false;
-		size_t flen = 4 + strlen(file);
+		size_t flen = 4 + String::len(file);
 		int i = 0;
 		for (auto arg : args) {
 			if (arg.required) {

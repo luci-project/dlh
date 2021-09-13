@@ -13,15 +13,13 @@ bool Log::output(int fd) {
 }
 
 bool Log::output(const char * file, bool truncate) {
-	if (file != nullptr) {
-		auto fd = Syscall::open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND));
-		if (fd.valid()) {
+	if (file != nullptr)
+		if (auto fd = Syscall::open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND))) {
 			if (this->fd > 2)
 				Syscall::close(this->fd);
 			this->fd = fd.value();
 			return true;
 		}
-	}
 	return false;
 }
 

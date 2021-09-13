@@ -209,14 +209,7 @@ class Buddy {
 	uintptr_t reserve(size_t size) {
 		size = Math::align_up(size, BLOCK_SIZE);
 
-		uintptr_t ptr = 0;
-		if (USE_BRK) {
-			auto sbrk = Syscall::sbrk(size);
-			ptr = sbrk.valid() ? static_cast<uintptr_t>(sbrk.value()) : 0;
-		} else {
-			auto mmap = Syscall::mmap(max_ptr == 0 ? 0x700000000000UL : max_ptr, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | (max_ptr == 0 ? 0 : MAP_FIXED_NOREPLACE) , 0, 0);
-			ptr = mmap.valid() ? mmap.value() : 0;
-		}
+		uintptr_t ptr = (USE_BRK ? Syscall::sbrk(size) : Syscall::mmap(max_ptr == 0 ? 0x700000000000UL : max_ptr, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | (max_ptr == 0 ? 0 : MAP_FIXED_NOREPLACE) , 0, 0)).value_or_default(0);
 
 		// Set end address
 		if (ptr != 0) {

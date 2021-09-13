@@ -54,39 +54,36 @@ Thread * Thread::create(int (*func)(void*), void * arg, bool detach, size_t stac
 
 	auto tls_size_aligned = Math::align(tls_size, 16);
 	size_t map_size = tls_size_aligned + Math::align(sizeof(Thread), 16) + Math::align(stack_size, 16);
-	auto mmap = Syscall::mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
-	if (!mmap.success())
-		return nullptr;
+	if (auto mmap = Syscall::mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0)) {
+		register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(mmap.value() + tls_size_aligned);
+		if (new (that) Thread(dtv, mmap.value(), map_size, detach) == that) {
+			that->multiple_threads = 1;
+			void** top_of_stack = reinterpret_cast<void**>(mmap.value() + map_size - 16);
+			*(--top_of_stack) = arg;
+			*(--top_of_stack) = reinterpret_cast<void*>(func);
+			*(--top_of_stack) = that;
 
+			register pid_t * child_tid __asm__("r10") = &(that->tid);
 
-	register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(mmap.value() + tls_size_aligned);
-	if (new (that) Thread(dtv, mmap.value(), map_size, detach) == that) {
-		that->multiple_threads = 1;
-		void** top_of_stack = reinterpret_cast<void**>(mmap.value() + map_size - 16);
-		*(--top_of_stack) = arg;
-		*(--top_of_stack) = reinterpret_cast<void*>(func);
-		*(--top_of_stack) = that;
-
-		register pid_t * child_tid __asm__("r10") = &(that->tid);
-
-		pid_t pid;
-		asm volatile ("syscall\n\t"
-		              "test %%eax,%%eax\n\t"
-		              "jnz 1f\n\t"
-		              "xor %%ebp,%%ebp\n\t"
-		              "pop %%rdi\n\t"
-		              "pop %%rsi\n\t"
-		              "pop %%rdx\n\t"
-		              "call __start_child\n\t"
-		              "1:;"
-		              : "=a"(pid) : "a"(SYS_clone), "D"(flags), "S"(top_of_stack), "d"(&(that->tid)), "r"(child_tid), "r"(that): "rcx", "r11", "memory");
-		if (pid > 0) {
-			assert(pid == that->tid);
-			return that;
+			pid_t pid;
+			asm volatile ("syscall\n\t"
+			              "test %%eax,%%eax\n\t"
+			              "jnz 1f\n\t"
+			              "xor %%ebp,%%ebp\n\t"
+			              "pop %%rdi\n\t"
+			              "pop %%rsi\n\t"
+			              "pop %%rdx\n\t"
+			              "call __start_child\n\t"
+			              "1:;"
+			              : "=a"(pid) : "a"(SYS_clone), "D"(flags), "S"(top_of_stack), "d"(&(that->tid)), "r"(child_tid), "r"(that): "rcx", "r11", "memory");
+			if (pid > 0) {
+				assert(pid == that->tid);
+				return that;
+			}
 		}
+		// Clean up on failure
+		Syscall::munmap(mmap.value(), map_size);
 	}
-	// Clean up on failure
-	Syscall::munmap(mmap.value(), map_size);
 	return nullptr;
 }
 

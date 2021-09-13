@@ -1,4 +1,5 @@
 #include <dlh/syscall.hpp>
+#include <dlh/log.hpp>
 
 #include "syscall.hpp"
 
@@ -42,7 +43,7 @@ pid_t getppid() {
 ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim) {
 	unsigned long k_rlim[2];
 	auto ret = retval<int>(__syscall(SYS_prlimit64, 0, resource, 0, rlim));
-	if (ret.valid() || ret.error() != ENOSYS) {
+	if (ret.success() || ret.error() != ENOSYS) {
 		return ret;
 	} else if (__syscall(SYS_getrlimit, resource, k_rlim) < 0) {
 		ret = -1;
@@ -228,11 +229,8 @@ ReturnValue<int> brk(uintptr_t addr) {
 }
 
 ReturnValue<uintptr_t> sbrk(intptr_t inc) {
-	if (curbrk == 0) {
-		auto r = brk(0);
-		if (!r.valid())
-			return { ENOMEM };
-	}
+	if (curbrk == 0 && brk(0).failed())
+		return { ENOMEM };
 
 	uintptr_t o = curbrk;
 	if (inc == 0)
@@ -241,7 +239,7 @@ ReturnValue<uintptr_t> sbrk(intptr_t inc) {
 	         (inc < 0 && (o < static_cast<uintptr_t>(-inc))))
 		return { ENOMEM };
 
-	if (brk(o + inc).valid())
+	if (brk(o + inc).success())
 		return { o };
 	else
 		return { ENOMEM };
@@ -259,7 +257,7 @@ void warn(const char * msg) {
 
 void warn(const char * msg, const char * detail) {
 	if (msg == nullptr && detail == nullptr) {
-		warn("(die)\n");
+		warn("(error)\n");
 	} else {
 		warn(msg);
 		if (msg != nullptr && detail != nullptr)
