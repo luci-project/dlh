@@ -113,6 +113,12 @@ ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, in
 	return retval<uintptr_t>(__syscall(SYS_mmap, start, len, prot, flags, fd, off));
 }
 
+ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len, int flags, uintptr_t new_addr) {
+	if (new_len >= PTRDIFF_MAX)
+		return { ENOMEM };
+	return retval<uintptr_t>(__syscall(SYS_mremap, old_addr, old_len, new_len, flags, new_addr));
+}
+
 ReturnValue<int> mprotect(uintptr_t addr, size_t len, int prot) {
 	size_t start = addr & -PAGE_SIZE;
 	size_t end = reinterpret_cast<size_t>(reinterpret_cast<char *>(addr) + len + PAGE_SIZE - 1) & -PAGE_SIZE;
@@ -192,6 +198,13 @@ ReturnValue<int> lstat(const char * __restrict__ path, struct stat * __restrict_
 }
 
 
+ReturnValue<int> userfaultfd(int flags) {
+	return retval<int>(__syscall(SYS_userfaultfd, flags));
+}
+
+ReturnValue<int> ioctl(int fd, int req, void * arg) {
+	return retval<int>(__syscall(SYS_ioctl, fd, req, arg));
+}
 
 ReturnValue<int> memfd_create(const char *name, unsigned flags) {
 	return retval<int>(__syscall(SYS_memfd_create, name, flags));

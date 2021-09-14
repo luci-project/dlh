@@ -42,6 +42,10 @@ extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long
 	return reinterpret_cast<void*>(reterrno(Syscall::mmap(reinterpret_cast<uintptr_t>(start), len, prot, flags, fd, off)));
 }
 
+extern "C" void *mremap(void *old_addr, size_t old_len, size_t new_len, int flags, void *new_addr) {
+	return reinterpret_cast<void*>(reterrno(Syscall::mremap(reinterpret_cast<uintptr_t>(old_addr), old_len, new_len, flags, reinterpret_cast<uintptr_t>(new_addr))));
+}
+
 extern "C" int mprotect(void *addr, size_t len, int prot) {
 	return reterrno(Syscall::mprotect(reinterpret_cast<uintptr_t>(addr), len, prot));
 }
@@ -100,6 +104,10 @@ extern "C" int stat(const char * __restrict__ path, struct stat * __restrict__ b
 
 extern "C" int lstat(const char * __restrict__ path, struct stat * __restrict__ buf) {
 	return reterrno(Syscall::lstat(path, buf));
+}
+
+extern "C" int ioctl(int fd, int req, void * arg) {
+	return reterrno(Syscall::ioctl(fd, req, arg));
 }
 
 extern "C" int memfd_create(const char *name, unsigned flags) {

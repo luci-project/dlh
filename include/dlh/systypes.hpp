@@ -379,6 +379,8 @@ struct stat {
 #define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
 #define MAP_UNINITIALIZED   0x4000000	/* For anonymous mmap, memory could be uninitialized */
 
+#define MREMAP_MAYMOVE  1
+#define MREMAP_FIXED    2
 
 #define MS_ASYNC      1
 #define MS_INVALIDATE 2

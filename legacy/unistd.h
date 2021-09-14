@@ -26,6 +26,7 @@ extern "C" [[noreturn]] void crash();
 extern "C" [[noreturn]] void exit(int code);
 
 extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long off);
+extern "C" void *mremap(void *old_addr, size_t old_len, size_t new_len, int flags, void *new_addr = nullptr);
 extern "C" int mprotect(void *addr, size_t len, int prot);
 extern "C" int munmap(void *start, size_t len);
 extern "C" int msync(void *start, size_t len, int flags);
@@ -44,8 +45,8 @@ extern "C" int fstat(int fd, struct stat *st);
 extern "C" int stat(const char * __restrict__ path, struct stat * __restrict__ buf);
 extern "C" int lstat(const char * __restrict__ path, struct stat * __restrict__ buf);
 
+extern "C" int ioctl(int fd, int req, void * arg = nullptr);
 extern "C" int memfd_create(const char *name, unsigned flags);
-
 
 extern "C" int inotify_init();
 extern "C" int inotify_init1(int flags);

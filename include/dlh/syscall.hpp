@@ -73,6 +73,7 @@ ReturnValue<int> raise(signal_t sig);
 [[noreturn]] void exit(int code);
 
 ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, int fd, long off);
+ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len, int flags, uintptr_t new_addr = 0);
 ReturnValue<int> mprotect(uintptr_t start, size_t len, int prot);
 ReturnValue<int> munmap(uintptr_t start, size_t len);
 ReturnValue<int> msync(uintptr_t start, size_t len, int flags);
@@ -91,6 +92,8 @@ ReturnValue<int> fstat(int fd, struct stat *st);
 ReturnValue<int> stat(const char * __restrict__ path, struct stat * __restrict__ buf);
 ReturnValue<int> lstat(const char * __restrict__ path, struct stat * __restrict__ buf);
 
+ReturnValue<int> userfaultfd(int flags);
+ReturnValue<int> ioctl(int fd, int req, void * arg = nullptr);
 ReturnValue<int> memfd_create(const char *name, unsigned flags);
 
 ReturnValue<int> inotify_init(int flags = 0);
