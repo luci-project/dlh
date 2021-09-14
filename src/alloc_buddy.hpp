@@ -52,11 +52,16 @@ namespace Allocator {
  *                         has to be at least 4 (= 16 bytes)
  * \tparam MAX_ALLOC_LOG2  binary logarithm value of the maximum total memory
  *                         which is allocatable
- * \tparam BLOCK_SIZE      allocation size will be a multiple of block size.
- * \tparam USE_BRK         use program break (or memory map) syscall to request
- *                         memory from the operating system
+ * \tparam RESERVE         Callback function to reserve memory for allocator.
+ *                         First parameter is the (minimum) requested size
+ *                         or `0` for freeing all memory (on destruction) ,
+ *                         the second parameter is a reference to the end
+ *                         address (whcih will be updated).
+ *                         Returns a pointer to the new start address if the
+ *                         requested memory was successfully reserved,
+ *                         otherwise `0`.
  */
-template<size_t MIN_ALLOC_LOG2, size_t MAX_ALLOC_LOG2, size_t BLOCK_SIZE, bool USE_BRK>
+template<size_t MIN_ALLOC_LOG2, size_t MAX_ALLOC_LOG2, uintptr_t RESERVE(size_t, uintptr_t &)>
 class Buddy {
 	/*! \brief Header
 	 * Every allocation needs an header to store the allocation size while
@@ -202,23 +207,6 @@ class Buddy {
 	 */
 	uintptr_t max_ptr = 0;
 
-	/*! \brief Reserve additional memory
-	 * \param size the requested memory size
-	 * \return address of the start of the newly allocated memory
-	 */
-	uintptr_t reserve(size_t size) {
-		size = Math::align_up(size, BLOCK_SIZE);
-
-		uintptr_t ptr = (USE_BRK ? Syscall::sbrk(size) : Syscall::mmap(max_ptr == 0 ? 0x700000000000UL : max_ptr, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | (max_ptr == 0 ? 0 : MAP_FIXED_NOREPLACE) , 0, 0)).value_or_default(0);
-
-		// Set end address
-		if (ptr != 0) {
-			assert(max_ptr == 0 || ptr == max_ptr);
-			max_ptr = ptr + size;
-		}
-
-		return ptr;
-	}
 
 	/*! \brief Prepare request for more reserved memory
 	 * \param new_value the requested new end for the reserved memory -- all
@@ -227,7 +215,7 @@ class Buddy {
 	 * \return `true` if the memory could be reserved, `false` otherwise
 	 */
 	bool update_max_ptr(uintptr_t new_value) {
-		return new_value <= max_ptr || (new_value - base_ptr < MAX_ALLOC && reserve(new_value - max_ptr) != 0);
+		return new_value <= max_ptr || (new_value - base_ptr < MAX_ALLOC && RESERVE(new_value - max_ptr, max_ptr) != 0);
 	}
 
 	/*! \brief Map from the index of a node to the address of memory that node represents.
@@ -327,6 +315,12 @@ class Buddy {
 	}
 
  public:
+	/*! \brief Destructor (releasing all reserved memory)
+	 */
+	~Buddy() {
+		RESERVE(0, max_ptr);
+	}
+
 	/*! \brief Allocate uninitialized memory
 	 * \param request the size for the memory
 	 * \return address of the allocated memory or 0
@@ -347,7 +341,7 @@ class Buddy {
 			// in GNU systems is always a multiple of eight (or sixteen on 64-bit systems).
 			// Hence, `align_size` represents our target alignment.
 			size_t align_size = 2 * sizeof(void*);
-			if ((base_ptr = reserve(sizeof(List) + 2 * align_size)) == 0) {
+			if ((base_ptr = RESERVE(sizeof(List) + 2 * align_size, max_ptr)) == 0) {
 				return 0;
 			}
 			// By modifing our base_ptr we can achieve a correct alignment for all calls
@@ -512,14 +506,13 @@ class Buddy {
 
 	/*! \brief Retrieve the allocated size
 	 * \brief ptr pointer to the start of the allocated memory
-	 * \return size of the allocated memory
+	 * \return size of the allocated memory or `0` if invalid
 	 */
-	size_t size(uintptr_t ptr) {
+	size_t size(uintptr_t ptr) const {
 		return ptr == 0 || ptr < base_ptr || ptr > max_ptr ? 0 : *reinterpret_cast<size_t *>(ptr - HEADER_SIZE);
 	}
 
 	// Sanity checks
-	static_assert(USE_BRK || (BLOCK_SIZE % 4096 == 0 && BLOCK_SIZE >= 4096), "For mmap BLOCK_SIZE must be a multiple of the page size (4096)");
 	static_assert(MIN_ALLOC >= sizeof(List), "Minimum allocation size has to be at least the size of a List item!");
 	static_assert(MIN_ALLOC_LOG2 < MAX_ALLOC_LOG2, "Minimum allocation has to be smaller than maximum allocation size!");
 };
