@@ -90,7 +90,7 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 			// Extend mapping
 
 			/* In case we don't have mremap:
-			if (auto mmap = Syscall::mmap(max_ptr, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, 0, 0)) {
+			if (auto mmap = Syscall::mmap(max_ptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, 0, 0)) {
 				ptr = mmap.value();
 				assert(max_ptr == ptr);
 				max_ptr += size;

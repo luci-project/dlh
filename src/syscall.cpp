@@ -227,6 +227,10 @@ ReturnValue<int> inotify_rm_watch(int fd, int wd) {
 }
 
 
+ReturnValue<pid_t> clone(int flags, uintptr_t stack , pid_t * parent, pid_t * child, uintptr_t tls) {
+	return retval<int>(__syscall(SYS_clone, flags, stack, parent, child, tls));
+}
+
 ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3) {
 	return retval<int>(__syscall(SYS_futex, uaddr, futex_op, val, timeout, uaddr2, val3));
 }

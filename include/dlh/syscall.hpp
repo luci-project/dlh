@@ -100,6 +100,7 @@ ReturnValue<int> inotify_init(int flags = 0);
 ReturnValue<int> inotify_add_watch(int fd, const char *pathname, uint32_t mask);
 ReturnValue<int> inotify_rm_watch(int fd, int wd);
 
+ReturnValue<pid_t> clone(int flags, uintptr_t stack = 0, pid_t * parent = NULL, pid_t * child = NULL, uintptr_t tls = 0);
 ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3);
 
 ReturnValue<int> brk(uintptr_t addr);
