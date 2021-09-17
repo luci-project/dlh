@@ -1197,7 +1197,7 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	inline Optional<V> erase(const BaseIterator & position) {
 		auto i = Base::erase(position);
 		if (i)
-			return { move(i.value().value) };
+			return { move(i->value) };
 		else
 			return {};
 	}
@@ -1222,7 +1222,7 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	inline Optional<V> erase(const O& key) {
 		auto i = Base::erase(key);
 		if (i)
-			return { move(i.value().value) };
+			return { move(i->value) };
 		else
 			return {};
 	}
@@ -1231,7 +1231,7 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
 		if (i)
-			return { move(i.value().value) };
+			return { move(i->value) };
 		else
 			return {};
 	}
@@ -1240,7 +1240,7 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
 		if (i)
-			return { move(i.value().value) };
+			return { move(i->value) };
 		else
 			return {};
 	}

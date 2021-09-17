@@ -10,7 +10,7 @@ void term(int signum) {
 	Syscall::exit(0);
 }
 
-int foo(void * a) {
+void* foo(void * a) {
 	cout << "start" << endl;
 	cout << "int foo(" << a << ")" << endl;
 
@@ -26,7 +26,7 @@ int foo(void * a) {
 
 	Syscall::sleep(8);
 	cout << "foo done" << endl;
-	return 42;
+	return (void*)42;
 }
 
 int main(int argc, const char *argv[]) {

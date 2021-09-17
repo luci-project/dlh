@@ -32,7 +32,7 @@ struct Thread {
 	int __glibc_unused1 = 0;
 	/* Reservation of some values for the TM ABI.  */
 	void *__private_tm[4] = { nullptr };
- 	/* GCC split stack support.  */
+	/* GCC split stack support.  */
 	void *__private_ss  = { nullptr };
 	/* The lowest address of shadow stack,  */
 	unsigned long long int ssp_base = 0;
