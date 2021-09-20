@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dlh/container/optional.hpp>
 #include <dlh/container/vector.hpp>
 #include <dlh/types.hpp>
 
@@ -37,4 +38,12 @@ bool string(Vector<T> & target, const char * value) {
 	return r;
 }
 
+template<typename T>
+Optional<T> string_as(const char * value) {
+	T tmp;
+	if (string(tmp, value))
+		return { tmp };
+	else
+		return{};
+}
 }  // namespace Parse

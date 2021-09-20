@@ -4,7 +4,10 @@
 namespace Parser {
 
 bool string(unsigned long long & target, const char * value) {
-	for(target = 0; value != nullptr && *value != '\0'; value++)
+	if (value == nullptr)
+		return false;
+
+	for (target = 0; value != nullptr && *value != '\0'; value++)
 		if (*value >= '0' && *value <= '9') {
 			unsigned long long o = target;
 			target = target * 10 + *value - '0';
@@ -18,24 +21,22 @@ bool string(unsigned long long & target, const char * value) {
 }
 
 bool string(long long & target, const char * value) {
-	if (value != nullptr) {
-		for (target = 1; *value != '\0'; value++)
-			if (*value == '-')  {
-				target = -1;
-			} else if (*value >= '0' && *value <= '9') {
-				break;
-			} else if (*value != ' ') {
-				return false;
-			}
+	if (value == nullptr)
+		return false;
 
-		unsigned long long v = 0;
-		bool r = string(v, value);
-		target *= v;
-		return r;
-	} else {
-		target = 0;
-		return true;
-	}
+	for (target = 1; *value != '\0'; value++)
+		if (*value == '-')  {
+			target = -1;
+		} else if (*value >= '0' && *value <= '9') {
+			break;
+		} else if (*value != ' ') {
+			return false;
+		}
+
+	unsigned long long v = 0;
+	bool r = string(v, value);
+	target *= v;
+	return r;
 }
 
 bool string(unsigned long & target, const char * value) {
@@ -95,11 +96,15 @@ bool string(char & target, const char * value) {
 }
 
 bool string(bool & target, const char * value) {
-	target = (*value != '\0' && *value != '0');
+	if (value == nullptr)
+		return false;
+	target = (*value != '\0' && *value != '0' && *value != 'n' && *value != 'N' && *value != 'f' && *value != 'F');
 	return true;
 }
 
 bool string(const char * & target, const char * value) {
+	if (value == nullptr)
+		return false;
 	target = value;
 	return true;
 }
