@@ -200,19 +200,19 @@ struct Arguments : Opts {
 			if (name_short != '\0') {
 				out << "    -" << name_short;
 				if (name_arg == nullptr) {
-					text(7);
+					text(6);
 				} else {
 					out << ' ' << name_arg;
-					text(8 + String::len(name_arg));
+					text(7 + String::len(name_arg));
 				}
 			}
 			if (name_long != nullptr) {
 				out << "    --" << name_long;
 				if (name_arg == nullptr)
-					text(7 + String::len(name_long));
+					text(6 + String::len(name_long));
 				else {
 					out << ' ' << name_arg;
-					text(8 + String::len(name_long) + String::len(name_arg));
+					text(7 + String::len(name_long) + String::len(name_arg));
 				}
 			}
 			while (!text(0)) {}
