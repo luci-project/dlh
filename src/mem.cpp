@@ -26,18 +26,6 @@ namespace Memory {
 #define MAX_ALLOC_LOG2 30
 #endif
 
-	/*! \brief Start address for mmap
-	 * The initial default address is an advice to the memory mapping for the start address
-	 */
-
-
-
-	/*! \brief Reserve additional memory
-	 * \param size the requested memory size
-	 * \return address of the start of the newly allocated memory
-	 */
-
-
 #ifdef DLH_LEGACY
 // Use program break based allocator (with 128 KiB chunks)
 static uintptr_t reserve_sbrk(size_t size, uintptr_t & max_ptr) {
@@ -100,13 +88,14 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 			*/
 
 			size_t old_size = max_ptr - mmap_addr;
+			size_t new_size = old_size + size;
 			assert(old_size % block_size == 0);
-			if (auto mremap = Syscall::mremap(mmap_addr, old_size, old_size + size, 0)) {
+			if (auto mremap = Syscall::mremap(mmap_addr, old_size, new_size, 0)) {
 				assert(mmap_addr == mremap.value());
 				ptr = max_ptr;
 				max_ptr += size;
 			} else {
-				LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << (old_size + size) << " bytes at " << (void*)mmap_addr << " failed: " << mremap.error_message() << endl;
+				LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << new_size << " bytes at " << (void*)mmap_addr << " failed: " << mremap.error_message() << endl;
 			}
 		}
 	}
@@ -127,6 +116,7 @@ class MemoryMap {
 
  public:
 	static uintptr_t create(size_t size) {
+		size += sizeof(MemoryMap);
 		if (auto mmap = Syscall::mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
 			MemoryMap * info = reinterpret_cast<MemoryMap *>(mmap.value());
 			info->magic = MEMORYMAP_MAGIC;
@@ -142,6 +132,7 @@ class MemoryMap {
 	}
 
 	static uintptr_t resize(uintptr_t addr, size_t new_size) {
+		new_size += sizeof(MemoryMap);
 		uintptr_t start = addr - __builtin_offsetof(MemoryMap, data);
 		MemoryMap * old_info = reinterpret_cast<MemoryMap *>(start);
 		assert(old_info->magic == MEMORYMAP_MAGIC);
