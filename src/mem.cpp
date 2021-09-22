@@ -52,53 +52,44 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 
 	uintptr_t ptr = 0;
 
-	// Unmap if size == 0
-	if (size == 0) {
-		if (max_ptr != 0) {
-			auto munmap = Syscall::munmap(mmap_addr, max_ptr - mmap_addr);
-			if (munmap.failed())
-				LOG_WARNING << "Allocator reserve cleanup using munmap of " << (max_ptr - mmap_addr) << " bytes at " << (void*)mmap_addr << " failed: " << munmap.error_message() << endl;
-			max_ptr = 0;
-		}
-	} else {
-		// Calculate size uising 1 MiB chunks
-		const size_t block_size = 256 * 0x1000;
-		size = Math::align_up(size, block_size);
+	// Calculate size uising 1 MiB chunks
+	const size_t block_size = 256 * 0x1000;
+	size = Math::align_up(size, block_size);
 
-		if (max_ptr == 0) {
-			// Initial mapping
-			if (auto mmap = Syscall::mmap(mmap_addr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
-				mmap_addr = ptr = mmap.value();;
-				max_ptr = ptr + size;
-			} else {
-				LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << (void*)mmap_addr << " failed: " << mmap.error_message() << endl;
-			}
-			return ptr;
+	if (max_ptr == 0) {
+		// Initial mapping
+		if (auto mmap = Syscall::mmap(mmap_addr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
+			mmap_addr = ptr = mmap.value();;
+			max_ptr = ptr + size;
 		} else {
-			// Extend mapping
+			LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << (void*)mmap_addr << " failed: " << mmap.error_message() << endl;
+		}
+		return ptr;
+	} else {
+		// Extend mapping
 
-			/* In case we don't have mremap:
-			if (auto mmap = Syscall::mmap(max_ptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, 0, 0)) {
-				ptr = mmap.value();
-				assert(max_ptr == ptr);
-				max_ptr += size;
-			} else {
-				LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << (void*)max_ptr << " failed: " << mmap.error_message() << endl;
-			}
-			*/
+		/* In case we don't have mremap:
+		if (auto mmap = Syscall::mmap(max_ptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, 0, 0)) {
+			ptr = mmap.value();
+			assert(max_ptr == ptr);
+			max_ptr += size;
+		} else {
+			LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << (void*)max_ptr << " failed: " << mmap.error_message() << endl;
+		}
+		*/
 
-			size_t old_size = max_ptr - mmap_addr;
-			size_t new_size = old_size + size;
-			assert(old_size % block_size == 0);
-			if (auto mremap = Syscall::mremap(mmap_addr, old_size, new_size, 0)) {
-				assert(mmap_addr == mremap.value());
-				ptr = max_ptr;
-				max_ptr += size;
-			} else {
-				LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << new_size << " bytes at " << (void*)mmap_addr << " failed: " << mremap.error_message() << endl;
-			}
+		size_t old_size = max_ptr - mmap_addr;
+		size_t new_size = old_size + size;
+		assert(old_size % block_size == 0);
+		if (auto mremap = Syscall::mremap(mmap_addr, old_size, new_size, 0)) {
+			assert(mmap_addr == mremap.value());
+			ptr = max_ptr;
+			max_ptr += size;
+		} else {
+			LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << new_size << " bytes at " << (void*)mmap_addr << " failed: " << mremap.error_message() << endl;
 		}
 	}
+
 	return ptr;
 }
 

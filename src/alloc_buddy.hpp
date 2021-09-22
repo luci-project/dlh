@@ -199,13 +199,13 @@ class Buddy {
 	 * This is the starting address of the address range for this allocator. Every
 	 * returned allocation will be an offset of this pointer from 0 to MAX_ALLOC.
 	 */
-	uintptr_t base_ptr = 0;
+	uintptr_t base_ptr;
 
 	/*! \brief Current end of reserved memory
 	 * This is the maximum address that has ever been used by the allocator. It's
 	 * used to know when to call reserve function to request more memory.
 	 */
-	uintptr_t max_ptr = 0;
+	uintptr_t max_ptr;
 
 
 	/*! \brief Prepare request for more reserved memory
@@ -315,12 +315,6 @@ class Buddy {
 	}
 
  public:
-	/*! \brief Destructor (releasing all reserved memory)
-	 */
-	~Buddy() {
-		RESERVE(0, max_ptr);
-	}
-
 	/*! \brief Allocate uninitialized memory
 	 * \param request the size for the memory
 	 * \return address of the allocated memory or 0
