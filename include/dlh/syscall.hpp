@@ -84,6 +84,7 @@ ReturnValue<int> open(const char *filename, int flags, int mode = 0);
 ReturnValue<ssize_t> read(int fd, void *buf, size_t count);
 ReturnValue<ssize_t> write(int fd, const void *buf, size_t size);
 ReturnValue<int> close(int fd);
+ReturnValue<ssize_t> copy_file_range(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned flags = 0);
 ReturnValue<int> fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg = 0);
 ReturnValue<int> fallocate(int fd, int mode, off_t base, off_t len);
 ReturnValue<int> ftruncate(int fd, off_t length);

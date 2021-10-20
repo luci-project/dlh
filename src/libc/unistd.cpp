@@ -82,6 +82,10 @@ extern "C" int close(int fd) {
 	return reterrno(Syscall::close(fd));
 }
 
+extern "C" ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned flags) {
+	return reterrno(Syscall::copy_file_range(fd_in, off_in, fd_out, off_out, len, flags));
+}
+
 extern "C" int fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg) {
 	return reterrno(Syscall::fcntl(fd, cmd, arg));
 }

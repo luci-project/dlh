@@ -37,6 +37,7 @@ extern "C" int open(const char *filename, int flags, int mode = 0);
 extern "C" ssize_t read(int fd, void *buf, size_t count);
 extern "C" ssize_t write(int fd, const void *buf, size_t size);
 extern "C" int close(int fd);
+extern "C" ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned flags = 0);
 extern "C" int fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg = 0);
 extern "C" int fallocate(int fd, int mode, off_t base, off_t len);
 extern "C" int ftruncate(int fd, off_t length);
