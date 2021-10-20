@@ -153,7 +153,7 @@ class Buddy {
 	 * for that size. The bucket at index 0 corresponds to an allocation size of
 	 * MAX_ALLOC (i.e. the whole address space).
 	 */
-	List buckets[BUCKET_COUNT];
+	List * buckets;
 
 
 	/*! \brief Allocation size
@@ -335,11 +335,11 @@ class Buddy {
 			// in GNU systems is always a multiple of eight (or sixteen on 64-bit systems).
 			// Hence, `align_size` represents our target alignment.
 			size_t align_size = 2 * sizeof(void*);
-			if ((base_ptr = RESERVE(sizeof(List) + 2 * align_size, max_ptr)) == 0) {
+			if ((buckets = reinterpret_cast<List*>(RESERVE((BUCKET_COUNT + 1) * sizeof(List) + 2 * align_size, max_ptr))) == 0) {
 				return 0;
 			}
 			// By modifing our base_ptr we can achieve a correct alignment for all calls
-			base_ptr = Math::align_up(base_ptr, align_size) + align_size - HEADER_SIZE;
+			base_ptr = Math::align_up(reinterpret_cast<uintptr_t>(buckets + BUCKET_COUNT), align_size) + align_size - HEADER_SIZE;
 
 			bucket_limit = BUCKET_COUNT - 1;
 			buckets[BUCKET_COUNT - 1].clear();
