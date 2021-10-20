@@ -26,6 +26,8 @@ Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, size_t st
 
 	if (hidden)
 		flags |= CLONE_UNTRACED;
+	else
+		flags |= CLONE_PTRACE;
 
 	auto tls_size_aligned = Math::align(tls_size, 64);
 	size_t map_size = tls_size_aligned + Math::align(sizeof(Thread), 64) + Math::align(stack_size, 16);

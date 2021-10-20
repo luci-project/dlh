@@ -18,7 +18,7 @@ extern void(*__init_array_end[]) ();
 extern void(*__fini_array_start[]) ();
 extern void(*__fini_array_end[]) ();
 
-extern "C" void _init() {};
+extern "C" void _init(){};
 extern "C" void _fini(){};
 
 void * __dlh_stack_pointer = nullptr;
@@ -106,12 +106,14 @@ extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char 
 	Syscall::exit(r);
 }
 
-
 asm(R"(
 .globl _start
 .type _start, @function
 .align 16
 _start:
+	.cfi_startproc
+	.cfi_undefined rip
+
 	# Set base pointer to zero (ABI)
 	xor %rbp, %rbp
 
@@ -131,6 +133,14 @@ _start:
 
 	# Endless loop
 1:	jmp 1b
+	.cfi_endproc
+
+.data
+.globl __data_start
+__data_start:
+	.long 0
+	.weak data_start
+	data_start = __data_start
 )");
 
 
