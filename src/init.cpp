@@ -144,6 +144,6 @@ __data_start:
 )");
 
 
-void __stack_chk_fail(void) {
+extern "C" void __stack_chk_fail(void) {
 	Syscall::crash();
 }
