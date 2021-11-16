@@ -25,6 +25,9 @@ class Log : public OutputStream<2048> {
 	/*! \brief Set severity limit (for displaying log messages) */
 	void set(Level limit) { this->limit = limit > Level::TRACE ? Level::TRACE : limit; }
 
+	/*! \brief Get severity limit (for displaying log messages) */
+	Level get() { return this->limit; }
+
 	/*! \brief check if message would be visible */
 	bool visible(Level level) { return level <= limit; }
 
