@@ -6,3 +6,4 @@
 
 // Export with C linkage
 #define EXPORT extern "C" __attribute__ ((visibility("default")))
+#define EXPORT_WEAK extern "C" __attribute__ ((weak,visibility("default")))
