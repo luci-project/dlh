@@ -666,10 +666,10 @@ class TreeSet : public Elements<T> {
 		auto i = begin();
 		if (i) {
 			c = 1;
-			auto s = *i;
+			auto s = i.operator->() ;
 			for (++i; i != end(); ++i) {
-				assert(C::compare(s, *i) < 0);
-				s = *i;
+				assert(C::compare(*s, *i) < 0);
+				s = i.operator->() ;
 				c++;
 			}
 			assert(c == Elements<T>::_count);
