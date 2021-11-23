@@ -99,7 +99,7 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param set Elements container
 	 */
-	HashSet(const HashSet<T>& set) : Elements<T>(set, set._bucket_capacity * sizeof(uint32_t)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {
+	HashSet(const HashSet<T, C>& set) : Elements<T>(set, set._bucket_capacity * sizeof(uint32_t)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {
 		const size_t size = _bucket_capacity * sizeof(uint32_t);
 		if (size > 0) {
 			assert(_bucket != nullptr);
