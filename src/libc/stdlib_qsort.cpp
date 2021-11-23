@@ -202,7 +202,7 @@ extern "C" void qsort(void *base, size_t nel, size_t width, cmpfun cmp)
 			shr(p, 2);
 			pshift += 2;
 		} else {
-			if(lp[pshift - 1] >= high - head) {
+			if (lp[pshift - 1] >= static_cast<size_t>(high - head)) {
 				trinkle(head, width, cmp, p, pshift, 0, lp);
 			} else {
 				sift(head, width, cmp, pshift, lp);
