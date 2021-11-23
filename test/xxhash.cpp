@@ -1,12 +1,20 @@
 #include <dlh/stream/output.hpp>
 #include <dlh/xxhash.hpp>
+#include <dlh/random.hpp>
 #include <dlh/mem.hpp>
 
 int main(int argc, const char *argv[]) {
 	(void) argc;
 	(void) argv;
 
-	void * foo = Memory::alloc<void>(123);
+	size_t n = 200;
+	char * foo = Memory::alloc<char>(n);
+	{
+		Random random(23);
+		for (size_t i = 0; i < n ; i++)
+			foo[i] = static_cast<char>(random.number());
+	}
+
 	XXHash64 a(0);
 	const char f[1337] = { 0 };
 	a.add("foobar", 6);

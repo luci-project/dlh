@@ -1,0 +1,86 @@
+Foo #0 (5) created
+Foo #1 (13) created
+Foo #2 (13) created (move from Foo #1)
+Foo #1 (13) deleted
+Foo #3 (666) created
+Foo #4 (666) created (move from Foo #3)
+Foo #3 (666) deleted
+Foo #5 (3) created
+Foo #6 (3) created (move from Foo #5)
+Foo #5 (3) deleted
+Foo #7 (5) created (copy from Foo #0)
+Foo #8 (5) created (move from Foo #7)
+Foo #7 (5) deleted
+Foo #9 (3) created (move from Foo #6)
+Foo #6 (3) deleted
+Foo #10 (666) created (move from Foo #4)
+Foo #4 (666) deleted
+Foo #11 (13) created (move from Foo #2)
+Foo #2 (13) deleted
+Foo #12 (42) created
+Foo #13 (23) created
+Foo #14 (5) created (move from Foo #8)
+Foo #8 (5) deleted
+Foo #15 (3) created (move from Foo #9)
+Foo #9 (3) deleted
+Foo #16 (666) created (move from Foo #10)
+Foo #10 (666) deleted
+Foo #17 (13) created (move from Foo #11)
+Foo #11 (13) deleted
+Foo #18 (23) created (move from Foo #13)
+Foo #13 (23) deleted
+Foo #19 (7) created
+Foo #20 (5) created (move from Foo #14)
+Foo #14 (5) deleted
+Foo #21 (3) created (move from Foo #15)
+Foo #15 (3) deleted
+Foo #22 (666) created (move from Foo #16)
+Foo #16 (666) deleted
+Foo #23 (13) created (move from Foo #17)
+Foo #17 (13) deleted
+Foo #24 (23) created (move from Foo #18)
+Foo #18 (23) deleted
+Foo #25 (7) created (move from Foo #19)
+Foo #19 (7) deleted
+Foo #25 (7) deleted
+Foo #26 (23) created (move from Foo #24)
+Foo #24 (23) deleted
+Foo #27 (13) created (move from Foo #23)
+Foo #23 (13) deleted
+Foo #28 (666) created (move from Foo #22)
+Foo #22 (666) deleted
+Foo #29 (3) created (move from Foo #21)
+Foo #21 (3) deleted
+Foo #30 (5) created (move from Foo #20)
+Foo #20 (5) deleted
+Foo #12 (42) deleted
+Foo #26 (23) deleted
+Foo #27 (13) deleted
+Foo #28 (666) deleted
+Foo #29 (3) deleted
+Foo #30 (5) deleted
+Foo #31 (1001) created
+Foo #32 (1002) created
+Foo #33 (1003) created
+Foo #34 (1003) created (move from Foo #33)
+Foo #33 (1003) deleted
+Foo #35 (1000) created
+Foo #36 (1003) created (move from Foo #34)
+Foo #34 (1003) deleted
+Foo #37 (1002) created (move from Foo #32)
+Foo #32 (1002) deleted
+Foo #38 (1001) created (move from Foo #31)
+Foo #31 (1001) deleted
+Foo #39 (1000) created (move from Foo #35)
+Foo #35 (1000) deleted
+Foo #40 (1004) created
+Foo #41 (1005) created
+Foo #42 (1005) created (copy from Foo #41)
+Foo #41 (1005) deleted
+Foo #39 (1000) deleted
+Foo #38 (1001) deleted
+Foo #37 (1002) deleted
+Foo #36 (1003) deleted
+Foo #40 (1004) deleted
+Foo #42 (1005) deleted
+Foo #0 (5) deleted

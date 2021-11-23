@@ -23,7 +23,7 @@ SOURCES = $(shell find $(SRCFOLDER)/ -name "*.cpp")
 OBJECTS = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o)) $(BUILDINFO)
 DEPFILES = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d)) $(patsubst %.cpp,$(BUILDDIR)/%.d,$(wildcard test/*.cpp))
 TARGET = lib$(LIBNAME).a
-TESTS := $(patsubst test/%.cpp,test-%,$(wildcard test/*.cpp))
+TEST := $(patsubst test/%.cpp,test-%,$(wildcard test/*.cpp))
 
 all: $(TARGET)
 
@@ -32,11 +32,16 @@ all: $(TARGET)
 	@rm -f $@
 	$(VERBOSE) $(AR) rcs $@ $(OBJECTS)
 
-tests: $(TESTS)
+test: $(TEST)
 
 test-%: test/%.cpp $(TARGET) $(MAKEFILE_LIST)
 	@echo "Build		$@ ($<)"
 	$(VERBOSE) $(CXX) $(CXXFLAGS) -no-pie -o $@ $< -L. -l$(LIBNAME)
+
+check: $(patsubst test-%,check-%,$(TEST))
+
+check-%: test-%
+	$(VERBOSE) test/check.sh $*
 
 $(BUILDDIR)/test/%.d: test/%.cpp $(BUILDDIR) $(MAKEFILE_LIST)
 	@echo "DEP		$<"
@@ -64,7 +69,7 @@ clean::
 	$(VERBOSE) test -d $(BUILDDIR) && rmdir $(BUILDDIR) || true
 
 mrproper:: clean
-	$(VERBOSE) rm -f $(TESTS) $(TARGET)
+	$(VERBOSE) rm -f $(TEST) $(TARGET)
 
 $(BUILDDIR): ; @mkdir -p $@
 

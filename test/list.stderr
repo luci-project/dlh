@@ -1,0 +1,26 @@
+Foo #0 (5) created
+Foo #1 (13) created
+Foo #2 (13) created (copy from Foo #1)
+Foo #1 (13) deleted
+Foo #3 (666) created
+Foo #4 (666) created (copy from Foo #3)
+Foo #3 (666) deleted
+Foo #5 (3) created
+Foo #6 (3) created (copy from Foo #5)
+Foo #5 (3) deleted
+Foo #7 (5) created (copy from Foo #0)
+Foo #8 (42) created
+Foo #9 (23) created
+Foo #10 (23) created (move from Foo #9)
+Foo #9 (23) deleted
+Foo #11 (7) created
+Foo #12 (7) created (copy from Foo #11)
+Foo #11 (7) deleted
+Foo #2 (13) deleted
+Foo #8 (42) deleted
+Foo #10 (23) deleted
+Foo #12 (7) deleted
+Foo #4 (666) deleted
+Foo #6 (3) deleted
+Foo #7 (5) deleted
+Foo #0 (5) deleted

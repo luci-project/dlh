@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Compare sorting the  result
+read set
+test "$(echo "${set#*: }" | tr ' ' '\n' | sort -n | tr '\n' ' ' | xargs echo -n)" = '3 13 23 32 42 52 205 888 999 1549 1572877'

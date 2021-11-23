@@ -11,7 +11,7 @@ void term(int signum) {
 }
 
 void* foo(void * a) {
-	cout << "start" << endl;
+	cout << "foo start" << endl;
 	cout << "int foo(" << a << ")" << endl;
 
 	struct sigaction action;
@@ -19,10 +19,8 @@ void* foo(void * a) {
 	action.sa_handler = term;
 	Syscall::sigaction(SIGCHLD, &action, NULL).die_on_error("sigaction");
 
-	cout << "start" << endl;
 	auto r = Syscall::prctl(PR_SET_PDEATHSIG, SIGCHLD).value_or_die("set signal");
-	cout << "Set signal " << r << endl;
-
+	cout << "set signal " << r << endl;
 
 	Syscall::sleep(8);
 	cout << "foo done" << endl;
@@ -33,7 +31,7 @@ int main(int argc, const char *argv[]) {
 	(void) argc;
 	(void) argv;
 
-	cerr << "start" << endl;
+	cerr << "main start" << endl;
 	Thread * f = Thread::create(foo, (void*)0x23, true);
 	if (f == nullptr) {
 		cerr << "failed" << endl;
@@ -41,5 +39,5 @@ int main(int argc, const char *argv[]) {
 	}
 	Syscall::sleep(4);
 	cerr << "main exit" << endl;
-	return 23;
+	return 0;
 }

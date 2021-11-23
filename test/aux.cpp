@@ -20,5 +20,5 @@ int main(int argc, const char *argv[]) {
 		cout << "AUX[" << auxv[auxc].a_type << "] = "<< auxv[auxc].a_un.a_ptr << endl;
 
 	cout << (char*)0x400000<<endl;
-	return 23;
+	return 0;
 }
