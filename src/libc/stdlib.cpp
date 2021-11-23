@@ -16,4 +16,13 @@ extern "C" void *realloc(void *ptr, size_t size) {
 extern "C" void * calloc(size_t nmemb, size_t size) {
 	return reinterpret_cast<void*>(Memory::alloc_array(nmemb, size));
 }
+
+static Random random;
+extern "C" int rand() {
+	return static_cast<int>(random.number());
+}
+
+extern "C" srand(unsigned int seed) {
+	return random.set(seed);
+}
 #endif

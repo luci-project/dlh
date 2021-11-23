@@ -36,3 +36,7 @@ extern "C" void *realloc(void *ptr, size_t size);
  * \return pointer to the allocated memory or `nullptr` if the request fails
  */
 extern "C" void *calloc(size_t nmemb, size_t size);
+
+
+extern "C" int rand();
+extern "C" void srand(unsigned int seed);
