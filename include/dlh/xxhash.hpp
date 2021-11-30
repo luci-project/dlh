@@ -139,8 +139,7 @@ class XXHash64 {
 		}
 
 		// point beyond last byte
-		const unsigned char* stop      = data + length;
-		const unsigned char* stopBlock = stop - MaxBufferSize;
+		const unsigned char* stop = data + length;
 
 		// copying state to local variables helps optimizer A LOT
 		uint64_t s0 = state[0], s1 = state[1], s2 = state[2], s3 = state[3];
@@ -156,7 +155,7 @@ class XXHash64 {
 		}
 
 		// 32 bytes at once
-		while (data <= stopBlock) {
+		while (data + MaxBufferSize <= stop) {
 			// local variables s0..s3 instead of state[0]..state[3] are much faster
 			process(data, s0, s1, s2, s3);
 			data += 32;
