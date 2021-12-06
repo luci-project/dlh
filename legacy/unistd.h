@@ -58,3 +58,5 @@ extern "C" int futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, con
 
 extern "C" int brk(void * addr) __attribute__((weak));
 extern "C" void * sbrk(intptr_t inc) __attribute__((weak));
+
+extern "C" long ptrace(int request, pid_t pid, void *addr, void *data);

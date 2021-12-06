@@ -520,3 +520,110 @@ struct inotify_event {
 // Exit
 #define	EXIT_FAILURE  1
 #define	EXIT_SUCCESS  0
+
+// Ptrace
+typedef enum {
+	PTRACE_TRACEME = 0,
+	PTRACE_PEEKTEXT = 1,
+	PTRACE_PEEKDATA = 2,
+	PTRACE_PEEKUSER = 3,
+	PTRACE_POKETEXT = 4,
+	PTRACE_POKEDATA = 5,
+	PTRACE_POKEUSER = 6,
+	PTRACE_CONT = 7,
+	PTRACE_KILL = 8,
+	PTRACE_SINGLESTEP = 9,
+	PTRACE_GETREGS = 12,
+	PTRACE_SETREGS = 13,
+	PTRACE_GETFPREGS = 14,
+	PTRACE_SETFPREGS = 15,
+	PTRACE_ATTACH = 16,
+	PTRACE_DETACH = 17,
+	PTRACE_GETFPXREGS = 18,
+	PTRACE_SETFPXREGS = 19,
+	PTRACE_SYSCALL = 24,
+	PTRACE_GET_THREAD_AREA = 25,
+	PTRACE_SET_THREAD_AREA = 26,
+	PTRACE_ARCH_PRCTL = 30,
+	PTRACE_SYSEMU = 31,
+	PTRACE_SYSEMU_SINGLESTEP = 32,
+	PTRACE_SINGLEBLOCK = 33,
+	PTRACE_SETOPTIONS = 0x4200,
+	PTRACE_GETEVENTMSG = 0x4201,
+	PTRACE_GETSIGINFO = 0x4202,
+	PTRACE_SETSIGINFO = 0x4203,
+	PTRACE_GETREGSET = 0x4204,
+	PTRACE_SETREGSET = 0x4205,
+	PTRACE_SEIZE = 0x4206,
+	PTRACE_INTERRUPT = 0x4207,
+	PTRACE_LISTEN = 0x4208,
+	PTRACE_PEEKSIGINFO = 0x4209,
+	PTRACE_GETSIGMASK = 0x420a,
+	PTRACE_SETSIGMASK = 0x420b,
+	PTRACE_SECCOMP_GET_FILTER = 0x420c,
+	PTRACE_SECCOMP_GET_METADATA = 0x420d,
+	PTRACE_GET_SYSCALL_INFO = 0x420e
+} ptrace_request_t;
+
+typedef enum {
+	PTRACE_O_TRACESYSGOOD    = 0x00000001,
+	PTRACE_O_TRACEFORK       = 0x00000002,
+	PTRACE_O_TRACEVFORK      = 0x00000004,
+	PTRACE_O_TRACECLONE      = 0x00000008,
+	PTRACE_O_TRACEEXEC       = 0x00000010,
+	PTRACE_O_TRACEVFORKDONE  = 0x00000020,
+	PTRACE_O_TRACEEXIT       = 0x00000040,
+	PTRACE_O_TRACESECCOMP    = 0x00000080,
+	PTRACE_O_EXITKILL        = 0x00100000,
+	PTRACE_O_SUSPEND_SECCOMP = 0x00200000,
+	PTRACE_O_MASK            = 0x003000ff
+} ptrace_setoptions_t;
+
+typedef enum {
+	PTRACE_EVENT_FORK = 1,
+	PTRACE_EVENT_VFORK = 2,
+	PTRACE_EVENT_CLONE = 3,
+	PTRACE_EVENT_EXEC = 4,
+	PTRACE_EVENT_VFORK_DONE = 5,
+	PTRACE_EVENT_EXIT = 6,
+	PTRACE_EVENT_SECCOMP = 7,
+	PTRACE_EVENT_STOP = 128
+} ptrace_eventcodes_t;
+
+typedef enum {
+	PTRACE_SYSCALL_INFO_NONE = 0,
+	PTRACE_SYSCALL_INFO_ENTRY = 1,
+	PTRACE_SYSCALL_INFO_EXIT = 2,
+	PTRACE_SYSCALL_INFO_SECCOMP = 3
+} ptrace_get_syscall_info_op_t;
+
+
+struct user_regs_struct {
+	__extension__ unsigned long long int r15;
+	__extension__ unsigned long long int r14;
+	__extension__ unsigned long long int r13;
+	__extension__ unsigned long long int r12;
+	__extension__ unsigned long long int rbp;
+	__extension__ unsigned long long int rbx;
+	__extension__ unsigned long long int r11;
+	__extension__ unsigned long long int r10;
+	__extension__ unsigned long long int r9;
+	__extension__ unsigned long long int r8;
+	__extension__ unsigned long long int rax;
+	__extension__ unsigned long long int rcx;
+	__extension__ unsigned long long int rdx;
+	__extension__ unsigned long long int rsi;
+	__extension__ unsigned long long int rdi;
+	__extension__ unsigned long long int orig_rax;
+	__extension__ unsigned long long int rip;
+	__extension__ unsigned long long int cs;
+	__extension__ unsigned long long int eflags;
+	__extension__ unsigned long long int rsp;
+	__extension__ unsigned long long int ss;
+	__extension__ unsigned long long int fs_base;
+	__extension__ unsigned long long int gs_base;
+	__extension__ unsigned long long int ds;
+	__extension__ unsigned long long int es;
+	__extension__ unsigned long long int fs;
+	__extension__ unsigned long long int gs;
+};

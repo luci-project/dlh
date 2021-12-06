@@ -265,6 +265,10 @@ ReturnValue<uintptr_t> sbrk(intptr_t inc) {
 	else
 		return { ENOMEM };
 }
+
+ReturnValue<long> ptrace(ptrace_request_t request, pid_t pid, void *addr, void *data) {
+	return retval<long>(__syscall(SYS_ptrace, request, pid, addr, data));
+}
 }  // namespace Syscall
 
 

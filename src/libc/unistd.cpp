@@ -145,6 +145,10 @@ extern "C" int brk(void *addr) {
 extern "C" void *sbrk(intptr_t inc) {
 	return reinterpret_cast<void *>(reterrno(Syscall::sbrk(inc)));
 }
+
+extern "C" long ptrace(int request, pid_t pid, void *addr, void *data) {
+	return reterrno(Syscall::brk(reinterpret_cast<ptrace_request_t>(request), pid, addr, data));
+}
 #endif
 
 
