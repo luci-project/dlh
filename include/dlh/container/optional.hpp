@@ -28,12 +28,6 @@ class Optional {
 		value.~T();
 	}
 
-	template <class... ARGS>
-	explicit Optional(const ARGS&... args) : _assigned(true), _value(args...) {}
-
-	template <class... ARGS>
-	explicit Optional(ARGS&&... args) : _assigned(true), _value(forward<ARGS>(args)...) {}
-
 	~Optional() {
 		if (_assigned)
 			_value.~T();
