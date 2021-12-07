@@ -284,29 +284,40 @@ struct Arguments : Opts {
 		bool hasRequired = false;
 		bool hasOptional = false;
 		size_t flen = 4 + String::len(file);
-		int i = 0;
+		size_t alen = flen;
 		for (auto arg : args) {
 			if (arg.required) {
-				if (arg.name_long != nullptr)
+				alen += 3;
+				if (arg.name_long != nullptr) {
 					out << " --" << arg.name_long;
-				else
+					alen += String::len(arg.name_long);
+				} else {
 					out << " -" << arg.name_short;
-				if (arg.name_arg != nullptr)
+				}
+				if (arg.name_arg != nullptr) {
 					out << " " << arg.name_arg;
+					alen += 1 + String::len(arg.name_arg);
+				}
 				hasRequired = true;
 			} else {
-				if (arg.name_long != nullptr)
+				alen += 5;
+				if (arg.name_long != nullptr) {
 					out << " [--" << arg.name_long;
-				else
+					alen += String::len(arg.name_long);
+				} else {
 					out << " [-" << arg.name_short;
-				if (arg.name_arg != nullptr)
+				}
+				if (arg.name_arg != nullptr) {
 					out << " " << arg.name_arg;
+					alen += 1 + String::len(arg.name_arg);
+				}
 				out << "]";
 				hasOptional = true;
 			}
-			if (++i == 4) {
+			if (alen > 70) {
 				out << endl;
 				out.write(' ', flen);
+				alen = flen;
 			}
 		}
 		if (positional != nullptr)
