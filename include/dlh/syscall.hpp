@@ -72,7 +72,7 @@ ReturnValue<int> raise(signal_t sig);
 [[noreturn]] void crash();
 [[noreturn]] void exit(int code);
 
-ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, int fd, long off);
+ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, int fd = 0, long off = 0);
 ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len, int flags, uintptr_t new_addr = 0);
 ReturnValue<int> mprotect(uintptr_t start, size_t len, int prot);
 ReturnValue<int> munmap(uintptr_t start, size_t len);
