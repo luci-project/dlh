@@ -229,7 +229,7 @@ ReturnValue<int>pipe(int fd[2], int flag) {
 			fcntl(fd[0], F_SETFD, FD_CLOEXEC);
 			fcntl(fd[1], F_SETFD, FD_CLOEXEC);
 		}
-		if (flag & O_NONBLOCK)) {
+		if (flag & O_NONBLOCK) {
 			fcntl(fd[0], F_SETFL, O_NONBLOCK);
 			fcntl(fd[1], F_SETFL, O_NONBLOCK);
 		}
