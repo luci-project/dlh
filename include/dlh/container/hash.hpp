@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
 #include <dlh/utility.hpp>

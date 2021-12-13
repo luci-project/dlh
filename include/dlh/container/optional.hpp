@@ -6,14 +6,14 @@
 
 template<class T>
 class Optional {
-	bool _assigned;
 	union {
 		bool _used;
 		T _value;
 	};
+	bool _assigned;
 
  public:
-	Optional() : _assigned(false), _used(false) {}
+	Optional() : _used(false), _assigned(false) {}
 
 	Optional(const Optional& other) : _assigned(other._assigned) {
 		if (_assigned)
@@ -22,9 +22,9 @@ class Optional {
 
 	Optional(Optional&& other) = default;
 
-	Optional(const T& value) : _assigned(true), _value(value) {}
+	Optional(const T& value) : _value(value), _assigned(true) {}
 
-	Optional(T&& value) : _assigned(true), _value(value) {
+	Optional(T&& value) : _value(value), _assigned(true) {
 		value.~T();
 	}
 

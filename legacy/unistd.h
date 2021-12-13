@@ -21,6 +21,8 @@ extern "C" int prctl(prctl_t option, unsigned long arg2, unsigned long arg3 = 0,
 
 extern "C" int sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old);
 extern "C" int raise(signal_t sig);
+extern "C" pid_t wait(int *wstatus);
+extern "C" pid_t waitpid(pid_t pid, int *wstatus, int options);
 extern "C" [[noreturn]] void abort();
 extern "C" [[noreturn]] void crash();
 extern "C" [[noreturn]] void exit(int code);
@@ -54,6 +56,9 @@ extern "C" int inotify_init1(int flags);
 extern "C" int inotify_add_watch(int fd, const char *pathname, uint32_t mask);
 extern "C" int inotify_rm_watch(int fd, int wd);
 
+extern "C" int pipe(int fd[2]);
+extern "C" int pipe2(int fd[2], int flag);
+extern "C" pid_t fork();
 extern "C" int futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3);
 
 extern "C" int brk(void * addr) __attribute__((weak));

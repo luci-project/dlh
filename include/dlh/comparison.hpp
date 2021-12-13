@@ -46,6 +46,11 @@ struct Comparison {
 		return String::compare(a.str, b.str);
 	}
 
+	template<class OF, class OS>
+	static inline int compare(const Pair<OF,OS>& a, const Pair<OF,OS>& b) {
+		int f = compare(a.first, b.first);
+		return f == 0 ? compare(a.second, b.second) : f;
+	}
 
 	/*! \brief Compare equality
 	 * \param a first value
@@ -60,7 +65,6 @@ struct Comparison {
 	static inline bool equal(const StrPtr & a, const StrPtr & b) {
 		return a == b;
 	}
-
 
 	/*! \brief Calculate 32bit hash value
 	 * \param v value

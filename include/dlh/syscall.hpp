@@ -68,6 +68,9 @@ ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3 = 
 ReturnValue<int> sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old);
 ReturnValue<int> raise(signal_t sig);
 
+ReturnValue<pid_t> waitpid(pid_t pid, int *status = nullptr, int options = 0);
+ReturnValue<pid_t> wait(int *status = nullptr);
+
 [[noreturn]] void abort();
 [[noreturn]] void crash();
 [[noreturn]] void exit(int code);
@@ -96,11 +99,13 @@ ReturnValue<int> lstat(const char * __restrict__ path, struct stat * __restrict_
 ReturnValue<int> userfaultfd(int flags);
 ReturnValue<int> ioctl(int fd, int req, void * arg = nullptr);
 ReturnValue<int> memfd_create(const char *name, unsigned flags);
+ReturnValue<int> pipe(int fd[2], int flag = 0);
 
 ReturnValue<int> inotify_init(int flags = 0);
 ReturnValue<int> inotify_add_watch(int fd, const char *pathname, uint32_t mask);
 ReturnValue<int> inotify_rm_watch(int fd, int wd);
 
+ReturnValue<pid_t> fork();
 ReturnValue<pid_t> clone(int flags, uintptr_t stack = 0, pid_t * parent = nullptr, pid_t * child = nullptr, uintptr_t tls = 0);
 ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3);
 

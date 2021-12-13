@@ -38,6 +38,14 @@ extern "C" int raise(signal_t sig) {
 	return reterrno(Syscall::raise(sig));
 }
 
+extern "C" pid_t waitpid(pid_t pid, int *wstatus, int options) {
+	return reterrno(Syscall::waitpid(pid, wstatus, options));
+}
+
+extern "C" pid_t wait(int *wstatus) {
+	return reterrno(Syscall::wait(wstatus));
+}
+
 extern "C" void *mmap(void *start, size_t len, int prot, int flags, int fd, long off) {
 	return reinterpret_cast<void*>(reterrno(Syscall::mmap(reinterpret_cast<uintptr_t>(start), len, prot, flags, fd, off)));
 }
@@ -118,6 +126,14 @@ extern "C" int memfd_create(const char *name, unsigned flags) {
 	return reterrno(Syscall::memfd_create(name, flags));
 }
 
+extern "C" int pipe(int fd[2]) {
+	return reterrno(Syscall::pipe(fd, 0));
+}
+
+extern "C" int pipe2(int fd[2], int flag) {
+	return reterrno(Syscall::pipe(fd, flags));
+}
+
 extern "C" int inotify_init() {
 	return reterrno(Syscall::inotify_init(0));
 }
@@ -132,6 +148,10 @@ extern "C" int inotify_add_watch(int fd, const char *pathname, uint32_t mask) {
 
 extern "C" int inotify_rm_watch(int fd, int wd) {
 	return reterrno(Syscall::inotify_rm_watch(fd, wd));
+}
+
+extern "C" pid_t fork() {
+	return reterrno(Syscall::fork());
 }
 
 extern "C"  int futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3) {

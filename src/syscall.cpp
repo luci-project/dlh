@@ -90,6 +90,14 @@ ReturnValue<int> raise(signal_t sig) {
 	return retval<int>(ret);
 }
 
+ReturnValue<pid_t> waitpid(pid_t pid, int *status, int options) {
+	return retval<pid_t>(__syscall(SYS_wait4, pid, status, options));
+}
+
+ReturnValue<pid_t> wait(int * status) {
+	return waitpid(static_cast<pid_t>(-1), status);
+}
+
 
 [[noreturn]] void abort() {
 	raise(SIGABRT);
@@ -214,6 +222,20 @@ ReturnValue<int> memfd_create(const char *name, unsigned flags) {
 	return retval<int>(__syscall(SYS_memfd_create, name, flags));
 }
 
+ReturnValue<int>pipe(int fd[2], int flag) {
+	int r = __syscall(SYS_pipe2, fd, flag);
+	if (r == -ENOSYS && (r = __syscall(SYS_pipe, fd)) == 0) {
+		if (flag & O_CLOEXEC) {
+			fcntl(fd[0], F_SETFD, FD_CLOEXEC);
+			fcntl(fd[1], F_SETFD, FD_CLOEXEC);
+		}
+		if (flag & O_NONBLOCK)) {
+			fcntl(fd[0], F_SETFL, O_NONBLOCK);
+			fcntl(fd[1], F_SETFL, O_NONBLOCK);
+		}
+	}
+	return retval<int>(r);
+}
 
 ReturnValue<int> inotify_init(int flags) {
 	int r = __syscall(SYS_inotify_init1, flags);
@@ -231,8 +253,12 @@ ReturnValue<int> inotify_rm_watch(int fd, int wd) {
 }
 
 
+ReturnValue<pid_t> fork() {
+	return retval<pid_t>(__syscall(SYS_fork));
+}
+
 ReturnValue<pid_t> clone(int flags, uintptr_t stack , pid_t * parent, pid_t * child, uintptr_t tls) {
-	return retval<int>(__syscall(SYS_clone, flags, stack, parent, child, tls));
+	return retval<pid_t>(__syscall(SYS_clone, flags, stack, parent, child, tls));
 }
 
 ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3) {
