@@ -53,7 +53,7 @@ char * contents(const char * path, size_t & size) {
 
 Vector<const char *> lines(const char * path) {
 	size_t size;
-	return String::split(File::contents(path, size), '\n');
+	return String::split_inplace(File::contents(path, size), '\n');
 }
 
 void __procfdname(char *buf, unsigned fd) {

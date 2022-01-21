@@ -4,15 +4,19 @@
 #ifdef DLH_LEGACY
 
 extern "C" char *strchrnul(const char *s, int c) {
-	return String::find_or_end(s, c);
+	return const_cast<char*>(String::find_or_end(s, c));
 }
 
 extern "C" char *strchr(const char *s, int c) {
-	return String::find(s, c);
+	return const_cast<char*>(String::find(s, c)));
+}
+
+extern "C" char *strstr(const char *haystack, const char *needle) {
+	return const_cast<char*>(String::find(haystack, needle));
 }
 
 extern "C" char *strrchr(const char *s, int c) {
-	return String::find_last(s, c);
+	return const_cast<char*>(String::find_last(s, c));
 }
 
 extern "C" int strcmp(const char *s1, const char *s2) {

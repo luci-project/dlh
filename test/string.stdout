@@ -1,0 +1,52 @@
+String::find(s, 'b') = barberbarbarabarbarbaren!
+String::find_or_end(s, 'b') = barberbarbarabarbarbaren!
+String::find_last(s, 'b') = baren!
+String::find(s, "barbar") = barbarabarbarbaren!
+String::find_or_end(s, "barbar") = barbarabarbarbaren!
+String::find_last(s, "barbar") = barbaren!
+String::find(s, 'y') = 
+String::find_or_end(s, 'y') = 
+String::find_last(s, 'y') = 
+String::find(s, "barabara") = 
+String::find_or_end(s, "barabara") = 
+String::find_last(s, "barabara") = 
+String::replace(s, "bar", " BAR ", 5) = Rha BAR ber BAR  BAR a BAR  BAR baren!
+String::replace_inplace(t, "bar", "...", 5) = Rha...ber......a......baren!
+String::replace(s, "barbar", " BARBAR ") = Rhabarber BARBAR a BARBAR baren!
+String::replace_inplace(t, "barbar", "...") = Rhabarber...a...baren!
+String::replace(s, "bax", " BAR ") = Rhabarberbarbarabarbarbaren!
+String::replace_inplace(t, "bax", "...") = Rhabarberbarbarabarbarbaren!
+String::split(s, 'b' , 4):
+ - Rha
+ - ar
+ - er
+ - ar
+ - arabarbarbaren!
+String::split_inplace(t, 'b', 4):
+ - Rha
+ - ar
+ - er
+ - ar
+ - arabarbarbaren!
+String::split(s, "b" , 4):
+ - Rha
+ - ar
+ - er
+ - ar
+ - arabarbarbaren!
+String::split_inplace(t, "b", 4):
+ - Rha
+ - ar
+ - er
+ - ar
+ - arabarbarbaren!
+String::split(s, "bar"):
+ - Rha
+ - ber
+ - a
+ - en!
+String::split_inplace(t, "bar"):
+ - Rha
+ - ber
+ - a
+ - en!

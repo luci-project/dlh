@@ -24,6 +24,15 @@ extern "C" char *strchrnul(const char *s, int c);
  */
 extern "C" char *strchr(const char *s, int c);
 
+/*! \brief Find the first occurrence of the substring needle in a string haystack
+ * \ingroup string
+ * \param haystack string to search in
+ * \param needle substring to find
+ * \return Pointer to first occurrence of the substring
+ *         or to nullptr if not found
+ */
+extern "C" char *strstr(const char *haystack, int needle);
+
 /*! \brief Find the last occurrence of a character in a string
  * \ingroup string
  * \param s string to search in
