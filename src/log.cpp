@@ -54,6 +54,9 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 		if (fd <= 2) {
 			*this << level_name[level];
 			size_t p = _pos;
+			*this << ' ' << Syscall::getpid();
+			while (_pos - p < 8)
+				*this << ' ';
 			*this << ' ';
 			if (module != nullptr)
 				*this << module << ':';
@@ -69,7 +72,7 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 			*this << "\e[49m ";
 		} else {
 			// For files
-			*this << level << '\t' << file << '\t' << line << '\t';
+			*this << level << '\t' << Syscall::getpid() << '\t' << file << '\t' << line << '\t';
 		}
 	}
 	return *this;

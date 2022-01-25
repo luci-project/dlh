@@ -93,7 +93,7 @@ const char* find(const char *haystack, const char* needle) {
 	if (haystack_len == needle_len && compare(haystack, needle) == 0) {
 		return haystack;
 	} else if (haystack_len > needle_len) {
-	 	size_t n[needle_len + 1];
+		size_t n[needle_len + 1];
 		prefix(needle, needle_len, n);
 		size_t pos = 0;
 		return find(haystack, needle, haystack_len, needle_len, n, pos);
