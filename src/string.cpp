@@ -85,6 +85,9 @@ const char * find(const char *s, int c) {
 }
 
 const char* find(const char *haystack, const char* needle) {
+	if (haystack == nullptr || needle == nullptr)
+		return haystack;
+
 	size_t needle_len = len(needle);
 	if (needle_len == 0)
 		return haystack;
@@ -115,6 +118,9 @@ const char * find_last(const char *s, int c) {
 }
 
 const char* find_last(const char *haystack, const char* needle) {
+	if (haystack == nullptr || needle == nullptr)
+		return haystack;
+
 	size_t needle_len = len(needle);
 	if (needle_len == 0)
 		return const_cast<char*>(haystack);
@@ -147,7 +153,7 @@ char * replace_inplace(char *target, int from, int to, size_t max) {
 }
 
 char * replace(const char *target, int from, int to, size_t max) {
-	return replace_inplace(duplicate(target), from, to, max);
+	return target == nullptr ? nullptr : replace_inplace(duplicate(target), from, to, max);
 }
 
 static inline size_t split(const char *source, const char * delimiter, size_t source_len, size_t delimiter_len, size_t *part, size_t max) {
@@ -183,22 +189,32 @@ static inline void combine( char *target, const char * source, const char * to, 
 }
 
 char * replace_inplace(char *target, const char * from, const char * to, size_t max) {
-	size_t from_len = len(from);
-	assert(from_len > 0);
-	size_t to_len = len(to);
-	assert(to_len <= from_len);
+	if (target != nullptr) {
+		assert(len(to) <= len(from));
+		replace_inplace(target, len(target), from, to,  max);
+	}
+	return target;
+}
 
-	size_t target_len = len(target);
+char * replace_inplace(char *target, size_t target_len, const char * from, const char * to, size_t max) {
+	if (target != nullptr) {
+		size_t from_len = len(from);
+		assert(from_len > 0);
+		size_t to_len = len(to);
 
-	size_t part[target_len / from_len];
-	size_t parts = split(target, from, target_len, from_len, part, max);
+		size_t part[target_len / from_len];
+		size_t parts = split(target, from, target_len, from_len, part, max);
 
-	char tmp[target_len];
-	combine(target, copy(tmp, target, target_len), to, part, target_len, from_len, to_len, parts);
+		char tmp[target_len];
+		combine(target, copy(tmp, target, target_len), to, part, target_len, from_len, to_len, parts);
+	}
 	return target;
 }
 
 char * replace(const char *source, const char * from, const char * to, size_t max) {
+	if (source == nullptr)
+		return nullptr;
+
 	size_t from_len = len(from);
 	assert(from_len > 0);
 	size_t to_len = len(to);

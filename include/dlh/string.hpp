@@ -82,6 +82,16 @@ char * replace(const char *target, int from, int to, size_t max = SIZE_MAX);
 char * replace_inplace(char *target, const char *from, const char * to, size_t max = SIZE_MAX);
 
 /*! \brief Replace stubstrings in a string
+ * \param target pointer to string  (target memory will be modified!)
+ * \param target_len size of target buffer
+ * \param from substring to be replaced
+ * \param to replacement substring
+ * \param max maximum number of replacements to be performed
+ * \return Pointer to the target string
+ */
+char * replace_inplace(char *target, size_t target_len, const char *from, const char * to, size_t max = SIZE_MAX);
+
+/*! \brief Replace stubstrings in a string
  * \param target pointer to string (string will be copied)
  * \param from substring to be replaced
  * \param to replacement substring
