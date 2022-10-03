@@ -1,4 +1,5 @@
 #include <dlh/parser/string.hpp>
+#include <dlh/assert.hpp>
 #include <dlh/types.hpp>
 
 namespace Parser {
@@ -7,15 +8,59 @@ bool string(unsigned long long & target, const char * value) {
 	if (value == nullptr)
 		return false;
 
-	for (target = 0; value != nullptr && *value != '\0'; value++)
-		if (*value >= '0' && *value <= '9') {
-			unsigned long long o = target;
-			target = target * 10 + *value - '0';
-			if (target < o)
-				return false;
-		} else if (*value != ' ' && *value != ',' && *value != '\'') {
+	for (; *value == ' '; value++);
+	if (*value == '+') {
+		value++;
+		for (; *value == ' '; value++);
+	}
+
+	unsigned long long base = 10;
+	if (value[0] == '0' && value[1] != '\0') {
+		if (value[1] == 'x' || value[1] == 'X') {
+			base = 16;
+			value += 2;
+		} else if (value[1] == 'b' || value[1] == 'B') {
+			base = 2;
+			value += 2;
+		} else if (value[1] >= '1' && value[1] <= '7') {
+			base = 8;
+			value++;
+		} else {
+			// Invalid format
 			return false;
 		}
+	}
+
+	unsigned long long n = 0;
+	char spacer = '\0';
+	for (; *value != '\0'; value++) {
+		if (*value == ' ' || *value == ',' || *value == '\'') {
+			// Invalid space char
+			if (spacer != '\0' && spacer != *value)
+				return false;
+			spacer = *value;
+			continue;
+		}
+		unsigned long long v = 0;
+		if (*value >= '0' && *value <= '9') {
+			v = *value - '0';
+		} else if (*value >= 'a' && *value <= 'f') {
+			v = *value - 'a' + 10;
+		} else if (*value >= 'A' && *value <= 'F') {
+			v = *value - 'A' + 10;
+		} else {
+			// Invalid character
+			return false;
+		}
+
+		if (v > base || n * base + v < n) {
+			return false;
+		}
+
+		n = n * base + v;
+	}
+
+	target = n;
 
 	return true;
 }
@@ -24,9 +69,15 @@ bool string(long long & target, const char * value) {
 	if (value == nullptr)
 		return false;
 
-	for (target = 1; *value != '\0'; value++)
+	long long sign = 1;
+	for (; *value != '\0'; value++)
 		if (*value == '-')  {
-			target = -1;
+			sign = -1;
+			value++;
+			break;
+		} else if (*value == '+') {
+			value++;
+			break;
 		} else if (*value >= '0' && *value <= '9') {
 			break;
 		} else if (*value != ' ') {
@@ -34,9 +85,11 @@ bool string(long long & target, const char * value) {
 		}
 
 	unsigned long long v = 0;
-	bool r = string(v, value);
-	target *= v;
-	return r;
+	if (string(v, value)) {
+		target = sign * v;
+		return (sign < 0 && v <= __LONG_LONG_MAX__ + 1ULL) || (sign >= 0 && v <= __LONG_LONG_MAX__);
+	}
+	return false;
 }
 
 bool string(unsigned long & target, const char * value) {
