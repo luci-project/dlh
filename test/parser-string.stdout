@@ -1,0 +1,79 @@
+Parser::string(int, "0") = 0
+Parser::string(int, "+0") = 0
+Parser::string(int, "-0") = 0
+Parser::string(unsigned int, "0") = 0
+Parser::string(unsigned int, "+0") = 0
+Parser::string(int, "42") = 42
+Parser::string(int, "+42") = 42
+Parser::string(int, "+ 42") = 42
+Parser::string(int, " + 42") = 42
+Parser::string(int, " +42") = 42
+Parser::string(int, "-42") = -42
+Parser::string(int, " - 42") = -42
+Parser::string(int, "123'000'000") = 123000000
+Parser::string(int, "123,000,000") = 123000000
+Parser::string(int, "123 000 000") = 123000000
+Parser::string(int, "123-000") failed (as expected)!
+Parser::string(int, "123'000,000") failed (as expected)!
+Parser::string(int, "123.000.000") failed (as expected)!
+Parser::string(unsigned int, "42") = 42
+Parser::string(unsigned int, "+42") = 42
+Parser::string(unsigned int, "+ 42") = 42
+Parser::string(unsigned int, " + 42") = 42
+Parser::string(unsigned int, "-42") failed (as expected)!
+Parser::string(unsigned int, " - 42") failed (as expected)!
+Parser::string(unsigned int, "123'000'000") = 123000000
+Parser::string(unsigned int, "123,000,000") = 123000000
+Parser::string(unsigned int, "123 000 000") = 123000000
+Parser::string(int, "023") = 19
+Parser::string(int, "+023") = 19
+Parser::string(int, " + 023") = 19
+Parser::string(int, "-023") = -19
+Parser::string(int, " - 023") = -19
+Parser::string(int, "0x23") = 35
+Parser::string(int, "+0x23") = 35
+Parser::string(int, " + 0x23") = 35
+Parser::string(int, "-0x23") = -35
+Parser::string(int, " - 0x23") = -35
+Parser::string(int, "0XAFfe") = 45054
+Parser::string(int, "affe") failed (as expected)!
+Parser::string(int, "xaffe") failed (as expected)!
+Parser::string(int, "0b10100101") = 165
+Parser::string(int, "0B1101") = 13
+Parser::string(int, "b1101") failed (as expected)!
+Parser::string(int, "023") = 19
+Parser::string(int, "0x23") = 35
+Parser::string(char, "0x7f") = 
+Parser::string(char, "-0x80") = €
+Parser::string(char, "0x80") failed (as expected)!
+Parser::string(char, "-0x81") failed (as expected)!
+Parser::string(unsigned char, "0xff") = ÿ
+Parser::string(unsigned char, "0x100") failed (as expected)!
+Parser::string(short, "0x7fff") = 32767
+Parser::string(short, "-0x8000") = -32768
+Parser::string(short, "0x8000") failed (as expected)!
+Parser::string(short, "-0x8001") failed (as expected)!
+Parser::string(unsigned short, "0xffff") = 65535
+Parser::string(unsigned short, "0x10000") failed (as expected)!
+Parser::string(int, "0x7fffffff") = 2147483647
+Parser::string(int, "-0x80000000") = -2147483648
+Parser::string(int, "0x80000000") failed (as expected)!
+Parser::string(int, "-0x80000001") failed (as expected)!
+Parser::string(unsigned int, "0xffffffff") = 4294967295
+Parser::string(unsigned int, "0x100000000") failed (as expected)!
+Parser::string(long, "0x7fffffffffffffff") = 9223372036854775807
+Parser::string(long, "-0x8000000000000000") = -9223372036854775808
+Parser::string(long, "0x8000000000000000") failed (as expected)!
+Parser::string(long, "-0x8000000000000001") failed (as expected)!
+Parser::string(unsigned long, "0xffffffffffffffff") = 18446744073709551615
+Parser::string(unsigned long, "0x10000000000000000") failed (as expected)!
+Parser::string(bool, "f") = false
+Parser::string(bool, "False") = false
+Parser::string(bool, "0") = false
+Parser::string(bool, "no") = false
+Parser::string(bool, "Nope") = false
+Parser::string(bool, "t") = true
+Parser::string(bool, "True") = true
+Parser::string(bool, "1") = true
+Parser::string(bool, "yes") = true
+Parser::string(bool, "Yay") = true
