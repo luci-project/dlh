@@ -5,7 +5,6 @@
 
 
 int main(int argc, const char *argv[]) {
-	cout << "HashSet (using some integers):";
 	HashSet<int> s = { 888, 999 };
 	s.insert(13);
 	s.insert(3);
@@ -40,9 +39,8 @@ int main(int argc, const char *argv[]) {
 	s.insert(42);
 	s.insert(52);
 
-	for (auto i : s)
-		cout << ' ' << i;
-	cout << endl << endl;
+	HashSet<int> t(s);
+	cout << "HashSet (using some integers): " << s << endl << endl;
 
 	cout << "HashMap (using aruments)" << endl;
 	HashMap<const char *, int> m;
@@ -63,9 +61,6 @@ int main(int argc, const char *argv[]) {
 	if (j)
 		cout << " - erase: " << *j << endl;
 
-	cout << "Full map:" << endl;
-	for (auto i : m)
-		cout << "	m[" << i.key << "] = " << i.value << endl;
-
+	cout << "Full map: " << m << endl;
 	return 0;
 }

@@ -3,7 +3,6 @@
 
 
 int main(int argc, const char *argv[]) {
-	cout << "TreeSet (using some integers):";
 	TreeSet<int> s = { 888, 999 };
 	s.insert(13);
 	s.insert(3);
@@ -43,9 +42,7 @@ int main(int argc, const char *argv[]) {
 	#endif
 
 	TreeSet<int> t(s);
-	for (auto i : t)
-		cout << ' ' << i;
-	cout << endl;
+	cout << "TreeSet (using some integers): " << t << endl << endl;
 
 	int n = 42;
 	cout << " - Lowest: " << *s.lowest() << endl;
@@ -80,9 +77,7 @@ int main(int argc, const char *argv[]) {
 	m.check();
 	#endif
 
-	cout << "Full map:" << endl;
-	for (auto i : m)
-		cout << "	m[" << i.key << "] = " << i.value << endl;
+	cout << "Full map: " << m << endl;
 
 	return 0;
 }

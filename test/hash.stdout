@@ -2,16 +2,13 @@
 
 # Compare first line by sorting its result
 read set
-test "$(echo "${set#*: }" | tr ' ' '\n' | sort -n | tr '\n' ' ' | xargs echo -n)" = '3 13 23 32 42 52 205 888 999 1549 1572877'
+test "$(sed -e "s/^.*: {\(.*\)}/\1/" -e "s/, /\n/g" <<< "${set}" | sort -n | tr '\n' ' ')" = '3 13 23 32 42 52 205 888 999 1549 1572877'
 
-# Compare rest 
+# Compare rest
 sort | diff -B -u <(sort <<EOT
 HashMap (using aruments)
  - insert ../test-hash = true
    * ../test-hash, 0
-Full map:
-	m[../test-hash] = 0
-	m[bar] = -23
-	m[baz] = -42
+Full map: { ../test-hash: 0, bar: -23, baz: -42 }
 EOT
 ) -

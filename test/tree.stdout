@@ -1,4 +1,4 @@
-TreeSet (using some integers): 3 13 23 32 42 52 205 888 999 1549 1572877
+TreeSet (using some integers): { 3, 13, 23, 32, 42, 52, 205, 888, 999, 1549, 1572877 }
  - Lowest: 3
  - Lower than 42: 32
  - Lower than or equal to 42: 42
@@ -10,7 +10,4 @@ TreeSet (using some integers): 3 13 23 32 42 52 205 888 999 1549 1572877
 TreeMap (using aruments)
  - insert ../test-tree = true
    * ../test-tree, 0
-Full map:
-	m[../test-tree] = 0
-	m[bar] = -23
-	m[baz] = -42
+Full map: { ../test-tree: 0, bar: -23, baz: -42 }

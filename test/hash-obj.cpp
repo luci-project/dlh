@@ -7,7 +7,6 @@ int main(int argc, const char *argv[]) {
 	(void) argc;
 	(void) argv;
 
-	cout << "HashSet:";
 	HashSet<Foo, FooComp> s = { 888, 999 };
 	s.insert(13);
 	s.insert(Foo(3));
@@ -46,7 +45,7 @@ int main(int argc, const char *argv[]) {
 
 	HashSet<Foo, FooComp> t(s);
 	for (auto i : t)
-		cout << ' ' << i.id;
+		cout << " " << i.id;
 	cout << endl;
 
 	return 0;

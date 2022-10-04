@@ -41,3 +41,9 @@ struct FooComp: public Comparison {
 	template<typename T, typename U>
 	static inline bool equal(const T& a, const U& b) { return compare(a, b) == 0; }
 };
+
+
+template<typename S>
+static inline S & operator<<(S & s, const Foo & foo) {
+	return s << "Foo #" << foo.uid << " = " << foo.id;
+}

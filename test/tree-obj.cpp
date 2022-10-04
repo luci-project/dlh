@@ -50,7 +50,7 @@ int main(int argc, const char *argv[]) {
 
 	TreeSet<Foo, FooComp> t(s);
 	for (auto i : t)
-		cout << ' ' << i.id;
+		cout << " " << i.id;
 	cout << endl;
 
 	int n = 42;

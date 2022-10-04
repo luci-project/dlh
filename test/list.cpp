@@ -18,10 +18,6 @@ int main(int argc, const char *argv[]) {
 	s.emplace(q, Foo(23));
 	s.insert(q, 7);
 	s.erase(p);
-
-	for (const auto & i : s)
-		cout << " - Foo #" << i.uid << " = " << i.id << endl;
-	cout << endl;
-
+	cout << "List: " << s << endl;
 	return 0;
 }
