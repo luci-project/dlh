@@ -53,11 +53,13 @@ class BufferStream {
 	enum { MINUS_ONLY, PLUS, SPACE } _sign;
 
 	/*! \brief Helper to write a string with fill characters (if necessary) */
-	BufferStream& writefill(const char* string, size_t n);
+	BufferStream& writefill(const char* string, size_t precision);
+
+	/*! \brief Helper to write an number with fill characters (if necessary) */
+	BufferStream& writefill(long long ival, size_t precision = SIZE_MAX);
 
 	/*! \brief Helper to write an unsigned number with fill characters (if necessary) */
-	BufferStream& writefill(unsigned long long ival, bool minus = false);
-
+	BufferStream& writefill(unsigned long long ival, bool minus = false, size_t precision = SIZE_MAX);
 
  protected:
 	/*! \brief Buffer */
@@ -136,28 +138,36 @@ class BufferStream {
 	/*! \brief Write string (including all characters, even `\0`) into buffer
 	 * \param string pointer to string with at least `n` bytes
 	 * \param n number of bytes to copy from string into buffer
-	 * \return Reference to BufferStream os; allows operator chaining.
+	 * \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& write(const char* string, size_t size);
 
 	/*! \brief Write padding character multiple times into buffer
 	 * \param c padding character
 	 * \param n number of times the character should be written into buffer
-	 * \return Reference to BufferStream os; allows operator chaining.
+	 * \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& write(char c, size_t num);
+
+
+	/*! \brief Write string (up to a given limit) into buffer
+	 * \param string pointer to a '\0' terminated string
+	 * \param limit maximum number of bytes to copy from string into buffer
+	 * \return Reference to BufferStream; allows operator chaining.
+	 */
+	BufferStream& write_str(const char* string, size_t limit = SIZE_MAX);
 
 	/*! \brief Print a single character
 	 *
 	 *  \param c Character to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(char c);
 
 	/*! \brief Print a single character
 	 *
 	 *  \param c Character to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(unsigned char c) {
 		return *this << static_cast<char>(c);
@@ -166,14 +176,14 @@ class BufferStream {
 	/*! \brief Printing a null-terminated string
 	 *
 	 *  \param string String to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(const char* string);
 
 	/*! \brief Print a boolean value
 	 *
 	 *  \param b Boolean to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(bool b) {
 		return b ? writefill("true", 4) : writefill("false", 5);
@@ -182,54 +192,51 @@ class BufferStream {
 	/*! \brief Print an integral number in radix base
 	 *
 	 *  \param ival Number to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(short ival) {
-		return *this << static_cast<long long>(ival);
+		return writefill(static_cast<long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(unsigned short ival) {
-		return *this << static_cast<unsigned long long>(ival);
+		return writefill(static_cast<unsigned long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(int ival) {
-		return *this << static_cast<long long>(ival);
+		return writefill(static_cast<long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(unsigned int ival) {
-		return *this << static_cast<unsigned long long>(ival);
+		return writefill(static_cast<unsigned long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(long ival) {
-		return *this << static_cast<long long>(ival);
+		return writefill(static_cast<long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(unsigned long ival) {
-		return *this << static_cast<unsigned long long>(ival);
+		return writefill(static_cast<unsigned long long>(ival));
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(long long ival) {
-		if ((ival < 0) && (_base == 10))
-			return writefill(static_cast<unsigned long long>(-ival), true);
-		else
-			return writefill(static_cast<unsigned long long>(ival), false);
+		return writefill(ival);
 	}
 
 	/// \copydoc BufferStream::operator<<(short)
 	BufferStream& operator<<(unsigned long long ival) {
-		return writefill(static_cast<unsigned long long>(ival), false);
+		return writefill(ival);
 	}
 
 	/*! \brief Print a pointer as hexadecimal number
 	 *
 	 *  \param ptr Pointer to be printed
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(const void* ptr);
 
@@ -239,7 +246,7 @@ class BufferStream {
 	 *  allow modifying the stream's behavior by, for instance, changing the
 	 *  number system.
 	 *  \param f Manipulator function to be called
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(BufferStream& (*f) (BufferStream&)) {
 		return f(*this);
@@ -247,13 +254,13 @@ class BufferStream {
 
 	/*! \brief Base manipulator
 	 *  \param val Manipulator object to be used
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(const setbase & val);
 
 	/*! \brief Field width manipulator
 	 *  \param val Manipulator object to be used
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(const setw & val) {
 		_width = val.n;
@@ -262,11 +269,22 @@ class BufferStream {
 
 	/*! \brief Padding character manipulator
 	 *  \param val Manipulator object to be used
-	 *  \return Reference to BufferStream os; allows operator chaining.
+	 *  \return Reference to BufferStream; allows operator chaining.
 	 */
 	BufferStream& operator<<(const setfill & val) {
 		_fill = val.c;
 		return *this;
+	}
+
+	/*! \brief Allow Stream embedding
+	 *
+	 *  \param bs (other) Bufferstream)
+	 *  \return Reference to BufferStream; allows operator chaining.
+	 */
+	BufferStream& operator<<(BufferStream & bs) {
+		if (&bs != this)
+			*this << bs.str();
+		return * this;
 	}
 
 	/*! \brief Write format string
