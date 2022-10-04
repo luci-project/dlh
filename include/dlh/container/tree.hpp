@@ -10,6 +10,7 @@
 #include <dlh/container/internal/elements.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
+
 /*! \brief Tree set class
  * influenced by standard [template/cxx] librarys `set`
  * \tparam T type for container
@@ -1255,3 +1256,44 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 		return (*(Base::emplace(move(key)).first)).value;
 	}
 };
+
+
+/*! \brief Print contents of a TreeSet
+ *
+ *  \param s Target Stream
+ *  \param set TreeSet to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename T, typename C>
+static inline S & operator<<(S & s, const TreeSet<T, C> & set) {
+	s << '{';
+	bool p = false;
+	for (const auto & entry : set) {
+		if (p)
+			s << ',';
+		else
+			p = true;
+		s << ' ' << entry;
+	}
+	return s << ' ' << '}';
+}
+
+/*! \brief Print contents of a TreeSet
+ *
+ *  \param s Target Stream
+ *  \param map TreeMap to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename K, typename V, typename C>
+static inline S & operator<<(S & s, const TreeMap<K, V, C> & map) {
+	s << '{';
+	bool p = false;
+	for (const auto & entry : map) {
+		if (p)
+			s << ',';
+		else
+			p = true;
+		s << ' ' << entry;
+	}
+	return s << ' ' << '}';
+}

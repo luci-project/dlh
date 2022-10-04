@@ -2,7 +2,6 @@
 
 #include <dlh/assert.hpp>
 #include <dlh/utility.hpp>
-#include <dlh/stream/output.hpp>
 
 template<class T>
 class Optional {
@@ -144,3 +143,17 @@ class Optional {
 		return _assigned ? _value != other : true;
 	}
 };
+
+/*! \brief Print contents of optional
+ *
+ *  \param s Target Stream
+ *  \param opt Optional to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename T>
+static inline S & operator<<(S & s, const Optional<T> & opt) {
+	if (opt.has_value())
+		return s << opt.value();
+	else
+		return s << "(none)";
+}

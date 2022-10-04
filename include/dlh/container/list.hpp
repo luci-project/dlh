@@ -515,3 +515,24 @@ class List {
 		return next;
 	}
 };
+
+
+/*! \brief Print contents of a List
+ *
+ *  \param s Target Stream
+ *  \param val List to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename T, typename N = ListNode<T>, N* N::* NEXT, N* N::* PREV>
+static inline S & operator<<(S & s, const List<T, N, NEXT, PREV> & val) {
+	s << '[';
+	bool p = false;
+	for (const auto & v : val) {
+		if (p)
+			s << ',';
+		else
+			p = true;
+		s << ' ' << v;
+	}
+	return s << ' ' << ']';
+}

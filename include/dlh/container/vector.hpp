@@ -9,7 +9,6 @@
 #include <dlh/utility.hpp>
 #include <dlh/container/optional.hpp>
 #include <dlh/container/initializer_list.hpp>
-#include <dlh/stream/buffer.hpp>
 
 /*! \brief Vector class influenced by standard [template/cxx] library
  */
@@ -704,19 +703,20 @@ template<class T> class Vector {
 
 /*! \brief Print contents of a vector
  *
- *  \param bs Target Bufferstream
+ *  \param s Target Stream
  *  \param val Vector to be printed
- *  \return Reference to BufferStream os; allows operator chaining.
+ *  \return Reference to Stream; allows operator chaining.
  */
-template<typename T>
-static inline BufferStream& operator<<(BufferStream& bs, Vector<T> & val) {
-	bs << "{ ";
+template<typename S, typename T>
+static inline S & operator<<(S & s, const Vector<T> & val) {
+	s << '[';
 	bool p = false;
 	for (const auto & v : val) {
 		if (p)
-			bs << ", ";
-		p = true;
-		bs << v;
+			s << ',';
+		else
+			p = true;
+		s << ' ' << v;
 	}
-	return bs << '}';
+	return s << ' ' << ']';
 }

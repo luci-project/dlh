@@ -58,3 +58,15 @@ struct KeyValue {
 		return key != other.first || value != other.second;
 	}
 };
+
+
+/*! \brief Print contents of a Key-Value-Element
+ *
+ *  \param s Target Stream
+ *  \param element KeyValue to be printed
+ *  \return Reference to BufferStream os; allows operator chaining.
+ */
+template<typename S, typename K, typename V>
+static inline S & operator<<(S & s, const KeyValue<K, V> & element) {
+	return s << element.key << ": " << element.value;
+}

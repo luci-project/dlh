@@ -751,6 +751,7 @@ class HashSet : public Elements<T> {
 
 };
 
+
 /*! \brief Hash map
  * \tparam K type for key
  * \tparam V type for value
@@ -852,3 +853,45 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 		return (*(Base::emplace(move(key)).first)).value;
 	}
 };
+
+
+/*! \brief Print contents of a HashSet
+ *
+ *  \param s Target Stream
+ *  \param set HashSet to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename T, typename C, size_t L>
+static inline S & operator<<(S & s, const HashSet<T, C, L> & set) {
+	s << '{';
+	bool p = false;
+	for (const auto & entry : set) {
+		if (p)
+			s << ',';
+		else
+			p = true;
+		s << ' ' << entry;
+	}
+	return s << ' ' << '}';
+}
+
+
+/*! \brief Print contents of a HashMap
+ *
+ *  \param s Target Stream
+ *  \param set HashMap to be printed
+ *  \return Reference to Stream; allows operator chaining.
+ */
+template<typename S, typename K, typename V, typename C, size_t L>
+static inline S & operator<<(S & s, const HashMap<K, V, C, L> & map) {
+	s << '{';
+	bool p = false;
+	for (const auto & entry : map) {
+		if (p)
+			s << ',';
+		else
+			p = true;
+		s << ' ' << entry;
+	}
+	return s << ' ' << '}';
+}
