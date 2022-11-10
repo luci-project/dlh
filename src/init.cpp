@@ -106,42 +106,45 @@ extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char 
 	Syscall::exit(r);
 }
 
-asm(R"(
-.globl _start
-.type _start, @function
-.align 16
-_start:
-	.cfi_startproc
-	.cfi_undefined rip
+asm(
+".globl _start                                                             \n\t"
+".type _start, @function                                                   \n\t"
+".align 16                                                                 \n\t"
+"_start:                                                                   \n\t"
+"	.cfi_startproc                                                         \n\t"
+"	.cfi_undefined rip                                                     \n\t"
 
-	# Set base pointer to zero (ABI)
-	xor %rbp, %rbp
+// Set base pointer to zero (ABI)
+"	xor %rbp, %rbp                                                         \n\t"
 
-	# 3rd arg: ptr to register with atexit() -- already in rdx
+// 3rd arg: ptr to register with atexit() -- already in rdx
 
-	# 2nd arg: stack with arguments
-	mov %rsp, %rsi
+// 2nd arg: stack with arguments
+"	mov %rsp, %rsi                                                         \n\t"
 
-	# Align stack pointer
-	andq $-16, %rsp
+// Align stack pointer
+"	andq $-16, %rsp                                                        \n\t"
 
-	# 1st arg: application entry
-	movabs $main, %rdi
+// 1st arg: application entry
+#ifdef __PIC__
+"	mov main@GOTPCREL(%rip), %rdi                                          \n\t"
+#else
+"	movabs $main, %rdi                                                     \n\t"
+#endif
+// call helper function
+"	call __dlh_start_main                                                  \n\t"
 
-	# call helper function
-	call __dlh_start_main
+// Endless loop
+"1:	jmp 1b                                                                 \n\t"
+"	.cfi_endproc                                                           \n\t"
 
-	# Endless loop
-1:	jmp 1b
-	.cfi_endproc
-
-.data
-.globl __data_start
-__data_start:
-	.long 0
-	.weak data_start
-	data_start = __data_start
-)");
+".data                                                                     \n\t"
+".globl __data_start                                                       \n\t"
+"__data_start:                                                             \n\t"
+"	.long 0                                                                \n\t"
+"	.weak data_start                                                       \n\t"
+"	data_start = __data_start                                              \n\t"
+);
 
 extern "C" void __stack_chk_fail(void) {
 	Syscall::crash();
