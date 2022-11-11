@@ -152,7 +152,10 @@ struct Thread {
 	/* This member must be last.  */
 	char end_padding[0] = { };
 
-	constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {}
+	constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {
+		list.next = &list;
+		list.prev = &list;
+	}
 
 	static Thread * create(void* (*func)(void*), void * arg = nullptr, bool detach = false, size_t stack_size = 1048576, size_t tls_size = 0xd40, DynamicThreadVector * dtv = nullptr, bool hidden = false);
 
