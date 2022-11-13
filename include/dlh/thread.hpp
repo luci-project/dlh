@@ -149,8 +149,9 @@ struct Thread {
 	void * res[71] = { nullptr };
 	/* Indicates whether is a C11 thread created by thrd_creat.  */
 	bool c11 = false;
-	/* This member must be last.  */
-	char end_padding[0] = { };
+	/* This member must be last.
+	   Padding for newer GLIBC compatibility */
+	char end_padding[256] = { };
 
 	constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {
 		list.next = &list;
@@ -195,4 +196,4 @@ struct Thread {
 	}
 } __attribute__((aligned(64)));
 
-static_assert(sizeof(Thread) == 0x900, "Wrong [P]Thread size");
+static_assert(sizeof(Thread) == 0x900 + 256, "Wrong [P]Thread size");
