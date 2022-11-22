@@ -255,3 +255,10 @@ class XXHash64 {
 		return hasher.hash();
 	}
 };
+
+template<>
+inline bool XXHash64::add(const char *input) {
+	size_t len = 0;
+	for (const char * s = input; s != nullptr && *s++ != '\0'; len++);
+	return add(input, len);
+}
