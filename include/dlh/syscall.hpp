@@ -81,6 +81,14 @@ ReturnValue<int> mprotect(uintptr_t start, size_t len, int prot);
 ReturnValue<int> munmap(uintptr_t start, size_t len);
 ReturnValue<int> msync(uintptr_t start, size_t len, int flags);
 
+ReturnValue<int> socket(protocol_family_t domain, socket_type_t type, int protocol = 0);
+ReturnValue<int> bind(int fd, const struct sockaddr *addr, socklen_t len);
+ReturnValue<int> listen(int fd, int backlog);
+ReturnValue<int> connect(int fd, const struct sockaddr *addr, socklen_t len);
+ReturnValue<int> accept(int fd, struct sockaddr * __restrict__ addr, socklen_t * __restrict__ len);
+ReturnValue<ssize_t> send(int fd, const void *buf, size_t len, int flags, const struct sockaddr *addr = nullptr, socklen_t alen = 0);
+ReturnValue<ssize_t> recv(int fd, void * __restrict__  buf, size_t len, int flags, struct sockaddr * __restrict__  addr = nullptr, socklen_t * __restrict__ alen = 0);
+
 ReturnValue<int> access(const char *filename, int amode);
 ReturnValue<ssize_t> readlink(const char * __restrict__ path, char * __restrict__ buf, size_t bufsize);
 ReturnValue<int> open(const char *filename, int flags, int mode = 0);
@@ -91,6 +99,7 @@ ReturnValue<ssize_t> copy_file_range(int fd_in, off_t *off_in, int fd_out, off_t
 ReturnValue<int> fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg = 0);
 ReturnValue<int> fallocate(int fd, int mode, off_t base, off_t len);
 ReturnValue<int> ftruncate(int fd, off_t length);
+ReturnValue<int> unlink(const char *path);
 
 ReturnValue<int> fstat(int fd, struct stat *st);
 ReturnValue<int> stat(const char * __restrict__ path, struct stat * __restrict__ buf);
@@ -108,6 +117,9 @@ ReturnValue<int> inotify_rm_watch(int fd, int wd);
 ReturnValue<pid_t> fork();
 ReturnValue<pid_t> clone(int flags, uintptr_t stack = 0, pid_t * parent = nullptr, pid_t * child = nullptr, uintptr_t tls = 0);
 ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, const void * __restrict__ timeout, int * __restrict__ uaddr2, int val3);
+
+ReturnValue<int> execv(const char * __restrict__ path, const char * __restrict__ argv[]);
+ReturnValue<int> execve(const char * __restrict__ path, const char * __restrict__ argv[], const char * __restrict__ envp[]);
 
 ReturnValue<int> brk(uintptr_t addr);
 ReturnValue<uintptr_t> sbrk(intptr_t inc);

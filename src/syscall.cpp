@@ -154,6 +154,35 @@ ReturnValue<ssize_t> readlink(const char * __restrict__ path, char * __restrict_
 }
 
 
+ReturnValue<int> socket(protocol_family_t domain, socket_type_t type, int protocol) {
+	return retval<int>(__syscall(SYS_socket, domain, type, protocol));
+}
+
+ReturnValue<int> bind(int fd, const struct sockaddr *addr, socklen_t len) {
+	return retval<int>(__syscall(SYS_bind, fd, addr, len));
+}
+
+ReturnValue<int> listen(int fd, int backlog) {
+	return retval<int>(__syscall(SYS_listen, fd, backlog));
+}
+
+ReturnValue<int> connect(int fd, const struct sockaddr *addr, socklen_t len) {
+	return retval<int>(__syscall(SYS_connect, fd, addr, len));
+}
+
+ReturnValue<int> accept(int fd, struct sockaddr * __restrict__ addr, socklen_t * __restrict__ len) {
+	return retval<int>(__syscall(SYS_accept, fd, addr, len));
+}
+
+ReturnValue<ssize_t> send(int fd, const void *buf, size_t len, int flags, const struct sockaddr *addr, socklen_t alen) {
+	return retval<ssize_t>(__syscall(SYS_sendto, fd, buf, len, flags, addr, alen));
+}
+
+ReturnValue<ssize_t> recv(int fd, void * __restrict__  buf, size_t len, int flags, struct sockaddr * __restrict__  addr, socklen_t * __restrict__ alen) {
+	return retval<ssize_t>(__syscall(SYS_recvfrom, fd, buf, len, flags, addr, alen));
+}
+
+
 ReturnValue<int> open(const char *filename, int flags, int mode) {
 	int fd = __syscall(SYS_open, filename, flags, mode);
 	if (fd >= 0 && (flags & O_CLOEXEC))
@@ -194,6 +223,10 @@ ReturnValue<int> fallocate(int fd, int mode, off_t base, off_t len) {
 
 ReturnValue<int> ftruncate(int fd, off_t length) {
 	return retval<int>(__syscall(SYS_ftruncate, fd, length));
+}
+
+ReturnValue<int> unlink(const char *path) {
+	return retval<int>(__syscall(SYS_unlink, path));
 }
 
 
@@ -265,6 +298,14 @@ ReturnValue<int> futex(int * __restrict__ uaddr, futex_op_t futex_op, int val, c
 	return retval<int>(__syscall(SYS_futex, uaddr, futex_op, val, timeout, uaddr2, val3));
 }
 
+
+ReturnValue<int> execv(const char * __restrict__ path, const char * __restrict__ argv[]) {
+	return retval<int>(__syscall(SYS_execve, path, argv, environ));
+}
+
+ReturnValue<int> execve(const char * __restrict__ path, const char * __restrict__ argv[], const char * __restrict__ envp[]) {
+	return retval<int>(__syscall(SYS_execve, path, argv, envp));
+}
 
 static uintptr_t curbrk = 0;
 
