@@ -158,6 +158,14 @@ ReturnValue<int> socket(protocol_family_t domain, socket_type_t type, int protoc
 	return retval<int>(__syscall(SYS_socket, domain, type, protocol));
 }
 
+ReturnValue<int> getsockopt(int fd, int level, int optname, void * __restrict__ optval, socklen_t * __restrict__ optlen) {
+	return retval<int>(__syscall(SYS_getsockopt, fd, level, optname, optval, optlen, 0));
+}
+
+ReturnValue<int> setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen) {
+	return retval<int>(__syscall(SYS_setsockopt, fd, level, optname, optval, optlen));
+}
+
 ReturnValue<int> bind(int fd, const struct sockaddr *addr, socklen_t len) {
 	return retval<int>(__syscall(SYS_bind, fd, addr, len));
 }

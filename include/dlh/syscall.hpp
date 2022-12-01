@@ -3,6 +3,7 @@
 #include <dlh/error.hpp>
 #include <dlh/types.hpp>
 #include <dlh/systypes.hpp>
+#include <dlh/socket.hpp>
 
 // Handy helpers for errors
 void warn(const char * msg);
@@ -82,12 +83,15 @@ ReturnValue<int> munmap(uintptr_t start, size_t len);
 ReturnValue<int> msync(uintptr_t start, size_t len, int flags);
 
 ReturnValue<int> socket(protocol_family_t domain, socket_type_t type, int protocol = 0);
+ReturnValue<int> getsockopt(int fd, int level, int optname, void * __restrict__ optval, socklen_t * __restrict__ optlen);
+ReturnValue<int> setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
 ReturnValue<int> bind(int fd, const struct sockaddr *addr, socklen_t len);
 ReturnValue<int> listen(int fd, int backlog);
 ReturnValue<int> connect(int fd, const struct sockaddr *addr, socklen_t len);
 ReturnValue<int> accept(int fd, struct sockaddr * __restrict__ addr, socklen_t * __restrict__ len);
 ReturnValue<ssize_t> send(int fd, const void *buf, size_t len, int flags, const struct sockaddr *addr = nullptr, socklen_t alen = 0);
 ReturnValue<ssize_t> recv(int fd, void * __restrict__  buf, size_t len, int flags, struct sockaddr * __restrict__  addr = nullptr, socklen_t * __restrict__ alen = 0);
+
 
 ReturnValue<int> access(const char *filename, int amode);
 ReturnValue<ssize_t> readlink(const char * __restrict__ path, char * __restrict__ buf, size_t bufsize);
