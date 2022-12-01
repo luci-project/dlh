@@ -293,5 +293,5 @@ struct sockaddr_in {
 
 	explicit sockaddr_in(in_addr_t addr, uint16_t port) : sockaddr_in(AF_INET, Socket::htons(port), addr) {}
 
-	explicit sockaddr_in(const char * ip, uint16_t port) : sockaddr_in(Socket::inet_addr(ip), Socket::htons(port)) {}
+	explicit sockaddr_in(const char * ip, uint16_t port) : sockaddr_in(Socket::inet_addr(ip), port) {}
 };
