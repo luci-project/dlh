@@ -28,6 +28,12 @@ class Config {
 	Optional<T> value_as(const char * name) {
 		return Parser::string_as<T>(value(name));
 	}
+
+	template<typename T>
+	T value_or_default(const char * name, T def) {
+		auto var = Parser::string_as<T>(value(name));
+		return var ? var.value() : def;
+	}
 };
 
 }  // namespace Parser

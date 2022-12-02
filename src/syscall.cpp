@@ -25,6 +25,48 @@ ReturnValue<unsigned> sleep(unsigned seconds) {
 	return ReturnValue<unsigned>(r ? 0 : tv.tv_sec, r.error());
 }
 
+// clock_gettime should be available by vdso
+static int __syscall_clock_gettime(clockid_t clk, struct timespec *ts) {
+	int ret = __syscall(SYS_clock_gettime, clk, ts);
+	if (ret == -ENOSYS) {
+		if (clk == CLOCK_REALTIME) {
+			__syscall(SYS_gettimeofday, ts, 0);
+			ts->tv_nsec = (int)ts->tv_nsec * 1000;
+			return 0;
+		}
+		ret = -EINVAL;
+	}
+	return ret;
+}
+int (*__clock_gettime)(clockid_t, struct timespec *) = __syscall_clock_gettime;
+ReturnValue<int> clock_gettime(clockid_t clk, struct timespec *ts) {
+	return retval<int>(__clock_gettime(clk, ts));
+}
+
+// clock_gettime should be available by vdso
+static int __syscall_clock_getres(clockid_t clk, struct timespec *res) {
+	return __syscall(SYS_clock_getres, clk, res);
+}
+int (*__clock_getres)(clockid_t, struct timespec *) = __syscall_clock_getres;
+ReturnValue<int> clock_getres(clockid_t clk, struct timespec *ts) {
+	return retval<int>(__clock_getres(clk, ts));
+}
+
+static int __syscall_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) {
+	return __syscall(SYS_getcpu, cpu, node, tcache);
+}
+int (*__getcpu)(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) = __syscall_getcpu;
+ReturnValue<int> getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) {
+	return retval<int>(__getcpu(cpu, node, tcache));
+}
+
+static time_t __syscall_time(time_t *t) {
+	return __syscall(SYS_time, t);
+}
+time_t (*__time)(time_t *) = __syscall_time;
+time_t time(time_t *t) {
+	return __time(t);
+}
 
 pid_t gettid() {
 	return __syscall(SYS_gettid);

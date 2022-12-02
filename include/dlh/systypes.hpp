@@ -9,6 +9,26 @@ extern char **environ;
 #define NAME_MAX 4096
 #define PATH_MAX 4096
 
+// Time
+typedef long int time_t;
+struct timespec {
+   time_t      tv_sec;   // Number of whole seconds of elapsed time
+   long int    tv_nsec;  // Number of nanosecods of rest of elapsed time minus tv_sec. Always less than one billion.
+};
+
+typedef enum : int {
+	CLOCK_REALTIME           = 0,
+	CLOCK_MONOTONIC          = 1,
+	CLOCK_PROCESS_CPUTIME_ID = 2,
+	CLOCK_THREAD_CPUTIME_ID  = 3,
+	CLOCK_MONOTONIC_RAW      = 4,
+	CLOCK_REALTIME_COARSE    = 5,
+	CLOCK_MONOTONIC_COARSE   = 6,
+	CLOCK_BOOTTIME           = 7,
+	CLOCK_REALTIME_ALARM     = 8,
+	CLOCK_BOOTTIME_ALARM     = 9
+} clockid_t;
+
 // Architecture-specific state (arch_prctl)
 typedef enum : int {
 	ARCH_SET_GS = 0x1001,
@@ -169,10 +189,6 @@ enum : int {
 };
 
 // futex
-struct timespec {
-	long int tv_sec, tv_nsec;
-};
-
 typedef enum : int {
 	FUTEX_WAIT            =  0,
 	FUTEX_WAKE            =  1,

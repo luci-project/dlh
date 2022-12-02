@@ -58,6 +58,11 @@ class ReturnValue {
 ReturnValue<int> nanosleep(const struct timespec *req, struct timespec *rem);
 ReturnValue<unsigned> sleep(unsigned seconds);
 
+ReturnValue<int> clock_gettime(clockid_t clk, struct timespec *ts);
+ReturnValue<int> clock_getres(clockid_t clk, struct timespec *res = nullptr);
+ReturnValue<int> getcpu(unsigned *cpu = nullptr, unsigned *node = nullptr, struct getcpu_cache *tcache = nullptr);
+time_t time(time_t *t = nullptr);
+
 pid_t gettid();
 pid_t getpid();
 pid_t getppid();

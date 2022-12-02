@@ -18,6 +18,11 @@ namespace Math {
 		return a > b ? a : b;
 	}
 
+	template <typename T, typename U, typename V>
+	inline auto range(const T value, const U from, const V to) {
+		return Math::min(Math::max(value, from), to);
+	}
+
 	template <typename T, typename U>
 	inline auto align_up(const T value, const U boundary) {
 		return boundary > 1 ? (value + boundary - 1) & (-boundary) : value;
