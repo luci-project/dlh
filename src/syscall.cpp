@@ -38,6 +38,7 @@ static int __syscall_clock_gettime(clockid_t clk, struct timespec *ts) {
 	}
 	return ret;
 }
+
 int (*__clock_gettime)(clockid_t, struct timespec *) = __syscall_clock_gettime;
 ReturnValue<int> clock_gettime(clockid_t clk, struct timespec *ts) {
 	return retval<int>(__clock_gettime(clk, ts));
@@ -55,7 +56,7 @@ ReturnValue<int> clock_getres(clockid_t clk, struct timespec *ts) {
 static int __syscall_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) {
 	return __syscall(SYS_getcpu, cpu, node, tcache);
 }
-int (*__getcpu)(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) = __syscall_getcpu;
+int (*__getcpu)(unsigned *, unsigned *, struct getcpu_cache *) = __syscall_getcpu;
 ReturnValue<int> getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) {
 	return retval<int>(__getcpu(cpu, node, tcache));
 }

@@ -58,6 +58,12 @@ class ReturnValue {
 ReturnValue<int> nanosleep(const struct timespec *req, struct timespec *rem);
 ReturnValue<unsigned> sleep(unsigned seconds);
 
+// Function pointers to be replaced by VDSO
+extern int (*__clock_gettime)(clockid_t, struct timespec *);
+extern int (*__clock_getres)(clockid_t, struct timespec *);
+extern int (*__getcpu)(unsigned *, unsigned *, struct getcpu_cache *);
+extern time_t (*__time)(time_t *);
+
 ReturnValue<int> clock_gettime(clockid_t clk, struct timespec *ts);
 ReturnValue<int> clock_getres(clockid_t clk, struct timespec *res = nullptr);
 ReturnValue<int> getcpu(unsigned *cpu = nullptr, unsigned *node = nullptr, struct getcpu_cache *tcache = nullptr);

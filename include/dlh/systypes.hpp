@@ -29,6 +29,11 @@ typedef enum : int {
 	CLOCK_BOOTTIME_ALARM     = 9
 } clockid_t;
 
+// getcpu
+struct getcpu_cache {
+	unsigned long blob[128 / sizeof(long)];
+};
+
 // Architecture-specific state (arch_prctl)
 typedef enum : int {
 	ARCH_SET_GS = 0x1001,
