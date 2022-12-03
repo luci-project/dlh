@@ -27,41 +27,48 @@ struct DateTime {
 
 	/*! \brief Construct from a timestamp (Unix epoch time)
 	 */
-	DateTime(time_t epoch, long int nanosecond = 0) { fromTimestamp(epoch, nanosecond); }
+	DateTime(time_t epoch, long int nanosecond = 0) { from_timestamp(epoch, nanosecond); }
 
 	/*! \brief Construct from a timespec struct
 	 */
-	DateTime(const timespec & ts) { fromTimespec(ts); }
+	DateTime(const timespec & ts) { from_timespec(ts); }
+
+	/* Copy constructor */
+	constexpr DateTime(const DateTime & other) { *this = other; }
 
 	/*! \brief Get name of weekday */
-	const char * weekdayName(bool abbrev = false) const;
+	const char * weekday_name(bool abbrev = false) const;
 
 	/*! \brief Get name of month */
-	const char * monthName(bool abbrev = false) const;
+	const char * month_name(bool abbrev = false) const;
 
 	/*! \brief Assign from Unix epoch time
 	 */
-	void fromTimestamp(time_t epoch, long int nanosecond = 0);
+	void from_timestamp(time_t epoch, long int nanosecond = 0);
 
 	/*! \brief Assign from Unix timespec
 	 */
-	void fromTimespec(const timespec & ts) { fromTimestamp(ts.tv_sec, ts.tv_nsec); };
+	void from_timespec(const timespec & ts) { from_timestamp(ts.tv_sec, ts.tv_nsec); };
 
 	/*! \brief Convert to Unix epoch time
 	 * \return Seconds since 1 January 1970
 	 */
-	time_t toTimestamp() const;
+	time_t to_timestamp() const;
 
 	/*! \brief Convert to Unix timespec (including nanosecond)
 	 */
-	timespec toTimespec() const {
-		timespec ts{ toTimestamp(), nanosecond };
+	timespec to_timespec() const {
+		timespec ts{ to_timestamp(), nanosecond };
 		return ts;
 	}
 
+	/*! \brief Set to current time
+	 */
+	void to_current_time();
+
 	/*! \brief Get current time
 	 */
-	bool now();
+	static DateTime now();
 
 	/*! \brief Check if date/time is valid
 	 */
@@ -73,16 +80,16 @@ struct DateTime {
 
 
 	DateTime& operator=(const time_t t) {
-		fromTimestamp(t);
+		from_timestamp(t);
 		return *this;
 	}
 
 	DateTime& operator=(const timespec & ts) {
-		fromTimespec(ts);
+		from_timespec(ts);
 		return *this;
 	}
 
-	DateTime& operator=(const DateTime & other) {
+	constexpr DateTime& operator=(const DateTime & other) {
 		this->nanosecond = other.nanosecond;
 		this->second = other.second;
 		this->minute = other.minute;
@@ -96,15 +103,15 @@ struct DateTime {
 
 	/* comparison */
 	bool operator==(const time_t & other) const {
-		return nanosecond == 0 && toTimestamp() == other;
+		return nanosecond == 0 && to_timestamp() == other;
 	}
 
 	bool operator==(const timespec & other) const {
-		auto ts = toTimespec();
+		auto ts = to_timespec();
 		return ts.tv_sec == other.tv_sec && ts.tv_nsec == other.tv_nsec;
 	}
 
-	inline bool operator==(const DateTime & other) const {
+	bool operator==(const DateTime & other) const {
 		return this->nanosecond == other.nanosecond
 		    && this->second == other.second
 		    && this->minute == other.minute
@@ -122,7 +129,7 @@ struct DateTime {
 
 
 	bool operator<(const timespec & other) const {
-		auto ts = toTimespec();
+		auto ts = to_timespec();
 		return ts.tv_sec < other.tv_sec || (ts.tv_sec == other.tv_sec && ts.tv_nsec < other.tv_nsec);
 	}
 
@@ -132,7 +139,7 @@ struct DateTime {
 	}
 
 	bool operator<(const DateTime & other) const {
-		return operator<(other.toTimespec());
+		return operator<(other.to_timespec());
 	}
 
 	template<typename T>
@@ -141,7 +148,7 @@ struct DateTime {
 	}
 
 	bool operator<=(const timespec & other) const {
-		auto ts = toTimespec();
+		auto ts = to_timespec();
 		return ts.tv_sec < other.tv_sec || (ts.tv_sec == other.tv_sec && ts.tv_nsec <= other.tv_nsec);
 	}
 
@@ -151,7 +158,7 @@ struct DateTime {
 	}
 
 	bool operator<=(const DateTime & other) const {
-		return operator<(other.toTimespec());
+		return operator<(other.to_timespec());
 	}
 
 

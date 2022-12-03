@@ -41,7 +41,7 @@ static const char * const months[12][2] =	{
 	{ "Dec", "December" }
 };
 
-void DateTime::fromTimestamp(time_t epoch, long int nanosecond) {
+void DateTime::from_timestamp(time_t epoch, long int nanosecond) {
 	if (nanosecond != 0) {
 		epoch += nanosecond / ns_limit;
 		nanosecond %= ns_limit;
@@ -72,37 +72,43 @@ void DateTime::fromTimestamp(time_t epoch, long int nanosecond) {
 	year += y;
 }
 
-const char * DateTime::weekdayName(bool abbrev) const {
+const char * DateTime::weekday_name(bool abbrev) const {
 	return weekdays[Math::range(weekday, 1, 7) - 1][abbrev ? 0 : 1];
 }
 
-const char * DateTime::monthName(bool abbrev) const {
+const char * DateTime::month_name(bool abbrev) const {
 	return months[Math::range(month, 1, 12) - 1][abbrev ? 0 : 1];
 }
 
-time_t DateTime::toTimestamp() const {
+time_t DateTime::to_timestamp() const {
 	unsigned y = year - 1970;
 	unsigned m = month - 1;
 	unsigned d = (y / 4) * days4y + days[y % 4][m] + day - 1;
 	return ((d * 24 + hour) * 60 + minute) * 60 + second;
 }
 
-bool DateTime::now() {
+void DateTime::to_current_time() {
 	timespec ts;
 	if (auto gettime = Syscall::clock_gettime(CLOCK_REALTIME, &ts)) {
-		fromTimespec(ts);
-		return true;
+		from_timespec(ts);
 	} else {
-		return false;
+		from_timestamp(Syscall::time());
+		nanosecond = 0;
 	}
 }
 
+DateTime DateTime::now() {
+	DateTime dt;
+	dt.to_current_time();
+	return dt;
+}
+
 bool DateTime::valid()  const {
-	DateTime other(toTimespec());
+	DateTime other(to_timespec());
 	return year >= 2000 && year <= 2099 && operator==(other);
 }
 
 void DateTime::fix() {
-	auto ts = toTimespec();
-	fromTimespec(ts);
+	auto ts = to_timespec();
+	from_timespec(ts);
 }
