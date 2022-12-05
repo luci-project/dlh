@@ -23,6 +23,16 @@ constexpr T&& forward(typename remove_reference<T>::type && arg) noexcept {
 	return static_cast<T&&>(arg);
 }
 
+template<bool B, class T = void>
+struct enable_if {};
+
+template<class T>
+struct enable_if<true, T> {
+	typedef T type;
+};
+
+template <bool B, typename T = void>
+using enable_if_t = typename enable_if<B, T>::type;
 
 inline void *operator new(size_t n, void * ptr) {
 	(void)n;

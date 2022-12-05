@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/types.hpp>
+#include <dlh/math.hpp>
 
 namespace Memory {
 /*! \brief Allocate a memory block
@@ -150,6 +151,45 @@ int compare(uintptr_t s1, uintptr_t s2, size_t n);
 template<typename T, typename U>
 inline int compare(const T * s1, const U * s2, size_t n) {
 	return compare(reinterpret_cast<uintptr_t>(s1), reinterpret_cast<uintptr_t>(s2), n);
+}
+
+/*! \brief Compare a memory area
+ * \ingroup string
+ * \param s1 pointer to first element
+ * \param s2 pointer to second element
+ * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first element are
+ *          found, respectively, to be less than, to match, or be greater than second element
+ */
+template<typename T, typename U>
+inline int compare(const T * s1, const U * s2) {
+	int r = compare(s1, s2, Math::min(sizeof(T), sizeof(U)));
+	return r == 0 ? sizeof(U) - sizeof(T) : r;
+}
+
+/*! \brief Compare a memory area
+ * \ingroup string
+ * \param s1 reference to first element
+ * \param s2 reference to second element
+ * \param size number of bytes to compare
+ * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first element are
+ *          found, respectively, to be less than, to match, or be greater than second element
+ */
+template<typename T, typename U>
+inline int compare(const T & s1, const T & s2, size_t n) {
+	return compare(reinterpret_cast<uintptr_t>(&s1), reinterpret_cast<uintptr_t>(&s2), n);
+}
+
+/*! \brief Compare a memory area
+ * \ingroup string
+ * \param s1 reference to first element
+ * \param s2 reference to second element
+ * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first element are
+ *          found, respectively, to be less than, to match, or be greater than second element
+ */
+template<typename T, typename U>
+inline int compare(const T & s1, const U & s2) {
+	int r = compare(reinterpret_cast<uintptr_t>(&s1), reinterpret_cast<uintptr_t>(&s2), Math::min(sizeof(T), sizeof(U)));
+	return r == 0 ? sizeof(U) - sizeof(T) : r;
 }
 
 }  // namespace Memory

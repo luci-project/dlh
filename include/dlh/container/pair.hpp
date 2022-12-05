@@ -20,6 +20,12 @@ struct Pair {
 	}
 
 	template<typename OF, typename OS>
+	void assign(OF & f, OS & s) {
+		f = first;
+		s = second;
+	}
+
+	template<typename OF, typename OS>
 	constexpr bool operator==(const Pair<OF,OS>& other) const {
 		return first == other.first && second == other.second;
 	}

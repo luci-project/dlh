@@ -1,7 +1,10 @@
 #pragma once
 
+#include <dlh/mem.hpp>
 #include <dlh/string.hpp>
 #include <dlh/strptr.hpp>
+#include <dlh/utility.hpp>
+#include <dlh/type_traits.hpp>
 #include <dlh/container/internal/keyvalue.hpp>
 
 struct Comparison {
@@ -10,9 +13,14 @@ struct Comparison {
 	 * \param b second value
 	 * \return a value less than, equal, or greater than zero if `a` is less than, equal or greater than `b`.
 	 */
-	template<typename T, typename U>
+	template<typename T, typename U, typename enable_if<is_integral<T>::value && is_integral<U>::value, int>::type = 0>
 	static inline int compare(const T& a, const U& b) {
 		return (b < a) - (a < b);
+	}
+
+	template<typename T, typename U, typename enable_if<!is_integral<T>::value || !is_integral<U>::value, int>::type = 0>
+	static inline int compare(const T& a, const U& b) {
+		return Memory::compare(a, b);
 	}
 
 	template<typename K, typename V, typename O>

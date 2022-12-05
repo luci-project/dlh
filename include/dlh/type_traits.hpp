@@ -6,24 +6,31 @@ template<typename T> struct remove_cv                   { typedef T type; };
 template<typename T> struct remove_cv<const T>          { typedef T type; };
 template<typename T> struct remove_cv<volatile T>       { typedef T type; };
 template<typename T> struct remove_cv<const volatile T> { typedef T type; };
+template<typename T> using remove_cv_t = typename remove_cv<T>::type;
 
 template<typename T> struct remove_const                { typedef T type; };
 template<typename T> struct remove_const<const T>       { typedef T type; };
+template<typename T> using remove_const_t = typename remove_const<T>::type;
 
 template<typename T> struct remove_volatile             { typedef T type; };
 template<typename T> struct remove_volatile<volatile T> { typedef T type; };
+template<typename T> using remove_volatile_t = typename remove_volatile<T>::type;
 
 template<typename T> struct remove_reference            { typedef T type; };
 template<typename T> struct remove_reference<T&>        { typedef T type; };
 template<typename T> struct remove_reference<T&&>       { typedef T type; };
+template<typename T> using remove_reference_t = typename remove_reference<T>::type;
+
+template<typename T> struct remove_cvref                { typedef remove_cv_t<remove_reference_t<T>> type; };
+template<typename T> using remove_cvref_t = typename remove_cvref<T>::type;
 
 template<typename T, T v>
 struct integral_constant {
-    static constexpr T value = v;
-    using value_type = T;
-    using type = integral_constant;
-    constexpr operator value_type() const noexcept { return value; }
-    constexpr value_type operator()() const noexcept { return value; }
+	static constexpr T value = v;
+	using value_type = T;
+	using type = integral_constant;
+	constexpr operator value_type() const noexcept { return value; }
+	constexpr value_type operator()() const noexcept { return value; }
 };
 
 typedef integral_constant<bool, true>  true_type;
@@ -35,6 +42,9 @@ template<typename T> struct is_const<const T> : true_type {};
 template<typename T> struct is_reference      : false_type {};
 template<typename T> struct is_reference<T&>  : true_type {};
 template<typename T> struct is_reference<T&&> : true_type {};
+
+template<typename T> struct is_pointer        : false_type {};
+template<typename T> struct is_pointer<T*>    : true_type {};
 
 template<typename>   struct is_lvalue_reference      : false_type {};
 template<typename T> struct is_lvalue_reference<T&>  : true_type {};
@@ -65,7 +75,7 @@ template<> struct is_integral_base<long> : true_type {};
 template<> struct is_integral_base<unsigned long> : true_type {};
 template<> struct is_integral_base<long long> : true_type {};
 template<> struct is_integral_base<unsigned long long> : true_type {};
-template<typename T> struct is_integral : is_integral_base<remove_cv<T>> {};
+template<typename T> struct is_integral : is_integral_base<remove_cvref_t<T>> {};
 
 template<typename T> inline const char * integral_name() { return "[complex type]"; };
 template<> inline const char * integral_name<bool>() { return "bool"; };
