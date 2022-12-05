@@ -70,7 +70,16 @@ inline T* alloc_array(size_t nmemb) {
  * \return Address of destination
  * \note The memory must not overlap!
  */
-uintptr_t copy(uintptr_t dest, uintptr_t src, size_t size);
+inline uintptr_t copy(uintptr_t dest, uintptr_t src, size_t size) {
+	unsigned char * __restrict__ destination = reinterpret_cast<unsigned char*>(dest);
+	unsigned char const * __restrict__ source = reinterpret_cast<unsigned char const*>(src);
+
+	for(size_t i = 0; i != size; ++i) {
+		destination[i] = source[i];
+	}
+
+	return dest;
+}
 
 /*! \brief Copy a memory area
  * \ingroup string
@@ -93,7 +102,20 @@ inline T* copy(T * __restrict__ dest, U const * __restrict__ src, size_t size) {
  * \param size number of bytes to copy
  * \return Address of destination
  */
-uintptr_t move(uintptr_t dest, uintptr_t src, size_t size);
+inline uintptr_t move(uintptr_t dest, uintptr_t src, size_t size) {
+	unsigned char * __restrict__ destination = reinterpret_cast<unsigned char*>(dest);
+	unsigned char const * __restrict__ source = reinterpret_cast<unsigned char const*>(src);
+
+	if(source > destination) {
+		for(size_t i = 0; i != size; ++i)
+			destination[i] = source[i];
+	} else {
+		for(size_t i = size; i != 0; --i)
+			destination[i-1] = source[i-1];
+	}
+
+	return dest;
+}
 
 /*! \brief Copy a memory area
  * while the source may overlap with the destination
@@ -115,7 +137,15 @@ inline T* move(T * dest, U const * src, size_t size) {
  * \param size number of bytes to fill with pattern
  * \return address of destination
  */
-uintptr_t set(uintptr_t dest, int pattern, size_t size);
+inline uintptr_t set(uintptr_t dest, int pattern, size_t size) {
+	unsigned char *destination = reinterpret_cast<unsigned char*>(dest);
+
+	for(size_t i = 0; i != size; ++i) {
+		destination[i] = static_cast<unsigned char>(pattern);
+	}
+
+	return dest;
+}
 
 /*! \brief Fill a memory area with a pattern
  * \ingroup string
@@ -137,7 +167,16 @@ inline T* set(T* dest, int pattern, size_t size) {
  * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first element are
  *          found, respectively, to be less than, to match, or be greater than second element
  */
-int compare(uintptr_t s1, uintptr_t s2, size_t n);
+inline int compare(uintptr_t s1, uintptr_t s2, size_t n) {
+	const unsigned char * c1 = reinterpret_cast<const unsigned char*>(s1);
+	const unsigned char * c2 = reinterpret_cast<const unsigned char*>(s2);
+
+	for(size_t i = 0; i != n; ++i)
+		if (c1[i] != c2[i])
+			return static_cast<int>(c1[i]) - static_cast<int>(c2[i]);
+
+	return 0;
+}
 
 
 /*! \brief Compare a memory area
