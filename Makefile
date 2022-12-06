@@ -6,7 +6,11 @@ BUILDDIR ?= .build
 AR ?= ar
 CXX ?= g++
 
-CXXFLAGS ?= -Og -g
+ifeq ($(OPTIMIZE), 1)
+	CXXFLAGS := -O3 -DNDEBUG
+else
+	CXXFLAGS := -Og -g
+endif
 CXXFLAGS += -I include
 CXXFLAGS += -fno-builtin -ffunction-sections -fdata-sections -fvisibility=hidden
 CXXFLAGS += -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -mno-red-zone
@@ -14,7 +18,7 @@ CXXFLAGS += -fno-jump-tables -fno-plt -fPIE
 CXXFLAGS += -nodefaultlibs -nostdlib -nostdinc
 CXXFLAGS += -Wall -Wextra -Wno-nonnull-compare -Wno-comment
 ifeq ($(LEGACY), 1)
-CXXFLAGS += -DDLH_LEGACY
+	CXXFLAGS += -DDLH_LEGACY
 endif
 
 LIBNAME = dlh
