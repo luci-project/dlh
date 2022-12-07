@@ -23,6 +23,11 @@ constexpr T&& forward(typename remove_reference<T>::type && arg) noexcept {
 	return static_cast<T&&>(arg);
 }
 
+template<typename T, size_t S>
+constexpr size_t count(const T(&)[S]){
+	return S;
+}
+
 template<bool B, class T = void>
 struct enable_if {};
 
