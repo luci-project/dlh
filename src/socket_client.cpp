@@ -10,7 +10,7 @@ namespace Socket {
 
 bool Client::connect(const char * host) {
 	bool r = false;
-	if (host != nullptr) {
+	if (host != nullptr && String::len(host) > 0) {
 		auto parts = String::split(host, ':', 2);
 		auto psize = parts.size();
 		uint16_t port = 0;
@@ -22,8 +22,9 @@ bool Client::connect(const char * host) {
 			r = connect_inet(parts[1], port, false);
 		else
 			LOG_ERROR << "Unknown protocol " << parts[0] << endl;
-		for (auto & p: parts)
-			Memory::free(p);
+		if (psize > 0)
+			for (auto & p: parts)
+				Memory::free(p);
 	}
 	return r;
 }
