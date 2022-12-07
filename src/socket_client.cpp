@@ -110,7 +110,9 @@ size_t Client::send(const char * data, size_t len, bool retry) {
 					break;
 				}
 			} else {
-				LOG_ERROR << "Sent failed: " << send.error_message() << endl;
+				LOG_ERROR << "Sent failed: " << send.error_message() << " (disconnecting)" << endl;
+				disconnect();
+				break;
 			}
 		}
 	return sent;
@@ -147,17 +149,22 @@ size_t Client::recv(char * buf, size_t len, bool until_eol) {
 							len -= rlen;
 						}
 					} else {
-						LOG_ERROR << "Receive of " << len << " bytes failed: " << recv.error_message() << endl;
+						LOG_ERROR << "Receive of " << len << " bytes failed: " << recv.error_message() << " (disconnecting)" << endl;
+						disconnect();
+						break;
 					}
 				} else {
-					LOG_ERROR << "Receive (peek) failed: " << peek.error_message() << endl;
+					LOG_ERROR << "Receive (peek) failed: " << peek.error_message() << " (disconnecting)" << endl;
+					disconnect();
+					break;
 				}
 			}
 		} else {
 			if (auto recv = Syscall::recv(socket, buf, len, 0)) {
 				received = recv.value();
 			} else {
-				LOG_ERROR << "Receive failed: " << recv.error_message() << endl;
+				LOG_ERROR << "Receive failed: " << recv.error_message() << " (disconnecting)" << endl;
+				disconnect();
 			}
 		}
 	}
@@ -170,7 +177,8 @@ bool Client::has_data() {
 		if (auto recv = Syscall::recv(socket, &buf, sizeof(char), MSG_PEEK | MSG_DONTWAIT)) {
 			return true;
 		} else if (recv.error() != EWOULDBLOCK) {
-			LOG_ERROR << "Receive failed: " << recv.error_message() << endl;
+			LOG_ERROR << "Receive failed: " << recv.error_message() << " (disconnecting)" << endl;
+			disconnect();
 		}
 	}
 	return false;
