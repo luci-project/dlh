@@ -90,4 +90,33 @@ bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t
 	return success;
 }
 
+Pair<const char *, const char *> pathsplit(char *path) {
+	if (path == nullptr || *path == '\0') {
+		return { ".", "." };
+	}
+	size_t p = String::len(path) - 1;
+	// remove trailing slashes
+	for (; path[p] == '/'; p--)
+		if (p == 0)
+			// path = "/"
+			return { path, path };
+		else
+			path[p] = '\0';
+
+	// find basename (go back to last slahs)
+	for (; path[p] != '/'; p--)
+		if (p == 0)
+			return { ".", path };
+
+	// We've got the basename
+	char * basename = path + p + 1;
+	path[p] = '\0';
+
+	// remove trailing slahes (of basename)
+	for (; p > 0 && path[p] == '/'; p--)
+		path[p] = '\0';
+
+	return { path, basename };
+}
+
 }  // Namespace File

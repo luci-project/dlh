@@ -77,6 +77,10 @@ class BufferStream {
 		clear();
 	}
 
+	/*! \brief Constructor implicitly determining size */
+	template<size_t L>
+	BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
+
 	/*! \brief Destructor */
 	virtual ~BufferStream() { flush(); }
 
