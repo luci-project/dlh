@@ -14,7 +14,7 @@ bool Log::output(int fd) {
 
 bool Log::output(const char * file, bool truncate) {
 	if (file != nullptr)
-		if (auto fd = Syscall::open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND))) {
+		if (auto fd = Syscall::open(file, O_CREAT | O_WRONLY | O_CLOEXEC | (truncate ? O_TRUNC : O_APPEND), 0644)) {
 			if (this->fd > 2)
 				Syscall::close(this->fd);
 			this->fd = fd.value();
