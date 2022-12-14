@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dlh/stream/output.hpp>
+#include <dlh/syscall.hpp>
 
 class Log : public OutputStream<2048> {
  public:
@@ -15,15 +16,21 @@ class Log : public OutputStream<2048> {
 		TRACE
 	};
 
+	enum Time {
+		DISABLED,
+		ABSOLUTE,
+		DELTA
+	};
+
 	/*! \brief Default constructor  */
-	Log() : OutputStream(2), severity(Level::VERBOSE), limit(Level::WARNING) {}
+	Log() : OutputStream(2), severity(Level::VERBOSE), limit(Level::WARNING), time_mode(DISABLED), time_start(0) {}
 
 	/*! \brief change output */
 	bool output(int fd);
 	bool output(const char * file, bool truncate = true);
 
-	/*! \brief Set severity limit (for displaying log messages) */
-	void set(Level limit) { this->limit = limit > Level::TRACE ? Level::TRACE : limit; }
+	/*! \brief Set severity limit (for displaying log messages) and start time for delta */
+	void set(Level limit, Time mode = DISABLED);
 
 	/*! \brief Get severity limit (for displaying log messages) */
 	Level get() { return this->limit; }
@@ -47,6 +54,10 @@ class Log : public OutputStream<2048> {
 
 	/*! \brief Current display levels */
 	Level limit;
+
+	/*! \brief Time for delta */
+	enum Time time_mode;
+	time_t time_start;
 };
 
 extern Log logger;

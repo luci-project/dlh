@@ -23,6 +23,11 @@ bool Log::output(const char * file, bool truncate) {
 	return false;
 }
 
+void Log::set(Level limit,  Time mode) {
+	this->limit = limit > Level::TRACE ? Level::TRACE : limit;
+	this->time_start = (this->time_mode = mode) == DELTA ? Syscall::time() : 0;
+}
+
 void Log::flush() {
 	if (severity <= limit && severity != Level::NONE && _pos > 0) {
 		if (fd <= 2)
@@ -50,12 +55,25 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 	severity = level;
 	if (level <= limit && level > NONE) {
 		reset();
+		time_t time = -1;
+		size_t p_time = 0;
+		if (time_mode != DISABLED) {
+			time = Syscall::time();
+			if (time_mode == DELTA) {
+				time -= time_start;
+				p_time = 7;
+			} else {
+				p_time = 11;
+			}
+		}
 		// STDOUT / STDERR with ANSI color codes
 		if (fd <= 2) {
 			*this << level_name[level];
 			size_t p = _pos;
-			*this << ' ' << Syscall::getpid();
-			while (_pos - p < 8)
+			if (time >= 0)
+				*this << setw(p_time) << right << time << left;
+			*this << " \e[2m" << Syscall::getpid() << "\e[22m";
+			while (_pos < 16 + p + p_time)
 				*this << ' ';
 			*this << ' ';
 			if (module != nullptr)
@@ -67,12 +85,15 @@ Log& Log::entry(Level level, const char * file, unsigned line, const char * modu
 				*this << ' ';
 			}
 			// Pad file name
-			while (_pos - p < 38)
+			while (_pos < 60 + p + p_time)
 				*this << '.';
 			*this << "\e[49m ";
 		} else {
 			// For files
-			*this << level << '\t' << Syscall::getpid() << '\t' << file << '\t' << line << '\t';
+			*this << level << '\t';
+			if (time >= 0)
+				*this << time << '\t';
+			*this << Syscall::getpid() << '\t' << file << '\t' << line << '\t';
 		}
 	}
 	return *this;
