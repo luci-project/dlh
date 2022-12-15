@@ -28,17 +28,6 @@ constexpr size_t count(const T(&)[S]){
 	return S;
 }
 
-template<bool B, class T = void>
-struct enable_if {};
-
-template<class T>
-struct enable_if<true, T> {
-	typedef T type;
-};
-
-template <bool B, typename T = void>
-using enable_if_t = typename enable_if<B, T>::type;
-
 inline void *operator new(size_t n, void * ptr) {
 	(void)n;
 	assert(ptr != nullptr);

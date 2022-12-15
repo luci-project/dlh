@@ -2,6 +2,10 @@
 
 extern "C++" {
 
+template<bool B, class T = void> struct enable_if {};
+template<class T> struct enable_if<true, T> { typedef T type; };
+template <bool B, typename T = void> using enable_if_t = typename enable_if<B, T>::type;
+
 template<typename T> struct remove_cv                   { typedef T type; };
 template<typename T> struct remove_cv<const T>          { typedef T type; };
 template<typename T> struct remove_cv<volatile T>       { typedef T type; };
@@ -55,13 +59,15 @@ template<typename T> struct is_rvalue_reference<T&&> : true_type {};
 template<typename T> struct is_volatile             : false_type {};
 template<typename T> struct is_volatile<volatile T> : true_type {};
 
-template<typename> struct is_array                    : false_type { };
-template<typename T, size_t S> struct is_array<T[S]>  : true_type { };
-template<typename T> struct is_array<T[]>             : true_type { };
+template<typename> struct is_array                    : false_type {};
+template<typename T, size_t S> struct is_array<T[S]>  : true_type {};
+template<typename T> struct is_array<T[]>             : true_type {};
 
 template<typename T, typename U> struct is_same       : false_type {};
 template<typename T>             struct is_same<T, T> : true_type {};
 
+template<class B, class D, class = void> struct is_base_of : false_type{};
+template<class B, class D> struct is_base_of<B, D, typename enable_if<nullptr == nullptr, void>::type> : true_type {};
 
 template<typename> struct is_integral_base : false_type {};
 template<> struct is_integral_base<bool> : true_type {};

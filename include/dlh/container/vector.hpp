@@ -59,6 +59,28 @@ template<class T> class Vector {
 			return ref._element + i;
 		}
 
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator==(const I& other) const {
+			return &ref == &other.ref && i == other.i;
+		}
+
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator==(const X& other) const {
+			assert(i >= 0 && i < ref._size);
+			return *reinterpret_cast<X*>(ref._element[i]) == other;
+		}
+
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator!=(const BaseIterator& other) const {
+			return &ref != &other.ref || i != other.i;
+		}
+
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator!=(const X& other) const {
+			assert(i >= 0 && i < ref._size);
+			return *reinterpret_cast<X*>(ref._element[i]) != other;
+		}
+
 		inline bool operator==(BaseIterator& other) const {
 			return &ref == &other.ref && i == other.i;
 		}

@@ -68,19 +68,23 @@ class TreeSet : public Elements<T> {
 			return &(ref._node[i].data);
 		}
 
-		inline bool operator==(BaseIterator& other) const {
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator==(const I& other) const {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		inline bool operator==(const T& other) const {
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator==(const X& other) const {
 			return C::compare(ref._node[i].data, other) == 0;
 		}
 
-		inline bool operator!=(BaseIterator& other) const {
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator!=(const BaseIterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
-		inline bool operator!=(const T& other) const {
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator!=(const X& other) const {
 			return C::compare(ref._node[i].data, other) != 0;
 		}
 

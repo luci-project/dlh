@@ -65,22 +65,26 @@ class List {
 			return reinterpret_cast<T*>(i);
 		}
 
-		inline bool operator==(BaseIterator& other) const {
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator==(const I& other) const {
 			return i == other.i;
 		}
 
-		inline bool operator==(const T& other) const {
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator==(const X& other) const {
 			assert(i != nullptr);
-			return *reinterpret_cast<T*>(i) == other;
+			return *reinterpret_cast<X*>(i) == other;
 		}
 
-		inline bool operator!=(BaseIterator& other) const {
-			return i != other.i;
+		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		inline bool operator!=(const BaseIterator& other) const {
+			return i == other.i;
 		}
 
-		inline bool operator!=(const T& other) const {
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		inline bool operator!=(const X& other) const {
 			assert(i != nullptr);
-			return *reinterpret_cast<T*>(i) != other;
+			return *reinterpret_cast<X*>(i) != other;
 		}
 
 		inline operator bool() const {
