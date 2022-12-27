@@ -103,7 +103,6 @@ ReturnValue<int> accept(int fd, struct sockaddr * __restrict__ addr, socklen_t *
 ReturnValue<ssize_t> send(int fd, const void *buf, size_t len, int flags, const struct sockaddr *addr = nullptr, socklen_t alen = 0);
 ReturnValue<ssize_t> recv(int fd, void * __restrict__  buf, size_t len, int flags, struct sockaddr * __restrict__  addr = nullptr, socklen_t * __restrict__ alen = 0);
 
-
 ReturnValue<int> access(const char *filename, int amode);
 ReturnValue<ssize_t> readlink(const char * __restrict__ path, char * __restrict__ buf, size_t bufsize);
 ReturnValue<int> open(const char *filename, int flags, int mode = 0);
@@ -115,6 +114,8 @@ ReturnValue<int> fcntl(int fd, fcntl_cmd_t cmd, unsigned long arg = 0);
 ReturnValue<int> fallocate(int fd, int mode, off_t base, off_t len);
 ReturnValue<int> ftruncate(int fd, off_t length);
 ReturnValue<int> unlink(const char *path);
+
+ReturnValue<int> poll(struct pollfd *fds, unsigned long nfds, int timeout = 0);
 
 ReturnValue<int> fstat(int fd, struct stat *st);
 ReturnValue<int> stat(const char * __restrict__ path, struct stat * __restrict__ buf);

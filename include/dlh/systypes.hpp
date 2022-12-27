@@ -12,8 +12,24 @@ extern char **environ;
 // Time
 typedef long int time_t;
 struct timespec {
-   time_t      tv_sec;   // Number of whole seconds of elapsed time
-   long int    tv_nsec;  // Number of nanosecods of rest of elapsed time minus tv_sec. Always less than one billion.
+	time_t      tv_sec;   // Number of whole seconds of elapsed time
+	long int    tv_nsec;  // Number of nanosecods of rest of elapsed time minus tv_sec. Always less than one billion.
+
+	unsigned long nanotimestamp() const {
+		return 1'000'000'000UL * tv_sec + tv_nsec;
+	}
+
+	unsigned long microtimestamp() const {
+		return 1'000'000UL * tv_sec + (tv_nsec + 500) / 1'000;
+	}
+
+	unsigned long millitimestamp() const {
+		return 1'000UL * tv_sec + (tv_nsec + 500'000) / 1'000'000;
+	}
+
+	unsigned long timestamp() const {
+		return 1UL * tv_sec;
+	}
 };
 
 typedef enum : int {
@@ -527,6 +543,26 @@ struct inotify_event {
 // Exit
 #define	EXIT_FAILURE  1
 #define	EXIT_SUCCESS  0
+
+// Poll
+struct pollfd {
+	int fd;         /* File descriptor to poll */
+	short events;   /* Types of events poller cares about */
+	short revents;  /* Types of events that actually occurred */
+};
+#define POLLIN      0x0001  /* There is data to read */
+#define POLLPRI     0x0002  /* There is urgent data to read */
+#define POLLOUT     0x0004  /* Writing now will not block */
+#define POLLERR     0x0008  /* Error condition */
+#define POLLHUP     0x0010  /* Hung up */
+#define POLLNVAL    0x0020  /* Invalid polling request */
+#define POLLRDNORM  0x0040  /* Normal data may be read */
+#define POLLRDBAND  0x0080  /* Priority data may be read */
+#define POLLWRNORM  0x0100  /* Writing now will not block */
+#define POLLWRBAND  0x0200  /* Priority data may be written */
+#define POLLREMOVE  0x1000
+#define POLLRDHUP   0x2000
+
 
 // Ptrace
 typedef enum {

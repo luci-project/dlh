@@ -281,6 +281,10 @@ ReturnValue<int> unlink(const char *path) {
 }
 
 
+ReturnValue<int> poll(struct pollfd *fds, unsigned long nfds, int timeout) {
+	return retval<int>(__syscall(SYS_poll, fds, nfds, timeout));
+}
+
 ReturnValue<int> fstat(int fd, struct stat *st) {
 	return retval<int>(__syscall(SYS_fstat, fd, st));
 }

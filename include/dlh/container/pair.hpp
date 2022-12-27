@@ -37,22 +37,22 @@ struct Pair {
 
 	template<typename OF, typename OS>
 	constexpr bool operator<=(const Pair<OF,OS>& other) const {
-		return first <= other.first && second <= other.second;
+		return first < other.first || (first == other.first && second <= other.second);
 	}
 
 	template<typename OF, typename OS>
 	constexpr bool operator<(const Pair<OF,OS>& other) const {
-		return first < other.first && second < other.second;
+		return first < other.first || (first == other.first && second < other.second);
 	}
 
 	template<typename OF, typename OS>
 	constexpr bool operator>=(const Pair<OF,OS>& other) const {
-		return first >= other.first && second >= other.second;
+		return first > other.first || (first == other.first && second >= other.second);
 	}
 
 	template<typename OF, typename OS>
 	constexpr bool operator>(const Pair<OF,OS>& other) const {
-		return first > other.first && second > other.second;
+		return first > other.first || (first == other.first && second > other.second);
 	}
 };
 
