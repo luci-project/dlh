@@ -55,7 +55,7 @@ size_t set(const char * path, const char * data, size_t len, bool append) {
 	size_t written = 0;
 	if (auto fd = Syscall::open(path, O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, 0644)) {
 		while (true) {
-			if (auto write = Syscall::write(fd, data, len)) {
+			if (auto write = Syscall::write(fd.value(), data, len)) {
 				assert(write.value() >= 0);
 				written += write.value();
 				if (write.value() > 0 && static_cast<size_t>(write.value()) < len) {

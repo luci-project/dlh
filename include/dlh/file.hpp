@@ -20,8 +20,8 @@ inline char * get(const char * path) {
 	return get(path, size);
 }
 
-size_t set(const char * path, const char * data, size_t len, bool append = true);
-size_t set(const char * path, const char * data, bool append = true);
+size_t set(const char * path, const char * data, size_t len, bool append = false);
+size_t set(const char * path, const char * data, bool append = false);
 
 }
 
