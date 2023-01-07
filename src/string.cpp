@@ -253,6 +253,39 @@ int compare(const char *s1, const char *s2, size_t n) {
 	return 0;
 }
 
+static char to_lower(char c) {
+	return c >= 'A' && c <= 'Z' ? c + 32 : c;
+}
+
+int compare_case(const char *s1, const char *s2) {
+	if (s1 == s2 || s1 == nullptr || s2 == nullptr)
+		return 0;
+
+	while(to_lower(*s1) == to_lower(*s2++))
+		if (*s1++ == '\0')
+			return 0;
+
+	return static_cast<int>(to_lower(*s1)) - static_cast<int>(to_lower(*(s2-1)));
+}
+
+int compare_case(const char *s1, const char *s2, size_t n) {
+	if (s1 == s2)
+		return 0;
+
+	if (s1 != nullptr && s2 != nullptr)
+		for (size_t i = 0; i < n; i++) {
+			const char s1l = to_lower(s1[i]);
+			const char s2l = to_lower(s2[i]);
+			if (s1l != s2l)
+				return static_cast<int>(s1l) - static_cast<int>(s2l);
+			else if (s1[i] == '\0')
+				break;
+		}
+
+	return 0;
+}
+
+
 size_t len(const char *s) {
 	size_t len = 0;
 	if (s != nullptr)

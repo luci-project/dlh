@@ -118,6 +118,23 @@ int compare(const char *s1, const char *s2);
  */
 int compare(const char *s1, const char *s2, size_t n);
 
+/*! \brief Compare two strings case insensetive
+ * \param s1 first string
+ * \param s2 second string
+ * \return an integer less than, equal to, or greater than zero if first string is found, respectively,
+ *         to be less than, to match, or be greater than second string
+ */
+int compare_case(const char *s1, const char *s2);
+
+/*! \brief Compare two strings case insensetive
+ * \param s1 first string
+ * \param s2 second string
+ * \param n number of bytes to compare
+ * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first string are
+ *          found, respectively, to be less than, to match, or be greater than second string
+ */
+int compare_case(const char *s1, const char *s2, size_t n);
+
 /*! \brief Calculate the length of a string
  * \param s pointer to a string
  * \return number of bytes in the string

@@ -23,10 +23,11 @@ bool executable(const char * path) {
 	return Syscall::access(path, X_OK).success();
 }
 
-char * contents(const char * path, size_t & size) {
+namespace contents {
+char * get(const char * path, size_t & size) {
 	auto fd = Syscall::open(path, O_RDONLY);
 	if (fd.failed()) {
-		LOG_ERROR << "Reading file " << path << " failed: " << fd.error_message() << endl;
+		LOG_ERROR << "Opening file " << path << " failed: " << fd.error_message() << endl;
 		return nullptr;
 	}
 
@@ -39,7 +40,6 @@ char * contents(const char * path, size_t & size) {
 		return nullptr;
 	}
 
-
 	auto addr = Syscall::mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd.value(), 0);
 	Syscall::close(fd.value());
 	if (addr.failed()) {
@@ -51,9 +51,39 @@ char * contents(const char * path, size_t & size) {
 	}
 }
 
+size_t set(const char * path, const char * data, size_t len, bool append) {
+	size_t written = 0;
+	if (auto fd = Syscall::open(path, O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, 0644)) {
+		while (true) {
+			if (auto write = Syscall::write(fd, data, len)) {
+				assert(write.value() >= 0);
+				written += write.value();
+				if (write.value() > 0 && static_cast<size_t>(write.value()) < len) {
+					data += write.value();
+					len -= write.value();
+				} else {
+					break;
+				}
+			} else {
+				LOG_ERROR << "Write failed: " << write.error_message() << endl;
+			}
+		}
+		Syscall::close(fd.value());
+	} else {
+		LOG_ERROR << "Opening file " << path << " failed: " << fd.error_message() << endl;
+	}
+	return written;
+}
+
+size_t set(const char * path, const char * data, bool append) {
+	return set(path, data, String::len(data), append);
+}
+
+}  // namespace contents
+
 Vector<const char *> lines(const char * path) {
 	size_t size;
-	return String::split_inplace(File::contents(path, size), '\n');
+	return String::split_inplace(File::contents::get(path, size), '\n');
 }
 
 void __procfdname(char *buf, unsigned fd) {
@@ -69,20 +99,25 @@ void __procfdname(char *buf, unsigned fd) {
 	for (; fd; fd/=10) buf[--i] = '0' + fd%10;
 }
 
+bool absolute(int fd, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {
+	StringStream<32> procfd;
+	procfd << "/proc/self/fd/" << fd;
+	if (auto r = Syscall::readlink(procfd.str(), buffer, bufferlen - 1)) {
+		pathlen = static_cast<size_t>(r.value());
+		buffer[pathlen] = '\0';
+		return true;
+	} else {
+		LOG_ERROR << "Unable to get absolute path: " << r.error_message() << endl;
+		buffer[0] = '\0';
+		pathlen = 0;
+		return false;
+	}
+}
+
 bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {
 	bool success = false;
 	if (auto fd = Syscall::open(path, O_PATH|O_NONBLOCK|O_CLOEXEC|O_LARGEFILE)) {
-		StringStream<32> procfd;
-		procfd << "/proc/self/fd/" << fd.value();
-		if (auto r = Syscall::readlink(procfd.str(), buffer, bufferlen - 1)) {
-			pathlen = static_cast<size_t>(r.value());
-			buffer[pathlen] = '\0';
-			success = true;
-		} else {
-			LOG_ERROR << "Unable to get absolute path: " << r.error_message() << endl;
-			buffer[0] = '\0';
-			pathlen = 0;
-		}
+		success = absolute(fd.value(), buffer, bufferlen, pathlen);
 		Syscall::close(fd.value());
 	} else {
 		LOG_ERROR << "Unable to open path '" << path << "': " << fd.error_message() << endl;

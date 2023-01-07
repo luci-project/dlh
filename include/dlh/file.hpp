@@ -13,16 +13,27 @@ bool writeable(const char * path);
 
 bool executable(const char * path);
 
-char * contents(const char * path, size_t & size);
-inline char * contents(const char * path) {
+namespace contents {
+char * get(const char * path, size_t & size);
+inline char * get(const char * path) {
 	size_t size;
-	return contents(path, size);
+	return get(path, size);
+}
+
+size_t set(const char * path, const char * data, size_t len, bool append = true);
+size_t set(const char * path, const char * data, bool append = true);
+
 }
 
 Vector<const char *> lines(const char * path);
 
-bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen);
+bool absolute(int fd, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen);
+inline bool absolute(int fd, char * __restrict__ buffer, size_t bufferlen) {
+	size_t pathlen;
+	return absolute(fd, buffer, bufferlen, pathlen);
+}
 
+bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen);
 inline bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t bufferlen) {
 	size_t pathlen;
 	return absolute(path, buffer, bufferlen, pathlen);
