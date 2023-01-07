@@ -53,19 +53,15 @@ char * get(const char * path, size_t & size) {
 
 size_t set(const char * path, const char * data, size_t len, bool append) {
 	size_t written = 0;
+	if (data == nullptr)
+		len = 0;
 	if (auto fd = Syscall::open(path, O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, 0644)) {
-		while (true) {
-			if (auto write = Syscall::write(fd.value(), data, len)) {
-				assert(write.value() >= 0);
+		while (written < len) {
+			if (auto write = Syscall::write(fd.value(), data + written, len - written)) {
 				written += write.value();
-				if (write.value() > 0 && static_cast<size_t>(write.value()) < len) {
-					data += write.value();
-					len -= write.value();
-				} else {
-					break;
-				}
 			} else {
 				LOG_ERROR << "Write failed: " << write.error_message() << endl;
+				break;
 			}
 		}
 		Syscall::close(fd.value());
@@ -76,7 +72,7 @@ size_t set(const char * path, const char * data, size_t len, bool append) {
 }
 
 size_t set(const char * path, const char * data, bool append) {
-	return set(path, data, String::len(data), append);
+	return set(path, data, data == nullptr ? 0 : String::len(data), append);
 }
 
 }  // namespace contents
