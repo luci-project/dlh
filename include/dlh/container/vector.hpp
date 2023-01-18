@@ -41,6 +41,11 @@ template<class T> class Vector {
 
 		BaseIterator(const Vector<T> &ref, int32_t i) : ref(ref), i(i) {}
 
+		inline int32_t index() const {
+			assert(i >= 0 && i < ref._size);
+			return i;
+		}
+
 		inline void next() const {
 			i++;
 		}
@@ -170,11 +175,11 @@ template<class T> class Vector {
 
 	/*! \brief Vector iterator
 	 */
-	class Iterator  : public BaseIterator {
+	class Iterator : public BaseIterator {
 		friend class Vector<T>;
 		Iterator(Vector<T> &ref, int32_t p) : BaseIterator(ref, p) {}
 
-	public:
+	 public:
 		using BaseIterator::operator*;
 		using BaseIterator::operator->;
 		using BaseIterator::operator==;
@@ -197,11 +202,11 @@ template<class T> class Vector {
 
 	/*! \brief Constant Vector iterator
 	 */
-	class ConstIterator  : public BaseIterator {
+	class ConstIterator : public BaseIterator {
 		friend class Vector<T>;
 		ConstIterator(const Vector<T> &ref, int32_t p) : BaseIterator(ref, p) {}
 
-	public:
+	 public:
 		using BaseIterator::operator*;
 		using BaseIterator::operator->;
 		using BaseIterator::operator==;
@@ -216,11 +221,11 @@ template<class T> class Vector {
 
 	/*! \brief Vector iterator
 	 */
-	class ReverseIterator  : public BaseIterator {
+	class ReverseIterator : public BaseIterator {
 		friend class Vector<T>;
 		ReverseIterator(Vector<T> &ref, int32_t p) : BaseIterator(ref, p) {}
 
-	public:
+	 public:
 		using BaseIterator::operator*;
 		using BaseIterator::operator->;
 		using BaseIterator::operator==;
@@ -430,8 +435,7 @@ template<class T> class Vector {
 			expand();
 
 		new (_element + _size) T(forward<ARGS>(args)...);
-		_size++;
-		return { *this, _size};
+		return { *this, _size++ };
 	}
 
 	/*! \brief Adds an element to the end
