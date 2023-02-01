@@ -113,6 +113,7 @@ asm(
 "_start:                                                                   \n\t"
 "	.cfi_startproc                                                         \n\t"
 "	.cfi_undefined rip                                                     \n\t"
+"	endbr64                                                                \n\t"
 
 // Set base pointer to zero (ABI)
 "	xor %rbp, %rbp                                                         \n\t"

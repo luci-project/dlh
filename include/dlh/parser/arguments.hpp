@@ -157,10 +157,28 @@ struct Arguments : Opts {
 		constexpr Parameter(const char name_short, const char * name_long, const char * name_arg, Member member, bool required, const char * help_text, validate_t validate = nullptr)
 		: name_short(name_short), name_long(name_long), name_arg(name_arg), member(member), required(required), help_text(help_text), validate(validate), present(false) {}
 
-		bool matches(const char * name) {
-			return name[0] == '-'
-			   && (   (name_short != '\0' && name[1] == name_short)
-			       || (name_long != nullptr && name[1] == '-' && String::compare(name + 2, name_long) == 0));
+		bool matches(const char * name, const char ** appending = nullptr) {
+			if (name[0] == '-') {
+				if (name_short != '\0' && name[1] == name_short) {
+					if (appending != nullptr)
+						*appending = name[2] != '\0' ? name + 2 : nullptr;
+					return true;
+				} else if (name_long != nullptr && name[1] == '-' ) {
+					auto name_len = String::len(name_long);
+					if (String::compare_case(name + 2, name_long, name_len) == 0) {
+						if (name[2 + name_len] == '=') {
+							if (appending != nullptr)
+								*appending = name + 3 + name_len;
+							return true;
+						} if (name[2 + name_len] == '\0') {
+							if (appending != nullptr)
+								*appending = nullptr;
+							return true;
+						}
+					}
+				}
+			}
+			return false;
 		}
 
 		void help(BufferStream & out, Opts * opts = nullptr, size_t max_len = 70) {
@@ -244,13 +262,16 @@ struct Arguments : Opts {
 			if (arg.name_short == '\0' && arg.name_long == nullptr) {
 				LOG_FATAL << "Parameter has neither short nor long name!" << endl;
 				skip = true;
+			} else if ((arg.name_short < '0' || arg.name_short > '9') && (arg.name_short < 'a' || arg.name_short > 'z') && (arg.name_short < 'A' || arg.name_short > 'Z')) {
+				LOG_FATAL << "Short parameter '-" << arg.name_short << "' is not a valid alpha-numeric value!" << endl;
+				skip = true;
 			} else {
 				for (const auto & other : args)
 					if (arg.name_short != '\0' && arg.name_short == other.name_short) {
 						LOG_FATAL << "Parameter '-" << arg.name_short << "' is not unqiue!" << endl;
 						skip = true;
 						break;
-					} else if (arg.name_long != nullptr && other.name_long != nullptr && String::compare(arg.name_long, other.name_long) == 0) {
+					} else if (arg.name_long != nullptr && other.name_long != nullptr && String::compare_case(arg.name_long, other.name_long) == 0) {
 						LOG_FATAL << "Parameter '--" << arg.name_long << "' is not unqiue!" << endl;
 						skip = true;
 						break;
@@ -369,10 +390,15 @@ struct Arguments : Opts {
 				bool found = false;
 				// Check all parameter names
 				for (auto & arg : args) {
-					if (arg.matches(current)) {
+					const char * appendix = nullptr;
+					if (arg.matches(current, &appendix)) {
 						found = true;
 						bool valid;
-						if (arg.member.is_bool()) {
+						if (appendix != nullptr) {
+							if (!(valid = set(arg, appendix))) {
+								LOG_ERROR << "Invalid appended value '" << appendix << "' for parameter " << current << "!" << endl;
+							}
+						} else if (arg.member.is_bool()) {
 							valid = set(arg, "1");
 						} else {
 							const char * next = idx < argc - 1 ? argv[idx + 1] : nullptr;
