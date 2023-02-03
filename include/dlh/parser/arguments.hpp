@@ -262,8 +262,8 @@ struct Arguments : Opts {
 			if (arg.name_short == '\0' && arg.name_long == nullptr) {
 				LOG_FATAL << "Parameter has neither short nor long name!" << endl;
 				skip = true;
-			} else if ((arg.name_short < '0' || arg.name_short > '9') && (arg.name_short < 'a' || arg.name_short > 'z') && (arg.name_short < 'A' || arg.name_short > 'Z')) {
-				LOG_FATAL << "Short parameter '-" << arg.name_short << "' is not a valid alpha-numeric value!" << endl;
+			} else if (arg.name_short != '\0' && (arg.name_short < '0' || arg.name_short > '9') && (arg.name_short < 'a' || arg.name_short > 'z') && (arg.name_short < 'A' || arg.name_short > 'Z')) {
+				LOG_FATAL << "Short parameter '-" << arg.name_long << "' is not a valid alpha-numeric value!" << endl;
 				skip = true;
 			} else {
 				for (const auto & other : args)
