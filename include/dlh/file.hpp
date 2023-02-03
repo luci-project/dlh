@@ -14,6 +14,48 @@ bool writeable(const char * path);
 bool executable(const char * path);
 
 namespace contents {
+enum Format : uint8_t {
+	FORMAT_UNKNOWN,
+	// Executables
+	FORMAT_ELF,
+	FORMAT_EXE,
+	FORMAT_COM,
+	FORMAT_MACHO,
+	FORMAT_DALVIK,
+	FORMAT_WASM,
+	// Archives
+	FORMAT_AR,
+	FORMAT_CPIO,
+	FORMAT_RPM,
+	FORMAT_XAR,
+	// Compressed
+	FORMAT_BZ2,
+	FORMAT_GZ,
+	FORMAT_LZ,
+	FORMAT_XZ,
+	FORMAT_Z,
+	FORMAT_ZLIB,
+	FORMAT_ZIP,
+	// Images (and documents)
+	FORMAT_GIF,
+	FORMAT_BMP,
+	FORMAT_ICO,
+	FORMAT_TIFF,
+	FORMAT_PNG,
+	FORMAT_JPEG,
+	FORMAT_JPEG2000,
+	FORMAT_PS,
+	FORMAT_PDF,
+	// other
+	FORMAT_SCRIPT,
+};
+
+Format format(const char * buf, size_t size);
+
+Format format(const char * path);
+
+const char * format_description(Format format);
+
 char * get(const char * path, size_t & size);
 inline char * get(const char * path) {
 	size_t size;
