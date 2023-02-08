@@ -437,6 +437,15 @@ class HashSet : public Elements<T> {
 		return empty() ? end() : Iterator(*this, find_in(bucket(C::hash(value)), value));
 	}
 
+	/*! \brief Get iterator to specific element
+	 * \param value element
+	 * \return iterator to element (if found) or `end()` (if not found)
+	 */
+	template<typename U>
+	inline ConstIterator find(const U& value) const {
+		return empty() ? end() : ConstIterator(*this, find_in(bucket(C::hash(value)), value));
+	}
+
 	/*! \brief check if set contains element
 	 * \param value element
 	 * \return `true` if element is in set
