@@ -15,7 +15,7 @@ namespace Endian {
  * \return Swapped value
  */
 template <typename T>
-inline T swap(T v) {
+constexpr T swap(T v) {
 	union {
 		T v;
 		unsigned char b[sizeof(T)];
@@ -33,7 +33,7 @@ inline T swap(T v) {
  * \return Swapped value
  */
 template <>
-inline uint16_t swap(uint16_t v) {
+constexpr uint16_t swap(uint16_t v) {
 	return (v << 8) | (v >> 8 );
 }
 
@@ -43,7 +43,7 @@ inline uint16_t swap(uint16_t v) {
  * \return Swapped value
  */
 template <>
-inline int16_t swap(int16_t v) {
+constexpr int16_t swap(int16_t v) {
 	return (v << 8) | ((v >> 8) & 0xFF);
 }
 
@@ -53,7 +53,7 @@ inline int16_t swap(int16_t v) {
  * \return Swapped value
  */
 template <>
-inline uint32_t swap(uint32_t v) {
+constexpr uint32_t swap(uint32_t v) {
 	v = ((v << 8) & 0xFF00FF00) | ((v >> 8) & 0xFF00FF);
 	return (v << 16) | (v >> 16);
 }
@@ -64,7 +64,7 @@ inline uint32_t swap(uint32_t v) {
  * \return Swapped value
  */
 template <>
-inline int32_t swap(int32_t v) {
+constexpr int32_t swap(int32_t v) {
 	v = ((v << 8) & 0xFF00FF00) | ((v >> 8) & 0xFF00FF);
 	return (v << 16) | ((v >> 16) & 0xFFFF);
 }
@@ -75,7 +75,7 @@ inline int32_t swap(int32_t v) {
  * \return Swapped value
  */
 template <>
-inline uint64_t swap(uint64_t v) {
+constexpr uint64_t swap(uint64_t v) {
 	v = ((v << 8) & 0xFF00FF00FF00FF00ULL) | ((v >> 8) & 0x00FF00FF00FF00FFULL);
 	v = ((v << 16) & 0xFFFF0000FFFF0000ULL) | ((v >> 16) & 0x0000FFFF0000FFFFULL);
 	return (v << 32) | (v >> 32);
@@ -87,7 +87,7 @@ inline uint64_t swap(uint64_t v) {
  * \return Swapped value
  */
 template <>
-inline int64_t swap(int64_t v) {
+constexpr int64_t swap(int64_t v) {
 	v = ((v << 8) & 0xFF00FF00FF00FF00ULL) | ((v >> 8) & 0x00FF00FF00FF00FFULL);
 	v = ((v << 16) & 0xFFFF0000FFFF0000ULL) | ((v >> 16) & 0x0000FFFF0000FFFFULL);
 	return (v << 32) | ((v >> 32) & 0xFFFFFFFFULL);

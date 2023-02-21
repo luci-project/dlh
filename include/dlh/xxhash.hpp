@@ -29,17 +29,17 @@ class XXHash64 {
 	uint64_t      totalLength;
 
 	/// rotate bits, should compile to a single CPU instruction (ROL)
-	static inline uint64_t rotateLeft(uint64_t x, unsigned char bits) {
+	static constexpr uint64_t rotateLeft(uint64_t x, unsigned char bits) {
 		return (x << bits) | (x >> (64 - bits));
 	}
 
 	/// process a single 64 bit value
-	static inline uint64_t processSingle(uint64_t previous, uint64_t input)	{
+	static constexpr uint64_t processSingle(uint64_t previous, uint64_t input)	{
 		return rotateLeft(previous + input * Prime2, 31) * Prime1;
 	}
 
 	/// process a block of 4x4 bytes, this is the main part of the XXHash32 algorithm
-	static inline void process(const void* data, uint64_t& state0, uint64_t& state1, uint64_t& state2, uint64_t& state3) {
+	static constexpr void process(const void* data, uint64_t& state0, uint64_t& state1, uint64_t& state2, uint64_t& state3) {
 		const uint64_t* block = (const uint64_t*) data;
 		state0 = processSingle(state0, block[0]);
 		state1 = processSingle(state1, block[1]);
@@ -51,20 +51,15 @@ class XXHash64 {
 	/*! \brief create new XXHash (64 bit)
 	*  \param seed your seed value, even zero is a valid seed
 	*/
-	explicit XXHash64(uint64_t seed) {
-		state[0] = seed + Prime1 + Prime2;
-		state[1] = seed + Prime2;
-		state[2] = seed;
-		state[3] = seed - Prime1;
-		bufferSize  = 0;
-		totalLength = 0;
-	}
+	explicit constexpr XXHash64(uint64_t seed)
+	  : state{seed + Prime1 + Prime2, seed + Prime2, seed, seed - Prime1},
+		buffer{0}, bufferSize(0), totalLength(0) {}
 
 	/*! \brief add a chunk of zero bytes
 	 * \param length number of zero bytes
 	 * \return `false` if length is zero
 	 */
-	bool addZeros(uint64_t length) {
+	constexpr bool addZeros(uint64_t length) {
 		// no data ?
 		if (length == 0)
 			return false;
@@ -119,7 +114,7 @@ class XXHash64 {
 	 * \param length number of bytes
 	 * \return `false` if parameters are invalid / zero
 	 */
-	bool add(const void* input, uint64_t length) {
+	constexpr bool add(const void* input, uint64_t length) {
 		// no data ?
 		if (length == 0)
 			return false;
@@ -178,26 +173,26 @@ class XXHash64 {
 	 * \param length number of bytes
 	 * \return `false` if parameters are invalid / zero
 	 */
-	inline bool add(const uintptr_t input, uint64_t length) {
+	constexpr bool add(const uintptr_t input, uint64_t length) {
 		return add(reinterpret_cast<const void*>(input), length);
 	}
 
 	template<typename T>
-	inline bool add(T input) {
+	constexpr bool add(T input) {
 		return add(&input, sizeof(T));
 	}
 
 	template<size_t CAPACITY>
-	inline bool add(const ByteBuffer<CAPACITY> & bb) {
+	constexpr bool add(const ByteBuffer<CAPACITY> & bb) {
 		return add(bb.buffer(), bb.size());
 	}
 
 	/*! \brief get current hash
 	 * \return 64 bit XXHash
 	 */
-	uint64_t hash() const {
+	constexpr uint64_t hash() const {
 		// fold 256 bit state into one single 64 bit value
-		uint64_t result;
+		uint64_t result = 0;
 		if (totalLength >= MaxBufferSize) {
 			result = rotateLeft(state[0],  1) +
 			         rotateLeft(state[1],  7) +
@@ -249,7 +244,7 @@ class XXHash64 {
 	 * \param  seed your seed value, e.g. zero is a valid seed
 	 * \return 64 bit XXHash
 	 */
-	static uint64_t hash(const void* input, uint64_t length, uint64_t seed) {
+	static constexpr uint64_t hash(const void* input, uint64_t length, uint64_t seed) {
 		XXHash64 hasher(seed);
 		hasher.add(input, length);
 		return hasher.hash();
@@ -257,7 +252,7 @@ class XXHash64 {
 };
 
 template<>
-inline bool XXHash64::add(const char *input) {
+constexpr bool XXHash64::add<const char *>(const char *input) {
 	size_t len = 0;
 	for (const char * s = input; s != nullptr && *s++ != '\0'; len++);
 	return add(input, len);

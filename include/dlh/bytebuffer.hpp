@@ -9,22 +9,22 @@ class ByteBuffer {
 	size_t _size;
 
  public:
-	ByteBuffer() : _size(0) {}
+	constexpr ByteBuffer() : _size(0) {}
 
-	inline const void * buffer() const {
+	constexpr const void * buffer() const {
 		return _buffer;
 	}
 
-	inline size_t size() const {
+	constexpr size_t size() const {
 		return _size;
 	}
 
-	inline size_t capacity() const {
+	constexpr size_t capacity() const {
 		return CAPACITY;
 	}
 
 	template<typename T>
-	inline size_t push(const T & v) {
+	constexpr size_t push(const T & v) {
 		assert(_size + sizeof(T) < CAPACITY);
 		*reinterpret_cast<T *>(_buffer + _size) = v;
 		_size += sizeof(T);
@@ -32,14 +32,14 @@ class ByteBuffer {
 	}
 
 	template<typename T>
-	inline T pop() {
+	constexpr T pop() {
 		assert(_size >= sizeof(T));
 		T * v = reinterpret_cast<T *>(_buffer + _size);
 		_size -= sizeof(T);
 		return *v;
 	}
 
-	inline void clear() {
+	constexpr void clear() {
 		_size = 0;
 	}
 };

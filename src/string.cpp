@@ -3,27 +3,27 @@
 
 namespace String {
 
-static inline char * concat(char *dest, const char *src, size_t n = SIZE_MAX) {
+static constexpr char * concat(char *dest, const char *src, size_t n = SIZE_MAX) {
 	if (dest != nullptr && src != nullptr)
 		while ((n--) != 0 && (*dest++ = *src++) != '\0') {}
 
 	return dest;
 }
 
-static inline void prefix(const char* needle, size_t needle_len, size_t * n) {
+static constexpr void prefix(const char* needle, size_t needle_len, size_t * n) {
 	assert(needle_len > 0 && n != nullptr);
 
 	for (size_t i = 0; i <= needle_len; i++)
 		n[i] = 0;
 
-	for (size_t j, i = 1; i < needle_len; i++)  {
+	for (size_t j = 0, i = 1; i < needle_len; i++)  {
 		for (j = n[i + 1]; j > 0 && needle[j] != needle[i]; j = n[j]);
 		if (j > 0 || needle[j] == needle[i])
 			n[i + 1] = j + 1;
 	}
 }
 
-static inline const char * find(const char *haystack, const char* needle, size_t haystack_len, size_t needle_len, size_t * n, size_t & pos) {
+static constexpr const char * find(const char *haystack, const char* needle, size_t haystack_len, size_t needle_len, size_t * n, size_t & pos) {
 	assert(haystack_len > 0 && needle_len > 0 && n != nullptr);
 
 	if (haystack_len - pos >= needle_len)
@@ -227,33 +227,7 @@ char * replace(const char *source, const char * from, const char * to, size_t ma
 	return target;
 }
 
-int compare(const char *s1, const char *s2) {
-	if (s1 == s2 || s1 == nullptr || s2 == nullptr)
-		return 0;
-
-	while(*s1 == *s2++)
-		if (*s1++ == '\0')
-			return 0;
-
-	return static_cast<int>(*s1) - static_cast<int>(*(s2-1));
-}
-
-int compare(const char *s1, const char *s2, size_t n) {
-	if (s1 == s2)
-		return 0;
-
-	if (s1 != nullptr && s2 != nullptr)
-		for (size_t i = 0; i < n; i++) {
-			if (s1[i] != s2[i])
-				return static_cast<int>(s1[i]) - static_cast<int>(s2[i]);
-			else if (s1[i] == '\0')
-				break;
-		}
-
-	return 0;
-}
-
-static char to_lower(char c) {
+static constexpr char to_lower(char c) {
 	return c >= 'A' && c <= 'Z' ? c + 32 : c;
 }
 
@@ -283,16 +257,6 @@ int compare_case(const char *s1, const char *s2, size_t n) {
 		}
 
 	return 0;
-}
-
-
-size_t len(const char *s) {
-	size_t len = 0;
-	if (s != nullptr)
-		while (*s++ != '\0')
-			len++;
-
-	return len;
 }
 
 char * copy(char *dest, const char *src) { //NOLINT

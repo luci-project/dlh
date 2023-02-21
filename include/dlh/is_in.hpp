@@ -7,18 +7,18 @@ class is {
 	T value;
 
  public:
-	is(T value) : value(value) {}
+	constexpr is(T value) : value(value) {}
 
-	bool in() {
+	constexpr bool in() const {
 		return false;
 	}
 
 	template<typename... Targs>
-	bool in(T arg, Targs... args) {
+	constexpr bool in(T arg, Targs... args) const {
 		return C::equal(value, arg) ? true : in(args...);
 	}
 
-	bool in(std::initializer_list<T> list) {
+	constexpr bool in(std::initializer_list<T> list) const {
 		for (const auto & arg : list)
 			if (C::equal(value, arg))
 				return true;
@@ -26,7 +26,7 @@ class is {
 	}
 
 	template<size_t S>
-	bool in(T (&a)[S]) {
+	constexpr bool in(T (&a)[S]) const {
 		for (size_t s = 0; s < S; s++)
 			if (C::equal(value, a[s]))
 				return true;

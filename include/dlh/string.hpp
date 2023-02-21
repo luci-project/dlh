@@ -107,7 +107,16 @@ char * replace(const char *target, const char *from, const char * to, size_t max
  * \return an integer less than, equal to, or greater than zero if first string is found, respectively,
  *         to be less than, to match, or be greater than second string
  */
-int compare(const char *s1, const char *s2);
+constexpr int compare(const char *s1, const char *s2) {
+	if (s1 == s2 || s1 == nullptr || s2 == nullptr)
+		return 0;
+
+	while(*s1 == *s2++)
+		if (*s1++ == '\0')
+			return 0;
+
+	return static_cast<int>(*s1) - static_cast<int>(*(s2-1));
+}
 
 /*! \brief Compare two strings
  * \param s1 first string
@@ -116,7 +125,20 @@ int compare(const char *s1, const char *s2);
  * \return an integer less than, equal to, or greater than zero if the given number of bytes of the first string are
  *          found, respectively, to be less than, to match, or be greater than second string
  */
-int compare(const char *s1, const char *s2, size_t n);
+constexpr int compare(const char *s1, const char *s2, size_t n) {
+	if (s1 == s2)
+		return 0;
+
+	if (s1 != nullptr && s2 != nullptr)
+		for (size_t i = 0; i < n; i++) {
+			if (s1[i] != s2[i])
+				return static_cast<int>(s1[i]) - static_cast<int>(s2[i]);
+			else if (s1[i] == '\0')
+				break;
+		}
+
+	return 0;
+}
 
 /*! \brief Compare two strings case insensetive
  * \param s1 first string
@@ -135,11 +157,31 @@ int compare_case(const char *s1, const char *s2);
  */
 int compare_case(const char *s1, const char *s2, size_t n);
 
+/*! \brief String hash (djb2)
+ * \see http://www.cse.yorku.ca/~oz/hash.html
+ * \param s String to hash
+ * \return unsigned 32bit integer with string hash
+ */
+constexpr uint32_t hash(const char * s) {
+	uint_fast32_t h = 5381;
+	for (unsigned char c = *s; c != '\0'; c = *++s)
+		h = h * 33 + c;
+	return h & 0xffffffff;
+}
+
+
 /*! \brief Calculate the length of a string
  * \param s pointer to a string
  * \return number of bytes in the string
  */
-size_t len(const char *s);
+constexpr size_t len(const char *s) {
+	size_t len = 0;
+	if (s != nullptr)
+		while (*s++ != '\0')
+			len++;
+
+	return len;
+}
 
 /*! \brief Copy the contents of a string
  * including the terminating null byte (`\0`)
