@@ -448,6 +448,22 @@ typedef enum : int {
 	SIGUNUSED = 31,
 } signal_t;
 
+// Signal stack
+#define MINSIGSTKSZ	2048
+#define SIGSTKSZ	8192
+
+enum {
+	SS_ONSTACK = 1,
+	SS_DISABLE
+};
+
+
+struct sigstack {
+	void* ss_sp;     /* Base address of stack */
+	int ss_flags;    /* Flags */
+	size_t ss_size;  /* Number of bytes in stack */
+};
+
 // Signal handling
 #define SIG_BLOCK          0	/* for blocking signals */
 #define SIG_UNBLOCK        1	/* for unblocking signals */
@@ -464,16 +480,93 @@ typedef enum : int {
 #define SA_ONESHOT   SA_RESETHAND
 #define SA_RESTORER  0x04000000
 
+struct siginfo {
+	int si_signo;
+	int si_errno;
+	int si_code;
+	int __pad0;
+	int _sifields[28];  /* incomplete (for now) */
+};
+
+struct ucontext;
 struct sigaction {
-	void (*sa_handler)(int);
-	unsigned long sa_flags;
-	void (*sa_restorer)(void);
-	unsigned long sa_mask[1024 / (8 * sizeof(unsigned long int))];
+	union {
+		void (*sa_handler)(int) = nullptr;
+		void (*sa_sigaction)(int, siginfo *, ucontext *);
+	};
+	unsigned long sa_flags = 0;
+	void (*sa_restorer)(void) = nullptr;
+	unsigned long sa_mask[1024 / (8 * sizeof(unsigned long int))] = {};
 };
 
 #define SIG_DFL	((void (*)(int))0)	/* default signal handling */
 #define SIG_IGN	((void (*)(int))1)	/* ignore signal */
 #define SIG_ERR	((void (*)(int))-1)	/* error return from signal */
+
+// Context
+enum REGS {
+	REG_R8      =  0,
+	REG_R9      =  1,
+	REG_R10     =  2,
+	REG_R11     =  3,
+	REG_R12     =  4,
+	REG_R13     =  5,
+	REG_R14     =  6,
+	REG_R15     =  7,
+	REG_RDI     =  8,
+	REG_RSI     =  9,
+	REG_RBP     = 10,
+	REG_RBX     = 11,
+	REG_RDX     = 12,
+	REG_RAX     = 13,
+	REG_RCX     = 14,
+	REG_RSP     = 15,
+	REG_RIP     = 16,
+	REG_EFL     = 17,
+	REG_CSGSFS  = 18,  /* Actually short cs, gs, fs, __pad0.  */
+	REG_ERR     = 19,
+	REG_TRAPNO  = 20,
+	REG_OLDMASK = 21,
+	REG_CR2     = 22,
+	REG_COUNT   = 23
+};
+
+struct fpstate {  /* 64-bit FXSAVE format.  */
+	uint16_t cwd;
+	uint16_t swd;
+	uint16_t ftw;
+	uint16_t fop;
+	uint64_t rip;
+	uint64_t rdp;
+	uint32_t mxcsr;
+	uint32_t mxcr_mask;
+	struct {
+		unsigned short significand[4];
+		unsigned short exponent;
+		unsigned short __glibc_reserved1[3];
+	} st[8];
+	struct {
+		uint32_t element[4];
+	} xmm[16];
+	uint32_t __glibc_reserved1[24];
+};
+
+struct mcontext {
+	uintptr_t gregs[REG_COUNT];
+	fpstate * fpregs;
+	uintptr_t __reserved1[8];
+};
+
+struct ucontext {
+	unsigned long int uc_flags;
+	ucontext *uc_link;
+	sigstack uc_stack;
+	mcontext uc_mcontext;
+	unsigned long uc_sigmask;
+	fpstate __fpregs_mem;
+	uintptr_t __ssp[4];
+};
+
 
 // Clone
 #define CLONE_VM             0x00000100	/* Set if VM shared between processes.  */

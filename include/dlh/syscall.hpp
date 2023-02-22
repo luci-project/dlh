@@ -77,6 +77,7 @@ ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim);
 ReturnValue<int> arch_prctl(arch_code_t code, unsigned long addr);
 ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3 = 0, unsigned long arg4 = 0, unsigned long arg5 = 0);
 
+ReturnValue<int> sigaltstack(const struct sigstack * __restrict__ ss, struct sigstack * __restrict__ old);
 ReturnValue<int> sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old);
 ReturnValue<int> raise(signal_t sig);
 

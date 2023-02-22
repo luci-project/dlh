@@ -107,6 +107,16 @@ ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3, u
 }
 
 
+ReturnValue<int> sigaltstack(const struct sigstack * __restrict__ ss, struct sigstack * __restrict__ old) {
+	if (ss != nullptr) {
+		if ((ss->ss_flags & SS_DISABLE) == 0 && ss->ss_size < MINSIGSTKSZ)
+			return { ENOMEM };
+		else if ((ss->ss_flags & SS_ONSTACK) != 0)
+			return { EINVAL };
+	}
+	return retval<int>(__syscall(SYS_sigaltstack, ss, old));
+}
+
 asm(R"(
 .type __restore,@function
 .align 16
