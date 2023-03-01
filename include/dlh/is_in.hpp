@@ -9,6 +9,12 @@ class is {
  public:
 	constexpr is(T value) : value(value) {}
 
+#if __cplusplus >= 201703L
+	template<typename... Targs>
+	constexpr bool in(Targs... args) const {
+		return (C::equal(value, args) || ... || false);
+	}
+#else
 	constexpr bool in() const {
 		return false;
 	}
@@ -17,6 +23,7 @@ class is {
 	constexpr bool in(T arg, Targs... args) const {
 		return C::equal(value, arg) ? true : in(args...);
 	}
+#endif
 
 	constexpr bool in(std::initializer_list<T> list) const {
 		for (const auto & arg : list)
