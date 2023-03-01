@@ -286,6 +286,10 @@ ReturnValue<int> ftruncate(int fd, off_t length) {
 	return retval<int>(__syscall(SYS_ftruncate, fd, length));
 }
 
+ReturnValue<ssize_t> getdents(int fd, void *dirp, size_t count) {
+	return retval<ssize_t>(__syscall(SYS_getdents64, fd, dirp, count));
+}
+
 ReturnValue<int> unlink(const char *path) {
 	return retval<int>(__syscall(SYS_unlink, path));
 }

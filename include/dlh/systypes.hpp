@@ -633,6 +633,28 @@ struct inotify_event {
 	char name[];
 };
 
+
+// Dirent(64)
+typedef enum : uint8_t {
+	DT_UNKNOWN = 0,
+	DT_FIFO = 1,
+	DT_CHR = 2,
+	DT_DIR = 4,
+	DT_BLK = 6,
+	DT_REG = 8,
+	DT_LNK = 10,
+	DT_SOCK = 12,
+	DT_WHT = 14
+} dir_type_t;
+
+struct dirent {
+	int64_t        d_ino;     /* 64-bit inode number */
+	uint64_t       d_off;     /* 64-bit offset to next structure */
+	unsigned short d_reclen;  /* Size of this dirent */
+	dir_type_t     d_type;    /* File type */
+	char           d_name[];  /* Filename (null-terminated) */
+};
+
 // Exit
 #define	EXIT_FAILURE  1
 #define	EXIT_SUCCESS  0

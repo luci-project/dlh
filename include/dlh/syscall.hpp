@@ -116,6 +116,8 @@ ReturnValue<int> fallocate(int fd, int mode, off_t base, off_t len);
 ReturnValue<int> ftruncate(int fd, off_t length);
 ReturnValue<int> unlink(const char *path);
 
+ReturnValue<ssize_t> getdents(int fd, void *dirp, size_t count);
+
 ReturnValue<int> poll(struct pollfd *fds, unsigned long nfds, int timeout = 0);
 
 ReturnValue<int> fstat(int fd, struct stat *st);
