@@ -158,7 +158,7 @@ struct Thread {
 		list.prev = &list;
 	}
 
-	static Thread * create(void* (*func)(void*), void * arg = nullptr, bool detach = false, size_t stack_size = 1048576, size_t tls_size = 0xd40, DynamicThreadVector * dtv = nullptr, bool hidden = false);
+	static Thread * create(void* (*func)(void*), void * arg = nullptr, bool detach = false, bool separate = false, bool hidden = false, size_t stack_size = 1048576, size_t tls_size = 0xd40, DynamicThreadVector * dtv = nullptr);
 
 	pid_t id() const {
 		return tid;

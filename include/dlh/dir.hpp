@@ -65,7 +65,7 @@ class Directory {
 			return type() == DT_CHR;
 		}
 
-		inline bool is_drectory() const {
+		inline bool is_directory() const {
 			return type() == DT_DIR;
 		}
 

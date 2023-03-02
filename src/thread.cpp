@@ -21,8 +21,11 @@ extern "C" void __start_child(Thread * that, void* (*func)(void*), void * arg) {
 	Syscall::exit(0);
 }
 
-Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, size_t stack_size, size_t tls_size, DynamicThreadVector * dtv, bool hidden) {
-	unsigned flags = /* CLONE_THREAD | CLONE_SIGHAND | */ CLONE_VM | CLONE_SETTLS | CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_SYSVSEM | CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID;
+Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, bool separate, bool hidden, size_t stack_size, size_t tls_size, DynamicThreadVector * dtv) {
+	unsigned flags = CLONE_VM | CLONE_SETTLS | CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_SYSVSEM | CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID;
+
+	if (!separate)
+		flags |= CLONE_THREAD | CLONE_SIGHAND;
 
 	if (hidden)
 		flags |= CLONE_UNTRACED;

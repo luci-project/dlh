@@ -32,7 +32,7 @@ int main(int argc, const char *argv[]) {
 	(void) argv;
 
 	cerr << "main start" << endl;
-	Thread * f = Thread::create(foo, (void*)0x23, true);
+	Thread * f = Thread::create(foo, (void*)0x23, true, true);
 	if (f == nullptr) {
 		cerr << "failed" << endl;
 		return 1;
