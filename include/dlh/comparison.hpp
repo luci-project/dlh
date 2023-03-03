@@ -133,9 +133,11 @@ struct Comparison {
 	template<typename T>
 	static constexpr inline uint32_t hash(const T * v) {
 		uint_fast32_t h = 0;
-		const unsigned char *c = reinterpret_cast<const unsigned char *>(v);
-		for (size_t i = 0; i < sizeof(T); i++)
-			h = h * 31 + c[i];
+		if (v != nullptr) {
+			const unsigned char *c = reinterpret_cast<const unsigned char *>(v);
+			for (size_t i = 0; i < sizeof(T); i++)
+				h = h * 31 + c[i];
+		}
 		return h & 0xffffffff;
 	}
 

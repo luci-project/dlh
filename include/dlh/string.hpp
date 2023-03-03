@@ -163,6 +163,8 @@ int compare_case(const char *s1, const char *s2, size_t n);
  * \return unsigned 32bit integer with string hash
  */
 constexpr uint32_t hash(const char * s) {
+	if (s == nullptr)
+		return 0;
 	uint_fast32_t h = 5381;
 	for (unsigned char c = *s; c != '\0'; c = *++s)
 		h = h * 33 + c;
