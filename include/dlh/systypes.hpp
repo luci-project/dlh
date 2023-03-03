@@ -394,6 +394,11 @@ struct stat {
 #define MAP_FIXED           0x10
 #define MAP_ANONYMOUS       0x20
 
+#define MAP_GROWSDOWN       0x000100	/* Stack-like segment */
+#define MAP_DENYWRITE       0x000800	/* ETXTBSY */
+#define MAP_EXECUTABLE      0x001000	/* Mark it as an executable */
+#define MAP_LOCKED          0x002000	/* Lock the mapping */
+#define MAP_NORESERVE       0x004000	/* Don't check for reservations */
 #define MAP_POPULATE        0x008000	/* populate (prefault) pagetables */
 #define MAP_NONBLOCK        0x010000	/* do not block on IO */
 #define MAP_STACK           0x020000	/* give out an address that is best suited for process/thread stacks */
@@ -402,8 +407,9 @@ struct stat {
 #define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
 #define MAP_UNINITIALIZED   0x4000000	/* For anonymous mmap, memory could be uninitialized */
 
-#define MREMAP_MAYMOVE  1
-#define MREMAP_FIXED    2
+#define MREMAP_MAYMOVE   1
+#define MREMAP_FIXED     2
+#define MREMAP_DONTUNMAP 4
 
 #define MS_ASYNC      1
 #define MS_INVALIDATE 2
