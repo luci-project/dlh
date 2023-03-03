@@ -5,11 +5,13 @@
 #include <dlh/stream/buffer.hpp>
 
 struct StrPtr {
-	const char * const str;
+	const char * str;
 	uint32_t hash;
 	size_t len;
 
 	constexpr StrPtr(const char * s = nullptr) : str(s), hash(String::hash(s)), len(String::len(s)) {}
+
+	constexpr StrPtr(const StrPtr& s) : str(s.str), hash(s.hash), len(s.len) {}
 
 	/*! \brief Substring starting at first occurence of given character
 	 * \param c character to search for
@@ -56,6 +58,20 @@ struct StrPtr {
 
 	constexpr bool operator!=(const StrPtr & other) const {
 		return !operator==(other);
+	}
+
+	constexpr StrPtr& operator=(const StrPtr& other) {
+		str = other.str;
+		hash = other.hash;
+		len = other.len;
+		return *this;
+	}
+
+	constexpr StrPtr& operator=(const char * other) {
+		str = other;
+		hash = String::hash(other);
+		len = String::len(other);
+		return *this;
 	}
 };
 
