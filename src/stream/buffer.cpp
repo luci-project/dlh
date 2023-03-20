@@ -220,6 +220,13 @@ BufferStream& BufferStream::operator<<(const setbase & val) {
 
 size_t BufferStream::format(const char * format, va_list args) {
 	size_t start = _pos;
+	auto cache_base = _base;
+	auto cache_width = _width;
+	auto cache_fill = _fill;
+	auto cache_hexchar = _hexchar;
+	auto cache_prefix = _prefix;
+	auto cache_left = _left;
+	auto cache_sign = _sign;
 
 	enum {
 		NONE,
@@ -491,8 +498,10 @@ size_t BufferStream::format(const char * format, va_list args) {
 				if (*format == '%') {
 					format_start = format;
 					state = MARKER;
+					_base = 10;
 					_width = 0;
 					_fill = ' ';
+					_hexchar = 'a';
 					_prefix = false;
 					_left = false;
 					_sign = MINUS_ONLY;
@@ -510,7 +519,15 @@ size_t BufferStream::format(const char * format, va_list args) {
 		operator<<(*(format_start++));
 
 	// Reset modifiers
-	reset();
+	//reset();
+	_base = cache_base;
+	_width = cache_width;
+	_fill = cache_fill;
+	_hexchar = cache_hexchar;
+	_prefix = cache_prefix;
+	_left = cache_left;
+	_sign = cache_sign;
+
 	size_t n = _pos - start;
 	// 0 Byte
 	str();
