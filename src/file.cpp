@@ -161,7 +161,8 @@ char * get(const char * path, size_t & size) {
 
 	struct stat sb;
 	if (auto fstat = Syscall::fstat(fd.value(), &sb)) {
-		size = sb.st_size;
+		if ((size = sb.st_size) == 0)
+			return nullptr;
 	} else {
 		LOG_ERROR << "Stat file " << path << " failed: " << fstat.error_message() << endl;
 		Syscall::close(fd.value());
@@ -172,6 +173,7 @@ char * get(const char * path, size_t & size) {
 	Syscall::close(fd.value());
 	if (addr.failed()) {
 		LOG_ERROR << "Mmap file " << path << " failed: " << addr.error_message() << endl;
+		size = -1;
 		return nullptr;
 	} else {
 		LOG_VERBOSE << "Mapped '" << path << "' (" << size << " bytes)" << endl;
