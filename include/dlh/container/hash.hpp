@@ -553,7 +553,7 @@ class HashSet : public Elements<T> {
 	 */
 	inline void rehash() {
 		if (!empty())
-			bucketize(false, true);
+			bucketize(true);
 	}
 
 	/*! \brief Reorganize Elements
@@ -580,9 +580,14 @@ class HashSet : public Elements<T> {
 		// reorder node slots
 		bool need_bucketize = reorder();
 
-		bool s = capacity == Elements<T>::_capacity;
+		size_t old_capacity = Elements<T>::_capacity;
+		bool s = capacity == old_capacity;
 		// Resize element container
 		if (!s && Elements<T>::resize(capacity, buckets(capacity) * sizeof(uint32_t))) {
+			// Clean memory used for new elements (so .active is false)
+			if (capacity > old_capacity)
+				Memory::set(Elements<T>::_node + old_capacity, 0, (capacity - old_capacity) * sizeof(Node));
+
 			// NULL Element (let's waste it)
 			Elements<T>::_node[0].hash.active = false;
 
@@ -681,6 +686,7 @@ class HashSet : public Elements<T> {
 					for (; !Elements<T>::_node[j].hash.active; --j)
 						assert(j > i);
 					new (&Elements<T>::_node[i].data) T(move(Elements<T>::_node[j].data));
+					Elements<T>::_node[i].hash.temp = Elements<T>::_node[j].hash.temp;
 					Elements<T>::_node[i].hash.active = true;
 					Elements<T>::_node[j--].hash.active = false;
 				}
@@ -700,20 +706,25 @@ class HashSet : public Elements<T> {
 	void bucketize(bool rehash = false) {
 		Memory::set(_bucket, 0, _bucket_capacity * sizeof(uint32_t));
 
-		for (size_t i = 1; i <= Elements<T>::_count; i++) {
-			if (Elements<T>::_node[i].hash.active) {
-				if (rehash)
-					Elements<T>::_node[i].hash.temp = C::hash(Elements<T>::_node[i].data);
+		if (Elements<T>::_count > 0) {
+			size_t c = 0;
+			for (size_t i = 1; i < Elements<T>::_capacity; i++) {
+				if (Elements<T>::_node[i].hash.active) {
+					if (rehash)
+						Elements<T>::_node[i].hash.temp = C::hash(Elements<T>::_node[i].data);
 
-				uint32_t * b = bucket(Elements<T>::_node[i].hash.temp);
-				assert(*b <= Elements<T>::_count);
-				Elements<T>::_node[i].hash.prev = 0;
-				if ((Elements<T>::_node[i].hash.next = *b) != 0) {
-					assert(Elements<T>::_node[*b].hash.active);
-					assert(Elements<T>::_node[*b].hash.prev == 0);
-					Elements<T>::_node[*b].hash.prev = i;
+					uint32_t * b = bucket(Elements<T>::_node[i].hash.temp);
+					assert(*b <= Elements<T>::_count);
+					Elements<T>::_node[i].hash.prev = 0;
+					if ((Elements<T>::_node[i].hash.next = *b) != 0) {
+						assert(Elements<T>::_node[*b].hash.active);
+						assert(Elements<T>::_node[*b].hash.prev == 0);
+						Elements<T>::_node[*b].hash.prev = i;
+					}
+					*b = i;
+					if (++c >= Elements<T>::_count)
+						break;
 				}
-				*b = i;
 			}
 		}
 	}
