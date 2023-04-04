@@ -82,6 +82,14 @@ pid_t getppid() {
 }
 
 
+ReturnValue<int> kill(pid_t pid, signal_t sig) {
+	return retval<int>(__syscall(SYS_kill, pid, sig));
+}
+
+ReturnValue<int> tgkill(pid_t tgid, pid_t tid, signal_t sig) {
+	return retval<int>(__syscall(SYS_tgkill, tgid, tid, sig));
+}
+
 
 ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim) {
 	unsigned long k_rlim[2];

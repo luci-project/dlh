@@ -73,6 +73,9 @@ pid_t gettid();
 pid_t getpid();
 pid_t getppid();
 
+ReturnValue<int> kill(pid_t pid, signal_t sig);
+ReturnValue<int> tgkill(pid_t tgid, pid_t tid, signal_t sig);
+
 ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim);
 ReturnValue<int> arch_prctl(arch_code_t code, unsigned long addr);
 ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3 = 0, unsigned long arg4 = 0, unsigned long arg5 = 0);
