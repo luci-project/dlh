@@ -714,7 +714,6 @@ class HashSet : public Elements<T> {
 						Elements<T>::_node[i].hash.temp = C::hash(Elements<T>::_node[i].data);
 
 					uint32_t * b = bucket(Elements<T>::_node[i].hash.temp);
-					assert(*b <= Elements<T>::_count);
 					Elements<T>::_node[i].hash.prev = 0;
 					if ((Elements<T>::_node[i].hash.next = *b) != 0) {
 						assert(Elements<T>::_node[*b].hash.active);
