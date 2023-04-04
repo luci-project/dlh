@@ -2,6 +2,7 @@
 #include <dlh/container/hash.hpp>
 #include <dlh/container/tree.hpp>
 #include <dlh/iterator.hpp>
+#include <dlh/assert.hpp>
 
 
 int main(int argc, const char *argv[]) {
@@ -38,6 +39,11 @@ int main(int argc, const char *argv[]) {
 	}
 	s.insert(42);
 	s.insert(52);
+
+	#ifndef NDEBUG
+	for (const auto & v : s)
+		assert(s.contains(v));
+	#endif
 
 	HashSet<int> t(s);
 	cout << "HashSet (using some integers): " << s << endl << endl;

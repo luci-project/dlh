@@ -1,5 +1,6 @@
 #include <dlh/stream/output.hpp>
 #include <dlh/container/hash.hpp>
+#include <dlh/assert.hpp>
 
 #include "foo.hpp"
 
@@ -42,6 +43,11 @@ int main(int argc, const char *argv[]) {
 	}
 	s.insert(42);
 	s.insert(52);
+
+	#ifndef NDEBUG
+	for (const auto & v : s)
+		assert(s.contains(v));
+	#endif
 
 	HashSet<Foo, FooComp> t(s);
 	for (auto i : t)

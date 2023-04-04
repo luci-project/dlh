@@ -38,6 +38,8 @@ int main(int argc, const char *argv[]) {
 	s.insert(52);
 
 	#ifndef NDEBUG
+	for (const auto & v : s)
+		assert(s.contains(v));
 	s.check();
 	#endif
 

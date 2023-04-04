@@ -1,5 +1,6 @@
 #include <dlh/stream/output.hpp>
 #include <dlh/container/tree.hpp>
+#include <dlh/assert.hpp>
 
 #include "foo.hpp"
 
@@ -45,6 +46,8 @@ int main(int argc, const char *argv[]) {
 	s.insert(52);
 
 	#ifndef NDEBUG
+	for (const auto & v : s)
+		assert(s.contains(v));
 	s.check();
 	#endif
 
