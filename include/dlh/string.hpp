@@ -157,6 +157,21 @@ int compare_case(const char *s1, const char *s2);
  */
 int compare_case(const char *s1, const char *s2, size_t n);
 
+
+/*! \brief Check if string starts with a certain substring
+ * \param str string to search in
+ * \param start required starting substring
+ * \return `true` if string starts with the required substring
+ */
+bool starts_with(const char *str, const char * start);
+
+/*! \brief Check if string ends with a certain substring
+ * \param str string to search in
+ * \param start required ending substring
+ * \return `true` if string ends with the required substring
+ */
+bool ends_with(const char *str, const char * end);
+
 /*! \brief String hash (djb2)
  * \see http://www.cse.yorku.ca/~oz/hash.html
  * \param s String to hash

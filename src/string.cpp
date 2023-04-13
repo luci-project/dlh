@@ -156,6 +156,25 @@ char * replace(const char *target, int from, int to, size_t max) {
 	return target == nullptr ? nullptr : replace_inplace(duplicate(target), from, to, max);
 }
 
+bool starts_with(const char *str, const char * start) {
+	if (str == nullptr || start == nullptr)
+		return false;
+	while (*start != '\0')
+		if (*str++ != *start++)
+			return false;
+	return true;
+}
+
+bool ends_with(const char *str, const char * end) {
+	size_t s = len(str);
+	size_t e = len(end);
+	if (s >= e)
+		for (size_t i = 0; i < e; i++)
+			if (str[s + i] != str[i])
+				return false;
+	return true;
+}
+
 static inline size_t split(const char *source, const char * delimiter, size_t source_len, size_t delimiter_len, size_t *part, size_t max) {
 	assert(source_len > 0 && delimiter_len > 0);
 	if (delimiter_len > source_len)
