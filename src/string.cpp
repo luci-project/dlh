@@ -3,11 +3,12 @@
 
 namespace String {
 
-static constexpr char * concat(char *dest, const char *src, size_t n = SIZE_MAX) {
+static constexpr size_t concat(char *dest, const char *src, size_t n = SIZE_MAX) {
+	size_t i = 0;
 	if (dest != nullptr && src != nullptr)
-		while ((n--) != 0 && (*dest++ = *src++) != '\0') {}
+		while (i < n && (*dest++ = *src++) != '\0') { i++; }
 
-	return dest;
+	return i;
 }
 
 static constexpr void prefix(const char* needle, size_t needle_len, size_t * n) {
@@ -170,7 +171,7 @@ bool ends_with(const char *str, const char * end) {
 	size_t e = len(end);
 	if (s >= e)
 		for (size_t i = 0; i < e; i++)
-			if (str[s + i] != str[i])
+			if (str[s - e +  i] != end[i])
 				return false;
 	return true;
 }
@@ -194,13 +195,13 @@ static inline size_t split(const char *source, const char * delimiter, size_t so
 	return found;
 }
 
-static inline void combine( char *target, const char * source, const char * to, const size_t *part, size_t source_len, size_t from_len, size_t to_len, size_t part_len) {
+static inline void combine(char *target, const char * source, const char * to, const size_t *part, size_t source_len, size_t from_len, size_t to_len, size_t part_len) {
 	if (target != nullptr) {
 		size_t pos = 0;
 		for (size_t p = 0; p < part_len; p++) {
-			target = concat(target, source + pos, part[p] - pos);
+			target += concat(target, source + pos, part[p] - pos);
 			pos = part[p] + from_len;
-			target = concat(target, to, to_len);
+			target += concat(target, to, to_len);
 		}
 		if (pos < source_len)
 			concat(target, source + pos);
@@ -283,22 +284,25 @@ char * copy(char *dest, const char *src) { //NOLINT
 	return dest;
 }
 
-char * copy(char *dest, const char *src, size_t n) {
-	concat(dest, src, n);
+char * copy(char *dest, const char *src, size_t n, bool zero_remainder) {
+	for (size_t i = concat(dest, src, n); i < n && zero_remainder; i++)
+		dest[i] = '\0';
 	return dest;
 }
 
 char * duplicate(const char *s) {
-	return s == nullptr ? nullptr : duplicate(s, len(s) + 1);
+	return s == nullptr ? nullptr : duplicate(s, len(s));
 }
 
 char * duplicate(const char *s, size_t n) {
-	if (s == nullptr)
+	if (s == nullptr || n == 0)
 		return nullptr;
-
-	char * d = reinterpret_cast<char*>(Memory::alloc(n));
-
-	return d == nullptr ? nullptr : copy(d, s, n);
+	char * d = reinterpret_cast<char*>(Memory::alloc(n + 1));
+	if (d != nullptr) {
+		copy(d, s, n);
+		d[n] = '\0';
+	}
+	return d;
 }
 
 Vector<const char *> split_inplace(char * source, int delimiter, size_t max) {
@@ -326,7 +330,7 @@ Vector<const char *> split(const char * source, int delimiter, size_t max) {
 		for (i = 0; source[i] != '\0'; ++i)
 			if (source[i] == delimiter && max > 0) {
 				if (s < i) {
-					char * t = duplicate(source + s, i - s + 1);
+					char * t = duplicate(source + s, i - s);
 					if (t != nullptr) {
 						t[i - s] = '\0';
 						r.push_back(t);
@@ -336,7 +340,7 @@ Vector<const char *> split(const char * source, int delimiter, size_t max) {
 				s = i + 1;
 			}
 		if (s < i) {
-			char * t = duplicate(source + s, i - s + 1);
+			char * t = duplicate(source + s, i - s);
 			if (t != nullptr)
 				r.push_back(t);
 		}
@@ -389,9 +393,8 @@ Vector<const char *> split(const char * source, const char * delimiter, size_t m
 		for (size_t f = 0; f < found; f++) {
 			size_t len = part[f] - pos;
 			if (len > 0 && max > 0) {
-				char * t = duplicate(source + pos, len + 1);
+				char * t = duplicate(source + pos, len);
 				if (t != nullptr) {
-					t[len] = '\0';
 					r.push_back(t);
 					max--;
 				}
@@ -401,7 +404,7 @@ Vector<const char *> split(const char * source, const char * delimiter, size_t m
 				break;
 		}
 		if (pos < source_len) {
-			char * t = duplicate(source + pos, source_len - pos + 1);
+			char * t = duplicate(source + pos, source_len - pos);
 			if (t != nullptr)
 				r.push_back(t);
 		}

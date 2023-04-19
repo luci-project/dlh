@@ -189,12 +189,13 @@ constexpr uint32_t hash(const char * s) {
 
 /*! \brief Calculate the length of a string
  * \param s pointer to a string
+ * \param n max length to check
  * \return number of bytes in the string
  */
-constexpr size_t len(const char *s) {
+constexpr size_t len(const char *s, size_t n = SIZE_MAX) {
 	size_t len = 0;
 	if (s != nullptr)
-		while (*s++ != '\0')
+		while (*s++ != '\0' && n-- > 0)
 			len++;
 
 	return len;
@@ -214,10 +215,11 @@ char* copy(char * dest, const char * src);  //NOLINT
  * \param dest destination string buffer
  * \param src source string buffer
  * \param n maximum number of bytes to copy
+ * \param zero_remainder if length of `src` is less then `n`, fill remainder with zeros
  * \return a pointer to the destination string buffer
  * \note If there is no null byte (`\0`) among the first `n` bytes, the destination will not be null-terminated!
  */
-char* copy(char * dest, const char * src, size_t n);
+char* copy(char * dest, const char * src, size_t n, bool zero_remainder = false);
 
 /*! \brief Duplicate a string
  * \param s pointer to a string
@@ -227,8 +229,8 @@ char* duplicate(const char *s);
 
 /*! \brief Duplicate a string
  * \param s pointer to a string
- * \param n maximum length
- * \return pointer to a duplicated string (up to maximum length, always null-terminated),
+ * \param n available bytes to allocate
+ * \return pointer to a duplicated string (with `n+1` bytes, always null-terminated),
  *         allocated with malloc or `nullptr` if allocation failed.
  */
 char* duplicate(const char *s, size_t n);

@@ -36,7 +36,7 @@ extern "C" char * strcpy(char *dest, const char *src) { //NOLINT
 }
 
 extern "C" char * strncpy(char *dest, const char *src, size_t n) {
-	return String::copy(dest, src, n);
+	return String::copy(dest, src, n, true);
 }
 
 extern "C" char * strdup(const char *s) {

@@ -25,6 +25,19 @@ int main(int argc, const char *argv[]) {
 	cout << "String::find_or_end(s, \"barabara\") = " << String::find_or_end(s, "barabara") << endl;
 	cout << "String::find_last(s, \"barabara\") = " << String::find_last(s, "barabara") << endl;
 
+	cout << "String::starts_with(s, \"Rha\") = " << String::starts_with(s, "Rha") << endl;
+	cout << "String::starts_with(s, \"bar\") = " << String::starts_with(s, "bar") << endl;
+	cout << "String::ends_with(s, \"bar\") = " << String::ends_with(s, "bar") << endl;
+	cout << "String::ends_with(s, \"en!\") = " << String::ends_with(s, "en!") << endl;
+
+	cout << "String::compare(s, \"Rhabarber\", 8) -> " << (String::compare(s, "Rhabarber", 8) == 0) << endl;
+	cout << "String::compare(s, \"Rhabarber\", 9) -> " << (String::compare(s, "Rhabarber", 9) == 0) << endl;
+	cout << "String::compare(s, \"Rhabarber!\", 9) -> " << (String::compare(s, "Rhabarber!", 9) == 0) << endl;
+	cout << "String::compare(s, \"RHABARBER\", 9) -> " << (String::compare(s, "RHABARBER", 9) == 0) << endl;
+	cout << "String::compare_case(s, \"RHABARBER\", 9) -> " << (String::compare_case(s, "RHABARBER", 9) == 0) << endl;
+	cout << "String::compare_case(s, \"RHABARBER!\", 9) -> " << (String::compare_case(s, "RHABARBER!", 9) == 0) << endl;
+	cout << "String::compare_case(s, \"BARBERA!\", 8) -> " << (String::compare_case(s, "BARBERA!", 8) == 0) << endl;
+
 	{
 		cout << "String::replace(s, \"bar\", \" BAR \", 5) = ";
 		const char * r = String::replace(s, "bar", " BAR ", 5);
@@ -102,6 +115,25 @@ int main(int argc, const char *argv[]) {
 		cout << "String::split_inplace(t, \"bar\"):" << endl;
 		for (auto p : String::split_inplace(String::copy(t, s), "bar"))
 			cout << " - " << p << endl;
+	}
+	{
+		char t[String::len(s)];
+		cout << "String::copy(t, s) = " << String::copy(t, s) << endl;
+		cout << "String::copy(t, \"BAR\\0BAR\", 3, true) = " << String::copy(t, "BAR\0BAR", 3, true) << endl;
+		cout << "String::copy(t, \"bar\\0bar\", 12, true) = " << String::copy(t, "bar\0bar", 12, true) << endl;
+		for (size_t i = 0; i < String::len(s); i++)
+			cout << (i == 0 ? " - '" : ", '")  << t[i] << "'";
+		cout << endl;
+	}
+	{
+		char * t = String::duplicate(s);
+		cout << "String::duplicate(s) = " << t << endl;
+		Memory::free(t);
+	}
+	{
+		char * t = String::duplicate(s, 9);
+		cout << "String::duplicate(s, 9) = " << t << endl;
+		Memory::free(t);
 	}
 	return 0;
 }
