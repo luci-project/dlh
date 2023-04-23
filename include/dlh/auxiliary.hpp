@@ -20,7 +20,7 @@ struct alignas(16) Auxiliary {
 		AT_EGID              = 14,  ///< Effective gid
 		AT_PLATFORM          = 15,  ///< String identifying platform.
 		AT_HWCAP             = 16,  ///< Machine-dependent hints about processor capabilities.
-		AT_CLKTCK            = 17,  ///< Frequency of times()
+		AT_CLKTCK            = 17,  ///< Frequency of times
 		AT_FPUCW             = 18,  ///< Used FPU control word.
 		AT_DCACHEBSIZE       = 19,  ///< Data cache block size.
 		AT_ICACHEBSIZE       = 20,  ///< Instruction cache block size.
