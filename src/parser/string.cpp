@@ -90,7 +90,7 @@ bool string(long long & target, const char * value) {
 
 	unsigned long long v = 0;
 	if (string(v, value)) {
-		target = sign * v;
+		target = static_cast<long long>(sign * v);
 		return (sign < 0 && v <= __LONG_LONG_MAX__ + 1ULL) || (sign >= 0 && v <= __LONG_LONG_MAX__);
 	}
 	return false;

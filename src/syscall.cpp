@@ -11,9 +11,9 @@ namespace Syscall {
 template <typename T>
 static inline ReturnValue<T> retval(unsigned long r) {
 	if (r > -4096UL)
-		return ReturnValue<T>{ (Errno)(-r) };
+		return ReturnValue<T>{ static_cast<Errno>(-r) };
 	else
-		return ReturnValue<T>{ (T)(r), ENONE };
+		return ReturnValue<T>{ static_cast<T>(r), ENONE };
 }
 
 // TODO use sysconf
@@ -35,7 +35,7 @@ static int __syscall_clock_gettime(clockid_t clk, struct timespec *ts) {
 	if (ret == -ENOSYS) {
 		if (clk == CLOCK_REALTIME) {
 			__syscall(SYS_gettimeofday, ts, 0);
-			ts->tv_nsec = static_cast<int>(ts->tv_nsec) * 1000;
+			ts->tv_nsec *= 1000L;
 			return 0;
 		}
 		ret = -EINVAL;
@@ -53,8 +53,8 @@ static int __syscall_clock_getres(clockid_t clk, struct timespec *res) {
 	return __syscall(SYS_clock_getres, clk, res);
 }
 int (*__clock_getres)(clockid_t, struct timespec *) = __syscall_clock_getres;
-ReturnValue<int> clock_getres(clockid_t clk, struct timespec *ts) {
-	return retval<int>(__clock_getres(clk, ts));
+ReturnValue<int> clock_getres(clockid_t clk, struct timespec *res) {
+	return retval<int>(__clock_getres(clk, res));
 }
 
 static int __syscall_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache) {
@@ -96,7 +96,7 @@ ReturnValue<int> tgkill(pid_t tgid, pid_t tid, signal_t sig) {
 
 
 ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim) {
-	unsigned long k_rlim[2];
+	unsigned long k_rlim[2] = { ~0ULL, ~0ULL };
 	auto ret = retval<int>(__syscall(SYS_prlimit64, 0, resource, 0, rlim));
 	if (ret.success() || ret.error() != ENOSYS) {
 		return ReturnValue<int>{ret};
@@ -104,8 +104,8 @@ ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim) {
 		ret = -1;
 		return ReturnValue<int>{ret};
 	} else {
-		rlim->rlim_cur = k_rlim[0] == -1UL ? (~0ULL) : k_rlim[0];
-		rlim->rlim_max = k_rlim[1] == -1UL ? (~0ULL) : k_rlim[1];
+		rlim->rlim_cur = k_rlim[0];
+		rlim->rlim_max = k_rlim[1];
 		return ReturnValue<int>{0};
 	}
 }
@@ -148,7 +148,8 @@ ReturnValue<int> sigaction(int sig, const struct sigaction * __restrict__ sa, st
 
 ReturnValue<int> raise(signal_t sig) {
 	// TODO
-	unsigned long set, mask = { 0xfffffffc7fffffff };
+	unsigned long set;
+	unsigned long mask = 0xfffffffc7fffffffUL;
 	__syscall(SYS_rt_sigprocmask, SIG_BLOCK, &mask, &set, 8);
 	auto ret = __syscall(SYS_tgkill, getpid(), gettid(), sig);
 	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &set, 0, 8);
@@ -174,9 +175,9 @@ ReturnValue<pid_t> wait(int * status) {
 	// We should not have the necessary privileges
 	asm volatile("hlt" ::: "memory");
 	// or division by zero should cause a trap
-	*reinterpret_cast<volatile char *>(0) = 0;
+	*reinterpret_cast<volatile char *>(0) = 0;  // NOLINT
 	// or wait forever if above didn't work
-	while(1) {}
+	while(true) {}
 	__builtin_unreachable();
 }
 
@@ -196,9 +197,9 @@ ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len
 		return retval<uintptr_t>(__syscall(SYS_mremap, old_addr, old_len, new_len, flags, new_addr));
 }
 
-ReturnValue<int> mprotect(uintptr_t addr, size_t len, int prot) {
-	size_t start = addr & -PAGE_SIZE;
-	size_t end = reinterpret_cast<size_t>(reinterpret_cast<char *>(addr) + len + PAGE_SIZE - 1) & -PAGE_SIZE;
+ReturnValue<int> mprotect(uintptr_t start, size_t len, int prot) {
+	size_t end = reinterpret_cast<size_t>(reinterpret_cast<char *>(start) + len + PAGE_SIZE - 1) & -PAGE_SIZE;
+	start &= -PAGE_SIZE;
 	return retval<int>(__syscall(SYS_mprotect, start, end-start, prot));
 }
 
@@ -262,7 +263,7 @@ ReturnValue<ssize_t> recv(int fd, void * __restrict__  buf, size_t len, int flag
 
 ReturnValue<int> open(const char *filename, int flags, int mode) {
 	int fd = __syscall(SYS_open, filename, flags, mode);
-	if (fd >= 0 && (flags & O_CLOEXEC))
+	if (fd >= 0 && (flags & O_CLOEXEC) != 0)
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
 
 	return retval<int>(fd);
@@ -343,11 +344,11 @@ ReturnValue<int> memfd_create(const char *name, unsigned flags) {
 ReturnValue<int>pipe(int fd[2], int flag) {
 	int r = __syscall(SYS_pipe2, fd, flag);
 	if (r == -ENOSYS && (r = __syscall(SYS_pipe, fd)) == 0) {
-		if (flag & O_CLOEXEC) {
+		if ((flag & O_CLOEXEC) != 0) {
 			fcntl(fd[0], F_SETFD, FD_CLOEXEC);
 			fcntl(fd[1], F_SETFD, FD_CLOEXEC);
 		}
-		if (flag & O_NONBLOCK) {
+		if ((flag & O_NONBLOCK) != 0) {
 			fcntl(fd[0], F_SETFL, O_NONBLOCK);
 			fcntl(fd[1], F_SETFL, O_NONBLOCK);
 		}
@@ -357,7 +358,7 @@ ReturnValue<int>pipe(int fd[2], int flag) {
 
 ReturnValue<int> inotify_init(int flags) {
 	int r = __syscall(SYS_inotify_init1, flags);
-	if (r == -ENOSYS && !flags)
+	if (r == -ENOSYS && flags != 0)
 		r = __syscall(SYS_inotify_init);
 	return retval<int>(r);
 }

@@ -802,19 +802,19 @@ class HashMap : protected HashSet<KeyValue<K, V>, C, L> {
 	using typename Base::ConstIterator;
 	using typename Base::ReverseIterator;
 	using typename Base::ConstReverseIterator;
-	using typename Base::begin;
-	using typename Base::end;
-	using typename Base::rbegin;
-	using typename Base::rend;
-	using typename Base::find;
-	using typename Base::contains;
-	using typename Base::resize;
-	using typename Base::rehash;
-	using typename Base::empty;
-	using typename Base::size;
-	using typename Base::bucket_size;
-	using typename Base::bucket_count;
-	using typename Base::clear;
+	using Base::begin;
+	using Base::end;
+	using Base::rbegin;
+	using Base::rend;
+	using Base::find;
+	using Base::contains;
+	using Base::resize;
+	using Base::rehash;
+	using Base::empty;
+	using Base::size;
+	using Base::bucket_size;
+	using Base::bucket_count;
+	using Base::clear;
 
 	/*! \brief Insert element */
 	inline Pair<Iterator, bool> insert(const K& key, const V& value) {

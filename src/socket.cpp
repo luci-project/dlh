@@ -33,12 +33,12 @@ bool inet_aton(const char *s, struct in_addr *dest) {
 			default:
 				return false;
 		}
-	} while (*s++);
+	} while ((*s++) != 0);
 
 	if (dots < 3)
 		addr <<= 8 * (3 - dots);
 
-	if (dest)
+	if (dest != 0)
 		dest->s_addr = htonl(addr);
 
 	return true;

@@ -28,7 +28,7 @@ static constexpr void prefix(const char* needle, size_t needle_len, size_t * n) 
 	}
 }
 
-static constexpr const char * find(const char *haystack, const char* needle, size_t haystack_len, size_t needle_len, size_t * n, size_t & pos) {
+static constexpr const char * find(const char *haystack, const char* needle, size_t haystack_len, size_t needle_len, const size_t * n, size_t & pos) {
 	assert(haystack_len > 0 && needle_len > 0 && n != nullptr);
 
 	if (haystack_len - pos >= needle_len) {
@@ -137,7 +137,8 @@ const char* find_last(const char *haystack, const char* needle) {
 		size_t n[needle_len + 1];
 		prefix(needle, needle_len, n);
 		size_t pos = 0;
-		const char *tmp, *last = nullptr;
+		const char *last = nullptr;
+		const char *tmp;
 		while ((tmp = find(haystack, needle, haystack_len, needle_len, n, pos)) != nullptr) {
 			last = tmp;
 			pos++;
@@ -151,14 +152,14 @@ const char* find_last(const char *haystack, const char* needle) {
 char * replace_inplace(char *target, int from, int to, size_t max) {
 	for (size_t i = 0; target != nullptr && target[i] != '\0'; i++)
 		if (max > 0 && target[i] == from) {
-			target[i] = to;
+			target[i] = static_cast<char>(to);
 			max--;
 		}
 	return target;
 }
 
-char * replace(const char *target, int from, int to, size_t max) {
-	return target == nullptr ? nullptr : replace_inplace(duplicate(target), from, to, max);
+char * replace(const char *source, int from, int to, size_t max) {
+	return source == nullptr ? nullptr : replace_inplace(duplicate(source), from, to, max);
 }
 
 bool starts_with(const char *str, const char * start) {
@@ -190,9 +191,9 @@ static inline size_t split(const char *source, const char * delimiter, size_t so
 	size_t n[delimiter_len + 1];
 	prefix(delimiter, delimiter_len, n);
 
-	size_t found = 0, pos = 0;
-	const char *tmp;
-	while (max > 0 && (tmp = find(source, delimiter, source_len, delimiter_len, n, pos)) != nullptr) {
+	size_t found = 0;
+	size_t pos = 0;
+	while (max > 0 && find(source, delimiter, source_len, delimiter_len, n, pos) != nullptr) {
 		part[found++] = pos;
 		pos += delimiter_len;
 		max--;
@@ -229,10 +230,10 @@ char * replace_inplace(char *target, size_t target_len, const char * from, const
 		size_t to_len = len(to);
 
 		size_t part[target_len / from_len];
-		size_t parts = split(target, from, target_len, from_len, part, max);
+		size_t part_len = split(target, from, target_len, from_len, part, max);
 
 		char tmp[target_len];
-		combine(target, copy(tmp, target, target_len), to, part, target_len, from_len, to_len, parts);
+		combine(target, copy(tmp, target, target_len), to, part, target_len, from_len, to_len, part_len);
 	}
 	return target;
 }
@@ -254,7 +255,7 @@ char * replace(const char *source, const char * from, const char * to, size_t ma
 }
 
 static constexpr char to_lower(char c) {
-	return c >= 'A' && c <= 'Z' ? c + 32 : c;
+	return c >= 'A' && c <= 'Z' ? static_cast<char>(c + 32) : c;
 }
 
 int compare_case(const char *s1, const char *s2) {
@@ -332,7 +333,8 @@ Vector<const char *> split_inplace(char * source, int delimiter, size_t max) {
 Vector<const char *> split(const char * source, int delimiter, size_t max) {
 	Vector<const char *> r;
 	if (source != nullptr) {
-		size_t s = 0, i;
+		size_t s = 0;
+		size_t i;
 		for (i = 0; source[i] != '\0'; ++i)
 			if (source[i] == delimiter && max > 0) {
 				if (s < i) {
@@ -392,7 +394,7 @@ Vector<const char *> split(const char * source, const char * delimiter, size_t m
 		size_t delimiter_len = len(delimiter);
 		assert(delimiter_len > 0);
 		size_t source_len = len(source);
-		size_t part[source_len / delimiter_len];
+		size_t part[source_len / delimiter_len + 1];
 		size_t found = split(source, delimiter, source_len, delimiter_len, part, max);
 
 		size_t pos = 0;

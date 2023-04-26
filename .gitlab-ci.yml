@@ -3,3 +3,10 @@ test-check:
   script:
     - make check
 
+style:
+  image: inf4/stubs:clang-x64
+  before_script:
+    - apt-get update && apt-get install -y python3 python3-pyparsing libc++-dev cpplint
+  script:
+    - make lint
+    - make tidy

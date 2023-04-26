@@ -84,14 +84,7 @@ struct Comparison {
 	 * \return hash value
 	 */
 	static constexpr inline uint32_t hash(uint64_t v) {
-		union {
-			struct {
-				uint32_t a, b;
-			} half;
-			uint64_t full;
-		};
-		full = v;
-		return half.a ^ half.b;
+		return static_cast<uint32_t>(v & 0xFFFFFFFFUL) ^ static_cast<uint32_t>((v >> 32) & 0xFFFFFFFFUL);
 	}
 
 	static constexpr inline uint32_t hash(int64_t v) {
@@ -122,7 +115,7 @@ struct Comparison {
 		return static_cast<uint32_t>(v);
 	}
 
-	static constexpr inline uint32_t hash(void * v) {
+	static inline uint32_t hash(void * v) {
 		return hash(reinterpret_cast<uint64_t>(v));
 	}
 

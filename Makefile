@@ -3,6 +3,11 @@ VERBOSE = @
 SRCFOLDER = src
 BUILDDIR ?= .build
 
+CPPLINT ?= cpplint
+TIDY ?= clang-tidy
+TIDYCONFIG ?= .clang-tidy
+TIDYIGNORE := %$(SRCFOLDER)/libc/stdlib_qsort.cpp
+
 AR ?= ar
 CXX ?= g++
 
@@ -67,6 +72,17 @@ $(BUILDINFO): FORCE
 	@echo 'const char * build_$(LIBNAME)_version() { return "$(shell git describe --dirty --always --tags)"; } ' \
 	'const char * build_$(LIBNAME)_date() { return "$(shell date -R)"; }' \
 	'const char * build_$(LIBNAME)_flags() { return "$(CXXFLAGS)"; }' | $(CXX) $(CXXFLAGS) -x c++ -c -o $@ -
+
+lint::
+	@if $(CPPLINT) --quiet --recursive . ; then \
+		echo "Congratulations, coding style obeyed!" ; \
+	else \
+		echo "Coding style violated -- see CPPLINT.cfg for details" ; \
+		exit 1 ; \
+	fi
+
+tidy:: $(TIDYCONFIG)
+	$(VERBOSE) $(TIDY) --config-file=$< $(filter-out $(TIDYIGNORE),$(SOURCES)) -- -stdlib=libc++  $(CXXFLAGS)
 
 clean::
 	$(VERBOSE) rm -rf $(BUILDDIR)

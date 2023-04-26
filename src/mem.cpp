@@ -13,9 +13,16 @@
 
 namespace Memory {
 
+#define PAGE_SIZE 0x1000UL
+
 #ifndef MMAP_ALLOC_THREASHOLD
 // Threshold to use mmap instead of alloc
-#define MMAP_ALLOC_THREASHOLD (32 * 0x1000)
+#define MMAP_ALLOC_THREASHOLD (32 * PAGE_SIZE)
+#endif
+
+#ifndef MMAP_ALLOC_START
+// Start address for the mmap base allocator
+#define MMAP_ALLOC_START (0x700000000000UL)
 #endif
 
 #ifndef MIN_ALLOC_LOG2
@@ -52,12 +59,12 @@ static Allocator::Buddy<MIN_ALLOC_LOG2, MAX_ALLOC_LOG2, reserve_sbrk> allocator;
 // Use mmap based allocator
 static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 	// Mapping address
-	static uintptr_t mmap_addr = 0x300000000000UL;
+	static uintptr_t mmap_addr = MMAP_ALLOC_START;
 
 	uintptr_t ptr = 0;
 
 	// Calculate size uising 1 MiB chunks
-	const size_t block_size = 256 * 0x1000;
+	const size_t block_size = 256 * PAGE_SIZE;
 	size = Math::align_up(size, block_size);
 
 	if (max_ptr == 0) {
@@ -207,7 +214,7 @@ uintptr_t realloc(uintptr_t addr, size_t size) {
 			// First try resize in allocator (cheap)
 			if (allocator.resize(addr, size)) {
 				return addr;
-			} else if ((new_addr = MemoryMap::create(size)) && addr != 0) {
+			} else if ((new_addr = MemoryMap::create(size)) != 0 && addr != 0) {
 				// Copy contents from allocator to mapping
 				copy(new_addr, addr, Math::min(size, old_size));
 				// Remove old memory

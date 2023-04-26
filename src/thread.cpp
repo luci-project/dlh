@@ -96,7 +96,7 @@ int Thread::kill(signal_t sig) {
 	if (!active())
 		return ESRCH;
 	else
-		return -__syscall(SYS_tkill, tid, sig);
+		return static_cast<int>(-__syscall(SYS_tkill, tid, sig));
 }
 
 void Thread::detach() {
@@ -117,7 +117,7 @@ bool Thread::join(void ** result) {
 	if (tid != -1) {
 		pid_t tmp;
 		while ((tmp = tid) > 0)
-			if (Syscall::futex(reinterpret_cast<int*>(&tid), FUTEX_WAIT, tmp, nullptr, NULL, 0).value() != 0)
+			if (Syscall::futex(reinterpret_cast<int*>(&tid), FUTEX_WAIT, tmp, nullptr, nullptr, 0).value() != 0)
 				return false;
 
 		if (__atomic_exchange_n(&tid, -1, __ATOMIC_RELEASE) == 0) {

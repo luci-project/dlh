@@ -74,7 +74,7 @@ BufferStream& BufferStream::writefill(unsigned long long ival, bool minus, size_
 
 	size_t pad = _width > n ? _width - n : 0;
 	_width = 0;
-	if (pad && !_left && (_fill != '0' || (!minus && _sign != PLUS && _base == 10))) {
+	if (pad != 0 && !_left && (_fill != '0' || (!minus && _sign != PLUS && _base == 10))) {
 		write(_fill, pad);
 		pad = 0;
 	}
@@ -112,7 +112,7 @@ BufferStream& BufferStream::writefill(unsigned long long ival, bool minus, size_
 		write('0', precision - ival_precision);
 
 	// Special case: Zeros after prefix (for base != 10)
-	if (pad && !_left && _fill == '0' && (minus || _sign == PLUS || _base != 10))
+	if (pad != 0 && !_left && _fill == '0' && (minus || _sign == PLUS || _base != 10))
 		write(_fill, pad);
 
 	// print number char by char
@@ -127,7 +127,7 @@ BufferStream& BufferStream::writefill(unsigned long long ival, bool minus, size_
 	}
 
 	// Fill right
-	if (pad && _left)
+	if (pad != 0 && _left)
 		write(_fill, pad);
 
 	return *this;
@@ -144,8 +144,8 @@ BufferStream& BufferStream::write_str(const char* string, size_t limit) {
 	return *this;
 }
 
-BufferStream& BufferStream::write(const char* string, size_t n) {
-	for (size_t i = 0; i < n; i++)
+BufferStream& BufferStream::write(const char* string, size_t size) {
+	for (size_t i = 0; i < size; i++)
 		if (_pos + 1 < _len) {
 			_bufptr[_pos++] = string[i];
 			if (_pos + 1 == _len)
@@ -155,8 +155,8 @@ BufferStream& BufferStream::write(const char* string, size_t n) {
 	return *this;
 }
 
-BufferStream& BufferStream::write(char c, size_t n) {
-	for (size_t i = 0; i < n; i++)
+BufferStream& BufferStream::write(char c, size_t num) {
+	for (size_t i = 0; i < num; i++)
 		if (_pos + 1 < _len) {
 			_bufptr[_pos++] = c;
 			if (_pos + 1 == _len)
@@ -254,7 +254,7 @@ size_t BufferStream::format(const char * format, va_list args) {
 	size_t precision = SIZE_MAX;
 	const char * format_start = nullptr;
 
-	while (*format) {
+	while (*format != 0) {
 		switch (state) {
 			case MARKER:
 				if (*format == '%') {
@@ -317,8 +317,6 @@ size_t BufferStream::format(const char * format, va_list args) {
 				if (*format >= '0' && *format <= '9') {
 					_width = _width * 10 + *format - '0';
 					break;
-				} else {
-					state = PRECISIONDOT;
 				}
 				[[fallthrough]];
 
@@ -337,8 +335,6 @@ size_t BufferStream::format(const char * format, va_list args) {
 				if (*format >= '0' && *format <= '9') {
 					precision = precision * 10 + *format - '0';
 					break;
-				} else {
-					state = LENGTH;
 				}
 				[[fallthrough]];
 
@@ -363,7 +359,7 @@ size_t BufferStream::format(const char * format, va_list args) {
 						length = length != LONG ? LONG : LONGLONG;
 						break;
 					case 'j':
-						length = sizeof(__INTMAX_TYPE__) == sizeof(long) ? LONG : LONGLONG;
+						length = sizeof(__INTMAX_TYPE__) == sizeof(long) ? LONG : LONGLONG;  // NOLINT
 						break;
 					case 'z':
 						length = sizeof(size_t) == sizeof(long) ? LONG : LONGLONG;
@@ -414,7 +410,7 @@ size_t BufferStream::format(const char * format, va_list args) {
 						break;
 
 					case 'n':
-						*va_arg(args, int *) = _pos - start;
+						*va_arg(args, int *) = static_cast<int>(_pos - start);
 						format_start = nullptr;
 						state = NONE;
 						break;

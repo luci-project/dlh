@@ -217,16 +217,18 @@ Vector<const char *> lines(const char * path) {
 }
 
 void __procfdname(char *buf, unsigned fd) {
-	unsigned i, j;
-	for (i=0; (buf[i] = "/proc/self/fd/"[i]); i++) {}
-	if (!fd) {
+	unsigned i = 0;
+	for (; (buf[i] = "/proc/self/fd/"[i]) != 0; i++) {}
+	if (fd == 0) {
 		buf[i] = '0';
 		buf[i+1] = 0;
 		return;
 	}
-	for (j=fd; j; j/=10, i++) {}
+	unsigned j = fd;
+	for (; j != 0; j/=10, i++) {}
 	buf[i] = 0;
-	for (; fd; fd/=10) buf[--i] = '0' + fd%10;
+	for (; fd != 0; fd/=10)
+		buf[--i] = static_cast<char>('0' + fd % 10);
 }
 
 bool absolute(int fd, char * __restrict__ buffer, size_t bufferlen, size_t & pathlen) {

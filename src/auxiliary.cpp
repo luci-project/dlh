@@ -26,7 +26,7 @@ Auxiliary * Auxiliary::data(Auxiliary::type type) {
 }
 
 Auxiliary Auxiliary::vector(Auxiliary::type type) {
-	auto d = data(type);
+	Auxiliary * d = data(type);
 	if (d == nullptr)
 		return Auxiliary{};
 	else

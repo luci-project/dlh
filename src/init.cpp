@@ -27,7 +27,7 @@ extern "C" void _fini() {}
 
 void * __dlh_stack_pointer = nullptr;
 void (*__dlh_atexit)() = nullptr;
-__attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
+__attribute__((__noinline__)) void __dlh_init(char **envp, const char *name) {
 	(void)name;
 	environ = envp;
 

@@ -86,7 +86,9 @@ class BufferStream {
 	explicit BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
 
 	/*! \brief Destructor */
-	virtual ~BufferStream() { flush(); }
+	virtual ~BufferStream() {
+		flush();  // NOLINT
+	}
 
 	/*! \brief get current string
 	 * \return pointer to current (!) null byte terminated buffer (might be invalid after next stream operation)

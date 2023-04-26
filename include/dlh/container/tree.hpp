@@ -1178,24 +1178,24 @@ class TreeMap : protected TreeSet<KeyValue<K, V>, C> {
 	using typename Base::ConstIterator;
 	using typename Base::ReverseIterator;
 	using typename Base::ConstReverseIterator;
-	using typename Base::begin;
-	using typename Base::lowest;
-	using typename Base::lower;
-	using typename Base::floor;
-	using typename Base::ceil;
-	using typename Base::higher;
-	using typename Base::highest;
-	using typename Base::end;
-	using typename Base::rbegin;
-	using typename Base::rend;
-	using typename Base::find;
-	using typename Base::contains;
-	using typename Base::resize;
-	using typename Base::empty;
-	using typename Base::size;
-	using typename Base::clear;
+	using Base::begin;
+	using Base::lowest;
+	using Base::lower;
+	using Base::floor;
+	using Base::ceil;
+	using Base::higher;
+	using Base::highest;
+	using Base::end;
+	using Base::rbegin;
+	using Base::rend;
+	using Base::find;
+	using Base::contains;
+	using Base::resize;
+	using Base::empty;
+	using Base::size;
+	using Base::clear;
 #ifndef NDEBUG
-	using typename Base::check;
+	using Base::check;
 #endif
 
 	inline Pair<Iterator, bool> insert(const K& key, const V& value) {

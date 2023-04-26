@@ -24,7 +24,7 @@ class Config {
 	TreeMap<const char *, const char *> contents;
 
  public:
-	explicit Config(const char * file, Source source = CONFIG_ONLY, bool consume_env = false);
+	explicit Config(const char * path, Source source = CONFIG_ONLY, bool consume_env = false);
 
 	const char * value(const char * name);
 
