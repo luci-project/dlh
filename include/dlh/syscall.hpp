@@ -27,8 +27,8 @@ class ReturnValue {
 	ReturnValue() : _e(ENONE) {}
 	explicit ReturnValue(Errno e) :  _v((T)(-1)), _e(e) {}
 	explicit ReturnValue(T v, Errno e = ENONE) :  _v(v), _e(e) {}
-	explicit ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
-	explicit ReturnValue(ReturnValue&& other) = default;
+	ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
+	ReturnValue(ReturnValue&& other) = default;
 
 	inline T* operator->() {
 		return &_v;
