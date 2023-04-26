@@ -93,7 +93,7 @@ time_t DateTime::to_timestamp() const {
 
 void DateTime::to_current_time() {
 	timespec ts;
-	if (auto gettime = Syscall::clock_gettime(CLOCK_REALTIME, &ts)) {
+	if (Syscall::clock_gettime(CLOCK_REALTIME, &ts).success()) {
 		from_timespec(ts);
 	} else {
 		from_timestamp(Syscall::time());
