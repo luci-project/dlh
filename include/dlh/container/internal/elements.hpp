@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/mem.hpp>
@@ -14,8 +18,8 @@ struct Elements {
 
 	struct Node {
 		union {
-			struct __attribute__ ((packed)) {
-				uint64_t a,b;
+			struct __attribute__((packed)) {
+				uint64_t a, b;
 			} mem;
 			struct {
 				bool active;
@@ -64,11 +68,12 @@ struct Elements {
 			auto s = e._capacity * sizeof(Node);
 			_node = Memory::alloc<Node>(s + reserve);
 			assert(_node != nullptr);
-			if (is_integral<T>::value || is_reference<T>::value)
+			if (is_integral<T>::value || is_reference<T>::value) {
 				Memory::copy(_node, e._node, s);
-			else
+			} else {
 				for (size_t i = 0; i < e._next; i++)
 					_node[i] = e._node[i];
+			}
 		}
 	}
 

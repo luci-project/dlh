@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/socket.hpp>
 
 namespace Socket {
@@ -32,7 +36,7 @@ bool inet_aton(const char *s, struct in_addr *dest) {
 	} while (*s++);
 
 	if (dots < 3)
-		addr <<= 8 * (3 - dots) ;
+		addr <<= 8 * (3 - dots);
 
 	if (dest)
 		dest->s_addr = htonl(addr);

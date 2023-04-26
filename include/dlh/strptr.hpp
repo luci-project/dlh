@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/types.hpp>
@@ -9,7 +13,7 @@ struct StrPtr {
 	uint32_t hash;
 	size_t len;
 
-	constexpr StrPtr(const char * s = nullptr) : str(s), hash(String::hash(s)), len(String::len(s)) {}
+	explicit constexpr StrPtr(const char * s = nullptr) : str(s), hash(String::hash(s)), len(String::len(s)) {}
 
 	constexpr StrPtr(const StrPtr& s) : str(s.str), hash(s.hash), len(s.len) {}
 
@@ -18,10 +22,12 @@ struct StrPtr {
 	 * \return string starting at first occurence of character or full string if not found
 	 */
 	constexpr StrPtr find(char c) const {
-		if (str != nullptr)
-			for (const char * i = str; *i != '\0'; ++i)
+		if (str != nullptr) {
+			for (const char * i = str; *i != '\0'; ++i) {
 				if (*i == c)
 					return StrPtr(i);
+			}
+		}
 		return *this;
 	}
 
@@ -30,10 +36,12 @@ struct StrPtr {
 	 * \return string starting after last occurence of character or full string if not found
 	 */
 	constexpr StrPtr find_last(char c) const {
-		if (str != nullptr)
-			for (size_t l = len; l > 0; --l)
+		if (str != nullptr) {
+			for (size_t l = len; l > 0; --l) {
 				if (str[l] == c)
 					return StrPtr(str + l + 1);
+			}
+		}
 		return *this;
 	}
 

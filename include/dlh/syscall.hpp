@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/error.hpp>
@@ -21,37 +25,128 @@ class ReturnValue {
 
  public:
 	ReturnValue() : _e(ENONE) {}
-	ReturnValue(Errno e) :  _v((T)(-1)), _e(e) {}
-	ReturnValue(T v, Errno e = ENONE) :  _v(v), _e(e) {}
-	ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
-	ReturnValue(ReturnValue&& other) = default;
+	explicit ReturnValue(Errno e) :  _v((T)(-1)), _e(e) {}
+	explicit ReturnValue(T v, Errno e = ENONE) :  _v(v), _e(e) {}
+	explicit ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
+	explicit ReturnValue(ReturnValue&& other) = default;
 
-	inline T* operator->() { return &_v; }
-	inline const T* operator->() const { return &_v; }
-	inline T& operator*() & { return _v; }
-	inline const T& operator*() const & { return _v; }
-	inline bool success() const { return _e == ENONE; }
-	inline bool failed() const { return _e != ENONE; }
-	inline Errno error() const { return _e; }
-	inline const char * error_message() const { return __errno_string(_e); }
-	inline void warn_on_error(const char * msg = nullptr) const { if (!success()) warn(msg, error_message()); }
-	inline void exit_on_error(const char * msg = nullptr) const { if (!success()) die(msg, error_message()); }
-	inline void die_on_error(const char * msg = nullptr) const { if (!success()) die(msg, error_message()); }
-	inline T& value() & { return _v; }
-	inline const T& value() const & { return _v; }
-	inline T& value_or_exit(const char * msg = nullptr) & { exit_on_error(msg); return value(); }
-	inline const T& value_or_exit(const char * msg = nullptr) const & { exit_on_error(msg); return value(); }
-	inline T& value_or_die(const char * msg = nullptr) & { die_on_error(msg); return value(); }
-	inline const T& value_or_die(const char * msg = nullptr) const & { die_on_error(msg); return value(); }
-	inline T& value_or_default(const T& v) & { return success() ? value() : v; }
-	inline const T& value_or_default(const T& v) const & { return success() ? value() : v; }
-	inline operator bool() const { return success(); }
-	template<typename O> ReturnValue & operator=(const ReturnValue<O>& other) { _e = other._e; _v = other._v; return *this; }
-	ReturnValue & operator=(const T& other) { _v = other; return *this; }
-	template<typename O> bool operator==(const ReturnValue<O>& other) const { return _e == other._e && _v == other._v; }
-	template<typename O> bool operator==(const O& other) const { return _e == ENONE && _v == other; }
-	template<typename O> bool operator!=(const ReturnValue<O>& other) const { return _e != other._e && _v != other._v; }
-	template<typename O> bool operator!=(const O& other) const { return _e != ENONE || _v != other; }
+	inline T* operator->() {
+		return &_v;
+	}
+
+	inline const T* operator->() const {
+		return &_v;
+	}
+
+	inline T& operator*() & {
+		return _v;
+	}
+
+	inline const T& operator*() const & {
+		return _v;
+	}
+
+	inline bool success() const {
+		return _e == ENONE;
+	}
+
+	inline bool failed() const {
+		return _e != ENONE;
+	}
+
+	inline Errno error() const {
+		return _e;
+	}
+
+	inline const char * error_message() const {
+		return __errno_string(_e);
+	}
+
+	inline void warn_on_error(const char * msg = nullptr) const {
+		if (!success())
+			warn(msg, error_message());
+	}
+
+	inline void exit_on_error(const char * msg = nullptr) const {
+		if (!success())
+			die(msg, error_message());
+	}
+
+	inline void die_on_error(const char * msg = nullptr) const {
+		if (!success())
+			die(msg, error_message());
+	}
+
+	inline T& value() & {
+		return _v;
+	}
+
+	inline const T& value() const & {
+		return _v;
+	}
+
+	inline T& value_or_exit(const char * msg = nullptr) & {
+		exit_on_error(msg);
+		return value();
+	}
+
+	inline const T& value_or_exit(const char * msg = nullptr) const & {
+		exit_on_error(msg);
+		return value();
+	}
+
+	inline T& value_or_die(const char * msg = nullptr) & {
+		die_on_error(msg);
+		return value();
+	}
+
+	inline const T& value_or_die(const char * msg = nullptr) const & {
+		die_on_error(msg);
+		return value();
+	}
+
+	inline T& value_or_default(const T& v) & {
+		return success() ? value() : v;
+	}
+
+	inline const T& value_or_default(const T& v) const & {
+		return success() ? value() : v;
+	}
+
+	inline operator bool() const {
+		return success();
+	}
+
+	template<typename O> ReturnValue & operator=(const ReturnValue<O>& other) {
+		_e = other._e;
+		_v = other._v;
+		return *this;
+	}
+
+	ReturnValue & operator=(const T& other) {
+		_v = other;
+		return *this;
+	}
+
+	template<typename O>
+	bool operator==(const ReturnValue<O>& other) const {
+		return _e == other._e && _v == other._v;
+	}
+
+	template<typename O>
+	bool operator==(const O& other) const {
+		return _e == ENONE && _v == other;
+	}
+
+	template<typename O>
+	bool operator!=(const ReturnValue<O>& other) const {
+		return _e != other._e && _v != other._v;
+	}
+
+	template<typename O>
+	bool operator!=(const O& other) const {
+		return _e != ENONE || _v != other;
+	}
 };
 
 

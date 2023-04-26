@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 // TODO: Auto generate from system headers
@@ -221,7 +225,7 @@ typedef uint32_t in_addr_t;
 struct in_addr {
 	in_addr_t s_addr;
 
-	in_addr(in_addr_t s_addr = -1) : s_addr(s_addr) {}
+	explicit in_addr(in_addr_t s_addr = -1) : s_addr(s_addr) {}
 };
 
 typedef enum : in_addr_t {
@@ -241,22 +245,34 @@ static inline in_addr_t inet_addr(const char *p) {
 }
 
 static inline uint16_t ntohs(uint16_t n) {
-	union { int i; char c; } u = { 1 };
+	union {
+		int i;
+		char c;
+	} u = { 1 };
 	return u.c ? __builtin_bswap16(n) : n;
 }
 
 static inline uint32_t ntohl(uint32_t n) {
-	union { int i; char c; } u = { 1 };
+	union {
+		int i;
+		char c;
+	} u = { 1 };
 	return u.c ? __builtin_bswap32(n) : n;
 }
 
 static inline uint16_t htons(uint16_t n) {
-	union { int i; char c; } u = { 1 };
+	union {
+		int i;
+		char c;
+	} u = { 1 };
 	return u.c ? __builtin_bswap16(n) : n;
 }
 
 static inline uint32_t htonl(uint32_t n) {
-	union { int i; char c; } u = { 1 };
+	union {
+		int i;
+		char c;
+	} u = { 1 };
 	return u.c ? __builtin_bswap32(n) : n;
 }
 
@@ -271,7 +287,8 @@ struct sockaddr_un {
 	sa_family_t sun_family;  /* Protocol family */
 	char sun_path[108];      /* Path name. */
 
-	sockaddr_un(sa_family_t family = PF_UNSPEC, const char * path = nullptr) : sun_family(family) {
+	explicit sockaddr_un(sa_family_t family = PF_UNSPEC, const char * path = nullptr)
+	 : sun_family(family) {
 		for (size_t i = 0; i < sizeof(sun_path); i++)
 			sun_path[i] = path != nullptr && *path != '\0' ? *(path++) : '\0';
 	}
@@ -285,7 +302,7 @@ struct sockaddr_in {
 	struct in_addr sin_addr;  /* Internet address */
 	char sin_zero[8];
 
-	sockaddr_in(sa_family_t family = PF_UNSPEC, uint16_t sin_port = 0, in_addr_t sin_addr = -1)
+	explicit sockaddr_in(sa_family_t family = PF_UNSPEC, uint16_t sin_port = 0, in_addr_t sin_addr = -1)
 	: sin_family(family), sin_port(sin_port), sin_addr(sin_addr) {
 		for (size_t i = 0; i < sizeof(sin_zero); i++)
 			sin_zero[i] = '\0';

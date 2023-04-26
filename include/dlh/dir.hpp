@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/syscall.hpp>
@@ -103,7 +107,7 @@ class Directory {
 		}
 	};
 
-	Directory(const char * path) {
+	explicit Directory(const char * path) {
 		if (auto open = Syscall::open(path, O_RDONLY|O_DIRECTORY|O_CLOEXEC)) {
 			fd = open.value();
 		} else {
@@ -127,5 +131,4 @@ class Directory {
 	Entry end() {
 		return Entry(nullptr, -1);
 	}
-
 };

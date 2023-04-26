@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/mem.hpp>
@@ -24,17 +28,17 @@ struct Comparison {
 	}
 
 	template<typename K, typename V, typename O>
-	static constexpr inline int compare(const KeyValue<K,V> & a, const O & b) {
+	static constexpr inline int compare(const KeyValue<K, V> & a, const O & b) {
 		return compare(a.key, b);
 	}
 
 	template<typename O, typename K, typename V>
-	static constexpr inline int compare(const O & a, const KeyValue<K,V> & b) {
+	static constexpr inline int compare(const O & a, const KeyValue<K, V> & b) {
 		return compare(a, b.key);
 	}
 
 	template<typename K, typename V, typename U, typename W>
-	static constexpr inline int compare(const KeyValue<K,V> & a, const KeyValue<U,W> & b) {
+	static constexpr inline int compare(const KeyValue<K, V> & a, const KeyValue<U, W> & b) {
 		return compare(a.key, b.key);
 	}
 
@@ -55,7 +59,7 @@ struct Comparison {
 	}
 
 	template<class OF, class OS>
-	static constexpr inline int compare(const Pair<OF,OS>& a, const Pair<OF,OS>& b) {
+	static constexpr inline int compare(const Pair<OF, OS>& a, const Pair<OF, OS>& b) {
 		int f = compare(a.first, b.first);
 		return f == 0 ? compare(a.second, b.second) : f;
 	}
@@ -147,12 +151,12 @@ struct Comparison {
 	}
 
 	template<class OK, class OV>
-	static constexpr inline uint32_t hash(const KeyValue<OK,OV>& o) {
+	static constexpr inline uint32_t hash(const KeyValue<OK, OV>& o) {
 		return hash(o.key);
 	}
 
 	template<class OF, class OS>
-	static constexpr inline uint32_t hash(const Pair<OF,OS>& o) {
+	static constexpr inline uint32_t hash(const Pair<OF, OS>& o) {
 		return hash(o.first) ^ hash(o.second);
 	}
 };

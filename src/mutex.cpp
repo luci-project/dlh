@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/mutex.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/syscall.hpp>
@@ -12,7 +16,7 @@ bool Mutex::lock(const struct timespec * __restrict__ at) {
 			state = __atomic_exchange_n(&var, FUTEX_LOCKED_WITH_WAITERS, __ATOMIC_RELEASE);
 
 		while (state != FUTEX_UNLOCKED) {
-			auto futex = Syscall::futex((int*)&var, FUTEX_WAIT, FUTEX_LOCKED_WITH_WAITERS, at, NULL, 0);
+			auto futex = Syscall::futex(reinterpret_cast<int*>(&var), FUTEX_WAIT, FUTEX_LOCKED_WITH_WAITERS, at, NULL, 0);
 			switch (futex.error()) {
 				case ENONE:
 				case EINTR:
@@ -39,6 +43,6 @@ bool Mutex::trylock() {
 
 void Mutex::unlock() {
 	if (__atomic_exchange_n(&var,  FUTEX_UNLOCKED, __ATOMIC_RELEASE) != FUTEX_LOCKED)
-		if (Syscall::futex((int*)&var, FUTEX_WAKE, 1, NULL, NULL, 0).failed())
+		if (Syscall::futex(reinterpret_cast<int*>(&var), FUTEX_WAKE, 1, NULL, NULL, 0).failed())
 			assert(false);
 }

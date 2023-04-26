@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/assert.hpp>
@@ -68,22 +72,22 @@ class TreeSet : public Elements<T> {
 			return &(ref._node[i].data);
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator==(const I& other) const {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator==(const X& other) const {
 			return C::compare(ref._node[i].data, other) == 0;
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator!=(const BaseIterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator!=(const X& other) const {
 			return C::compare(ref._node[i].data, other) != 0;
 		}
@@ -113,11 +117,12 @@ class TreeSet : public Elements<T> {
 	/*! \brief Copy constructor for a binary search tree from an element container
 	 * \param elements Elements container
 	 */
-	TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
+	explicit TreeSet(const Elements<T>& elements) : Elements<T>(elements) {
 		Elements<T>::_count = 0;
-		for (size_t i = 1; i < Elements<T>::_next; i++)
+		for (size_t i = 1; i < Elements<T>::_next; i++) {
 			if (Elements<T>::_node[i].tree.active && !insert(0, i, 0).second)
 				Elements<T>::_node[i].tree.active = false;
+		}
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 		assert(Elements<T>::_count <= elements._count);
 		assert(Elements<T>::_next == elements._next);
@@ -133,11 +138,12 @@ class TreeSet : public Elements<T> {
 	/*! \brief Move constructor for a binary search tree from an element container
 	 * \param elements container
 	 */
-	TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
+	explicit TreeSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		Elements<T>::_count = 0;
-		for (size_t i = 1; i < Elements<T>::_next; i++)
+		for (size_t i = 1; i < Elements<T>::_next; i++) {
 			if (Elements<T>::_node[i].tree.active && !insert(0, i, 0).second)
 				Elements<T>::_node[i].tree.active = false;
+		}
 		assert(empty() || !Elements<T>::_node[0].tree.active);
 		assert(Elements<T>::_count <= elements._count);
 		assert(Elements<T>::_next == elements._next);
@@ -150,9 +156,10 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename I>
 	explicit TreeSet(const I & begin, const I & end, size_t initial_capacity = 0) {
-		if (initial_capacity == 0)
+		if (initial_capacity == 0) {
 			for (I i = begin; i != end; ++i)
 				initial_capacity++;
+		}
 
 		resize(initial_capacity + 1);
 
@@ -223,7 +230,6 @@ class TreeSet : public Elements<T> {
 			BaseIterator::next();
 			return *this;
 		}
-
 	};
 
 	/*! \brief Reverse binary search tree iterator
@@ -278,7 +284,7 @@ class TreeSet : public Elements<T> {
 	 *         indicator if element was created (`true`) or has already been in the set (`false`)
 	 */
 	template<typename... ARGS>
-	Pair<Iterator,bool> emplace(ARGS&&... args) {
+	Pair<Iterator, bool> emplace(ARGS&&... args) {
 		increase();
 
 		// Create local element
@@ -287,7 +293,7 @@ class TreeSet : public Elements<T> {
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(Elements<T>::_node[Elements<T>::_next].data, i, c))
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 		else
 			return insert(i, Elements<T>::_next++, c);
 	}
@@ -297,13 +303,13 @@ class TreeSet : public Elements<T> {
 	 * \return iterator to the inserted element (`first`) and
 	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
 	 */
-	Pair<Iterator,bool> insert(const T &value) {
+	Pair<Iterator, bool> insert(const T &value) {
 		increase();
 
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(value, i, c)) {
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 		} else {
 			new (&Elements<T>::_node[Elements<T>::_next].data) T(value);
 			return insert(i, Elements<T>::_next++, c);
@@ -315,11 +321,11 @@ class TreeSet : public Elements<T> {
 	 * \return iterator to the inserted element (`first`) and
 	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
 	 */
-	Pair<Iterator,bool> insert(Node &&value) {
+	Pair<Iterator, bool> insert(Node &&value) {
 		int c = 0;
 		uint32_t i = _root;
 		if (contains_node(value.data, i, c)) {
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 		} else {
 			size_t n = 0;
 			if (!Elements<T>::is_node(value, n) || n == 0)
@@ -376,9 +382,9 @@ class TreeSet : public Elements<T> {
 	 */
 	Optional<T> erase(const BaseIterator & position) {
 		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active)
-			return { move(extract(position).data) };
+			return Optional<T>{move(extract(position).data)};
 		else
-			return {};
+			return Optional<T>{};
 	}
 
 	/*! \brief Remove value from set
@@ -405,9 +411,10 @@ class TreeSet : public Elements<T> {
 	inline Optional<T> erase(const O & value) {
 		auto position = find(value);
 		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].tree.active) {
-			return { move(extract(position).data) };
-		} else
-			return {};
+			return Optional<T>{move(extract(position).data)};
+		} else {
+			return Optional<T>{};
+		}
 	}
 
 	/*! \brief Get iterator to specific element
@@ -419,7 +426,7 @@ class TreeSet : public Elements<T> {
 		uint32_t r = _root;
 		if (!contains_node(value, r))
 			r = 0;
-		return { *this, r };
+		return Iterator{*this, r};
 	}
 
 	/*! \brief Get iterator to specific element
@@ -431,7 +438,7 @@ class TreeSet : public Elements<T> {
 		uint32_t r = _root;
 		if (!contains_node(value, r))
 			r = 0;
-		return { *this, r };
+		return ConstIterator{*this, r};
 	}
 
 	/*! \brief check if set contains element
@@ -448,56 +455,56 @@ class TreeSet : public Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator begin() {
-		return { *this, min_node(_root) };
+		return Iterator{*this, min_node(_root)};
 	}
 
 	/*! \brief Constant iterator to the lowest element in this set
 	 * \return Iterator to the lowest element
 	 */
 	inline ConstIterator begin() const {
-		return { *this, min_node(_root) };
+		return ConstIterator{*this, min_node(_root)};
 	}
 
 	/*! \brief Iterator refering to the past-the-end element in this set
 	 * \return Iterator to the element past the end of this set
 	 */
 	inline Iterator end() {
-		return { *this, 0 };
+		return Iterator{*this, 0};
 	}
 
 	/*! \brief Constant iterator refering to the past-the-end element in this set
 	 * \return Iterator to the element past the end of this set
 	 */
 	inline ConstIterator end() const {
-		return { *this, 0 };
+		return ConstIterator{*this, 0};
 	}
 
 	/*! \brief Iterator to the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline ReverseIterator rbegin() {
-		return { *this, max_node(_root) };
+		return ReverseIterator{*this, max_node(_root)};
 	}
 
 	/*! \brief Constant iterator to the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline ConstReverseIterator rbegin() const {
-		return { *this, max_node(_root) };
+		return ConstReverseIterator{*this, max_node(_root)};
 	}
 
 	/*! \brief Iterator refering to the before-the-start element in this set
 	 * \return Iterator to the element before the begin of this set
 	 */
 	inline ReverseIterator rend() {
-		return { *this, 0 };
+		return ReverseIterator{*this, 0};
 	}
 
 	/*! \brief Constant iterator refering to thebefore-the-start element in this set
 	 * \return Iterator to the element past the begin of this set
 	 */
 	inline ConstReverseIterator rend() const {
-		return { *this, 0 };
+		return ConstReverseIterator{*this, 0};
 	}
 
 	/*! \brief Get the lowest element in this set
@@ -505,7 +512,7 @@ class TreeSet : public Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline Iterator lowest() {
-		return { *this, min_node(_root) };
+		return Iterator{*this, min_node(_root)};
 	}
 
 	/*! \brief Get the lowest element in this set
@@ -513,7 +520,7 @@ class TreeSet : public Elements<T> {
 	 * \return Iterator to the lowest element
 	 */
 	inline ConstIterator lowest() const {
-		return { *this, min_node(_root) };
+		return ConstIterator{*this, min_node(_root)};
 	}
 
 	/*! \brief Get the greatest element in this set less than the given element
@@ -522,7 +529,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator lower(const O& value) {
-		return { *this, lower_node(value) };
+		return Iterator{*this, lower_node(value)};
 	}
 
 	/*! \brief Get the greatest element in this set less than the given element
@@ -531,7 +538,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator lower(const O& value) const {
-		return { *this, lower_node(value) };
+		return ConstIterator{*this, lower_node(value)};
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -540,7 +547,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator floor(const O& value) {
-		return { *this, floor_node(value) };
+		return Iterator{*this, floor_node(value)};
 	}
 
 	/*! \brief Get the greatest element in this set less than or equal to the given element
@@ -549,7 +556,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator floor(const O& value) const {
-		return { *this, floor_node(value) };
+		return ConstIterator{*this, floor_node(value)};
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -558,7 +565,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator ceil(const O& value) {
-		return { *this, ceil_node(value) };
+		return Iterator{*this, ceil_node(value)};
 	}
 
 	/*! \brief Get the smallest element in this set greater than or equal to the given element
@@ -567,7 +574,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator ceil(const O& value) const {
-		return { *this, ceil_node(value) };
+		return ConstIterator{*this, ceil_node(value)};
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -576,7 +583,7 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline Iterator higher(const O& value) {
-		return { *this, higher_node(value) };
+		return Iterator{*this, higher_node(value)};
 	}
 
 	/*! \brief Get the smallest element in this set greater than the given element
@@ -585,21 +592,21 @@ class TreeSet : public Elements<T> {
 	 */
 	template<typename O>
 	inline ConstIterator higher(const O& value) const {
-		return { *this, higher_node(value) };
+		return ConstIterator{*this, higher_node(value)};
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline Iterator highest() {
-		return { *this, max_node(_root) };
+		return Iterator{*this, max_node(_root)};
 	}
 
 	/*! \brief Get the highest element in this set
 	 * \return Iterator to the highest element
 	 */
 	inline ConstIterator highest() const {
-		return { *this, max_node(_root) };
+		return ConstIterator{*this, max_node(_root)};
 	}
 
 	/*! \brief Reorganize Elements
@@ -671,10 +678,10 @@ class TreeSet : public Elements<T> {
 		auto i = begin();
 		if (i) {
 			c = 1;
-			auto s = i.operator->() ;
+			auto s = i.operator->();
 			for (++i; i != end(); ++i) {
 				assert(C::compare(*s, *i) < 0);
-				s = i.operator->() ;
+				s = i.operator->();
 				c++;
 			}
 			assert(c == Elements<T>::_count);
@@ -698,7 +705,7 @@ class TreeSet : public Elements<T> {
 			auto & n = Elements<T>::_node[node].tree;
 			int l = check_node(n.left, node);
 			int r = check_node(n.right, node);
-			assert(r - l == (int)n.balance);
+			assert(r - l == static_cast<int>(n.balance));
 			return 1 + (l > r ? l : r);
 		}
 	}
@@ -915,7 +922,7 @@ class TreeSet : public Elements<T> {
 	 * \param element index of element to insert
 	 * \param c comparison result of element with parent
 	 */
-	Pair<Iterator,bool> insert(uint32_t parent, uint32_t element, int c) {
+	Pair<Iterator, bool> insert(uint32_t parent, uint32_t element, int c) {
 		assert(element != 0);
 		auto & e = Elements<T>::_node[element];
 		if (_root == 0) {
@@ -924,7 +931,7 @@ class TreeSet : public Elements<T> {
 			_root = element;
 		} else if ((parent == 0 && contains_node(e.data, parent = _root, c)) || c == 0) {
 			assert(Elements<T>::_node[parent].tree.active);
-			return { Iterator(*this, parent), false };
+			return Pair<Iterator, bool>{Iterator(*this, parent), false};
 		} else if (c < 0) {
 			assert(Elements<T>::_node[parent].tree.right == 0);
 			Elements<T>::_node[parent].tree.right = element;
@@ -970,7 +977,7 @@ class TreeSet : public Elements<T> {
 		}
 
 		Elements<T>::_count++;
-		return { Iterator(*this, element), true };
+		return Pair<Iterator, bool>{Iterator(*this, element), true};
 	}
 
 	/*! \brief Remove node (with at most one child)
@@ -1040,14 +1047,14 @@ class TreeSet : public Elements<T> {
 			if (left) {
 				// Rotate left
 				if ((p.right = n.left) != 0) {
-					assert(	Elements<T>::_node[p.right].tree.parent == node);
+					assert(Elements<T>::_node[p.right].tree.parent == node);
 					Elements<T>::_node[p.right].tree.parent = parent;
 				}
 				n.left = parent;
 			} else {
 				// Rotate right
 				if ((p.left = n.right) != 0) {
-					assert(	Elements<T>::_node[p.left].tree.parent == node);
+					assert(Elements<T>::_node[p.left].tree.parent == node);
 					Elements<T>::_node[p.left].tree.parent = parent;
 				}
 				n.right = parent;
@@ -1162,8 +1169,8 @@ class TreeSet : public Elements<T> {
  * \tparam C structure with comparison functions (compare())
  */
 template<typename K, typename V, typename C = Comparison>
-class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
-	using Base = TreeSet<KeyValue<K,V>, C>;
+class TreeMap : protected TreeSet<KeyValue<K, V>, C> {
+	using Base = TreeSet<KeyValue<K, V>, C>;
 	using typename Base::BaseIterator;
 
  public:
@@ -1191,20 +1198,20 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	using typename Base::check;
 #endif
 
-	inline Pair<Iterator,bool> insert(const K& key, const V& value) {
+	inline Pair<Iterator, bool> insert(const K& key, const V& value) {
 		return Base::emplace(key, value);
 	}
 
-	inline Pair<Iterator,bool> insert(K&& key, V&& value) {
+	inline Pair<Iterator, bool> insert(K&& key, V&& value) {
 		return Base::emplace(move(key), move(value));
 	}
 
 	inline Optional<V> erase(const BaseIterator & position) {
 		auto i = Base::erase(position);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	inline Optional<V> erase(const Iterator & position) {
@@ -1227,27 +1234,27 @@ class TreeMap : protected TreeSet<KeyValue<K,V>, C> {
 	inline Optional<V> erase(const O& key) {
 		auto i = Base::erase(key);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>
 	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>
 	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/log.hpp>
@@ -9,7 +13,7 @@ class Client {
 	int socket = -1;
 
 public:
-	Client(const char* host = nullptr) {
+	explicit Client(const char* host = nullptr) {
 		if (host != nullptr)
 			connect(host);
 	}

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 template<typename F, typename S>
@@ -13,7 +17,7 @@ struct Pair {
 	Pair(const Pair<OF, OS>& o) : first(o.first), second(o.second) {}
 
 	template<typename OF, typename OS>
-	Pair& operator=(const Pair<OF,OS>& o) {
+	Pair& operator=(const Pair<OF, OS>& o) {
 		first = o.first;
 		second = o.second;
 		return *this;
@@ -26,32 +30,32 @@ struct Pair {
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator==(const Pair<OF,OS>& other) const {
+	constexpr bool operator==(const Pair<OF, OS>& other) const {
 		return first == other.first && second == other.second;
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator!=(const Pair<OF,OS>& other) const {
+	constexpr bool operator!=(const Pair<OF, OS>& other) const {
 		return first != other.first || second != other.second;
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator<=(const Pair<OF,OS>& other) const {
+	constexpr bool operator<=(const Pair<OF, OS>& other) const {
 		return first < other.first || (first == other.first && second <= other.second);
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator<(const Pair<OF,OS>& other) const {
+	constexpr bool operator<(const Pair<OF, OS>& other) const {
 		return first < other.first || (first == other.first && second < other.second);
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator>=(const Pair<OF,OS>& other) const {
+	constexpr bool operator>=(const Pair<OF, OS>& other) const {
 		return first > other.first || (first == other.first && second >= other.second);
 	}
 
 	template<typename OF, typename OS>
-	constexpr bool operator>(const Pair<OF,OS>& other) const {
+	constexpr bool operator>(const Pair<OF, OS>& other) const {
 		return first > other.first || (first == other.first && second > other.second);
 	}
 };

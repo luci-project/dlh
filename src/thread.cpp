@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/thread.hpp>
 #include <dlh/math.hpp>
 #include <dlh/assert.hpp>
@@ -113,7 +117,7 @@ bool Thread::join(void ** result) {
 	if (tid != -1) {
 		pid_t tmp;
 		while ((tmp = tid) > 0)
-			if (Syscall::futex((int*)&tid, FUTEX_WAIT, tmp, nullptr, NULL, 0).value() != 0)
+			if (Syscall::futex(reinterpret_cast<int*>(&tid), FUTEX_WAIT, tmp, nullptr, NULL, 0).value() != 0)
 				return false;
 
 		if (__atomic_exchange_n(&tid, -1, __ATOMIC_RELEASE) == 0) {
@@ -129,6 +133,6 @@ bool Thread::join(void ** result) {
 
 void Thread::setup_guards(void* random) {
 	Memory::copy(&stack_guard, random, sizeof(stack_guard));
-	stack_guard &= ~(uintptr_t) 0xff;
-	Memory::copy(&pointer_guard, (char*)random + sizeof(pointer_guard), sizeof(pointer_guard));
+	stack_guard &= ~static_cast<uintptr_t>(0xff);
+	Memory::copy(&pointer_guard, reinterpret_cast<char*>(random) + sizeof(pointer_guard), sizeof(pointer_guard));
 }

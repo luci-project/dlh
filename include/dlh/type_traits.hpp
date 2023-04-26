@@ -1,31 +1,35 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 extern "C++" {
 
 template<bool B, class T = void> struct enable_if {};
-template<class T> struct enable_if<true, T> { typedef T type; };
+template<class T> struct enable_if<true, T> { typedef T type; };  // NOLINT
 template <bool B, typename T = void> using enable_if_t = typename enable_if<B, T>::type;
 
-template<typename T> struct remove_cv                   { typedef T type; };
-template<typename T> struct remove_cv<const T>          { typedef T type; };
-template<typename T> struct remove_cv<volatile T>       { typedef T type; };
-template<typename T> struct remove_cv<const volatile T> { typedef T type; };
+template<typename T> struct remove_cv                   { typedef T type; };  // NOLINT
+template<typename T> struct remove_cv<const T>          { typedef T type; };  // NOLINT
+template<typename T> struct remove_cv<volatile T>       { typedef T type; };  // NOLINT
+template<typename T> struct remove_cv<const volatile T> { typedef T type; };  // NOLINT
 template<typename T> using remove_cv_t = typename remove_cv<T>::type;
 
-template<typename T> struct remove_const                { typedef T type; };
-template<typename T> struct remove_const<const T>       { typedef T type; };
+template<typename T> struct remove_const                { typedef T type; };  // NOLINT
+template<typename T> struct remove_const<const T>       { typedef T type; };  // NOLINT
 template<typename T> using remove_const_t = typename remove_const<T>::type;
 
-template<typename T> struct remove_volatile             { typedef T type; };
-template<typename T> struct remove_volatile<volatile T> { typedef T type; };
+template<typename T> struct remove_volatile             { typedef T type; };  // NOLINT
+template<typename T> struct remove_volatile<volatile T> { typedef T type; };  // NOLINT
 template<typename T> using remove_volatile_t = typename remove_volatile<T>::type;
 
-template<typename T> struct remove_reference            { typedef T type; };
-template<typename T> struct remove_reference<T&>        { typedef T type; };
-template<typename T> struct remove_reference<T&&>       { typedef T type; };
+template<typename T> struct remove_reference            { typedef T type; };  // NOLINT
+template<typename T> struct remove_reference<T&>        { typedef T type; };  // NOLINT
+template<typename T> struct remove_reference<T&&>       { typedef T type; };  // NOLINT
 template<typename T> using remove_reference_t = typename remove_reference<T>::type;
 
-template<typename T> struct remove_cvref                { typedef remove_cv_t<remove_reference_t<T>> type; };
+template<typename T> struct remove_cvref                { typedef remove_cv_t<remove_reference_t<T>> type; };  // NOLINT
 template<typename T> using remove_cvref_t = typename remove_cvref<T>::type;
 
 template<typename T, T v>
@@ -83,17 +87,17 @@ template<> struct is_integral_base<long long> : true_type {};
 template<> struct is_integral_base<unsigned long long> : true_type {};
 template<typename T> struct is_integral : is_integral_base<remove_cvref_t<T>> {};
 
-template<typename T> inline const char * integral_name() { return "[complex type]"; };
-template<> inline const char * integral_name<bool>() { return "bool"; };
-template<> inline const char * integral_name<char>() { return "char"; };
-template<> inline const char * integral_name<unsigned char>() { return "unsigned char"; };
-template<> inline const char * integral_name<short>() { return "short"; };
-template<> inline const char * integral_name<unsigned short>() { return "unsigned short"; };
-template<> inline const char * integral_name<int>() { return "int"; };
-template<> inline const char * integral_name<unsigned int>() { return "unsigned int"; };
-template<> inline const char * integral_name<long>() { return "long"; };
-template<> inline const char * integral_name<unsigned long>() { return "unsigned long"; };
-template<> inline const char * integral_name<long long>() { return "long long"; };
-template<> inline const char * integral_name<unsigned long long>() { return "unsigned long long"; };
+template<typename T> inline const char * integral_name() { return "[complex type]"; }
+template<> inline const char * integral_name<bool>() { return "bool"; }
+template<> inline const char * integral_name<char>() { return "char"; }
+template<> inline const char * integral_name<unsigned char>() { return "unsigned char"; }
+template<> inline const char * integral_name<short>() { return "short"; }
+template<> inline const char * integral_name<unsigned short>() { return "unsigned short"; }
+template<> inline const char * integral_name<int>() { return "int"; }
+template<> inline const char * integral_name<unsigned int>() { return "unsigned int"; }
+template<> inline const char * integral_name<long>() { return "long"; }
+template<> inline const char * integral_name<unsigned long>() { return "unsigned long"; }
+template<> inline const char * integral_name<long long>() { return "long long"; }
+template<> inline const char * integral_name<unsigned long long>() { return "unsigned long long"; }
 
 }

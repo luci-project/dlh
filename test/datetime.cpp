@@ -1,11 +1,15 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/datetime.hpp>
 #include <dlh/stream/output.hpp>
 
 int main() {
 	DateTime m0;
-	DateTime m1(2021,2,18,20,55,23,421337000);
+	DateTime m1(2021, 2, 18, 20, 55, 23, 421337000);
 	DateTime m2(1509705000);
-	DateTime m3(2012,7,37,3,136,116,1042133700);
+	DateTime m3(2012, 7, 37, 3, 136, 116, 1042133700);
 
 	cout << m0 << " - " << m0.to_timestamp() << " = " << m0.valid() << endl
 	     << m1 << " - " << m1.to_timestamp() << " = " << m1.valid() << endl

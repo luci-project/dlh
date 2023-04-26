@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/stream/output.hpp>
 #include <dlh/syscall.hpp>
 #include <dlh/string.hpp>
@@ -25,7 +29,7 @@ void check_helper(const char * output, const char * argstr, const char * format,
 }
 
 
-#define check(OUTPUT, FORMAT, ...) check_helper(OUTPUT, #__VA_ARGS__, FORMAT __VA_OPT__(,) __VA_ARGS__)
+#define check(OUTPUT, FORMAT, ...) check_helper(OUTPUT, #__VA_ARGS__, FORMAT __VA_OPT__(,) __VA_ARGS__)  // NOLINT
 
 int main(int argc, const char *argv[]) {
 	(void) argc;
@@ -160,13 +164,13 @@ int main(int argc, const char *argv[]) {
 
 	check("(nil)", "%p", nullptr);
 	check("     (nil)", "%010p", nullptr);
- 	check("0x39", "%p", (void*)57);
+ 	check("0x39", "%p", reinterpret_cast<void*>(57));
 
-	check("0x000000000000000039", "%#020p", (void*)57);
-	check("0x39                ", "%#-020p", (void*)57);
+	check("0x000000000000000039", "%#020p", reinterpret_cast<void*>(57));
+	check("0x39                ", "%#-020p", reinterpret_cast<void*>(57));
 
-	check("0x0000000039", "%#012p", (void*)57);
-	check("0x39        ", "%#-012p", (void*)57);
+	check("0x0000000039", "%#012p", reinterpret_cast<void*>(57));
+	check("0x39        ", "%#-012p", reinterpret_cast<void*>(57));
 	check("0foo", "%04s", "foo");
 
 	check("f", "%.1s", "foo");
@@ -188,7 +192,7 @@ int main(int argc, const char *argv[]) {
 	check("%%%%", "%s", "%%%%");
 	check("4294967295", "%u", -1);
 
-	check("%0", "%%0", );
+	check("%0", "%%0");
 
 	check("Hallo heimur", "Hallo heimur");
 	check("Hallo heimur", "%s", "Hallo heimur");
@@ -392,7 +396,7 @@ int main(int argc, const char *argv[]) {
 	check("            1234ABCD", "%20.5X", 305441741);
 	check("          00EDCB5433", "%20.10X", 3989525555U);
 
-//This test is undefined. Common sense says libc fails it.
+	// This test is undefined. Common sense says libc fails it.
 	check("               Hallo", "%020.5s", "Hallo heimur");
 	check("               01024", "%020.5d", 1024);
 	check("              -01024", "%020.5d", -1024);

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/error.hpp>
 #include <dlh/types.hpp>
 #include <dlh/thread.hpp>
@@ -18,8 +22,8 @@ extern void(*__init_array_end[]) ();
 extern void(*__fini_array_start[]) ();
 extern void(*__fini_array_end[]) ();
 
-extern "C" void _init(){};
-extern "C" void _fini(){};
+extern "C" void _init() {}
+extern "C" void _fini() {}
 
 void * __dlh_stack_pointer = nullptr;
 void (*__dlh_atexit)() = nullptr;
@@ -68,7 +72,7 @@ __attribute__((__noinline__)) void __dlh_init(char **envp, char *name) {
 }
 
 extern "C" int atexit(void (*func)(void));
-extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int,char **,char **), void * sp, void (*exit_func)(void)) {
+extern "C" __attribute__((__used__)) void __dlh_start_main(int (*main)(int, char **, char **), void * sp, void (*exit_func)(void)) {
 	__dlh_stack_pointer = sp;
 	__dlh_atexit = exit_func;
 

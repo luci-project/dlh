@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/stream/output.hpp>
@@ -19,7 +23,7 @@ struct Foo {
 		cerr << "Foo #" << uid << " (" << id << ") created (move from Foo #" << o.uid << ")" << endl;
 	}
 
-	Foo(int i) : uid(uid_c++), id(i) {
+	Foo(int i) : uid(uid_c++), id(i) {  // NOLINT (explicitly avoided `explicit`)
 		cerr << "Foo #" << uid << " (" << id << ") created" << endl;
 	}
 

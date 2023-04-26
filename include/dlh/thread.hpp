@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/utility.hpp>
@@ -38,7 +42,7 @@ struct Thread {
 	unsigned long long int ssp_base = 0;
 	/* Must be kept even if it is no longer used by glibc since programs,
 	  like AddressSanitizer, depend on the size of tcbhead_t.  */
-	void *__glibc_unused2[64] __attribute__ ((aligned (32))) = { nullptr };
+	void *__glibc_unused2[64] __attribute__((aligned(32))) = { nullptr };
 
 	union {
 		struct {
@@ -153,7 +157,7 @@ struct Thread {
 	   Padding for newer GLIBC compatibility */
 	char end_padding[256] = { };
 
-	constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {
+	explicit constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {
 		list.next = &list;
 		list.prev = &list;
 	}

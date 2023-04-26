@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/mem.hpp>
 #include <dlh/assert.hpp>
 
@@ -30,5 +34,5 @@ static void call(void *p) {
 }
 
 extern "C" int atexit(void (*func)(void)) {
-	return __cxa_atexit(call, (void *)(uintptr_t)func, 0);
+	return __cxa_atexit(call, reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(func)), 0);
 }

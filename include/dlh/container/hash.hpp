@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/assert.hpp>
@@ -62,22 +66,22 @@ class HashSet : public Elements<T> {
 			return &(ref._node[i].data);
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator==(const I& other) const {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator==(const X& other) const {
 			return C::equal(ref._node[i].data, other);
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator!=(const BaseIterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator!=(const X& other) const {
 			return !C::equal(ref._node[i].data, other);
 		}
@@ -102,7 +106,10 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param set Elements container
 	 */
-	HashSet(const HashSet<T, C>& set) : Elements<T>(set, set._bucket_capacity * sizeof(uint32_t)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {
+	HashSet(const HashSet<T, C>& set)
+	 : Elements<T>(set, set._bucket_capacity * sizeof(uint32_t)),
+	   _bucket_capacity(set._bucket_capacity),
+	   _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {
 		const size_t size = _bucket_capacity * sizeof(uint32_t);
 		if (size > 0) {
 			assert(_bucket != nullptr);
@@ -114,7 +121,8 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
-	HashSet(const Elements<T>& elements) : Elements<T>(elements, buckets(elements._capacity) * sizeof(uint32_t)) {
+	explicit HashSet(const Elements<T>& elements)
+	 : Elements<T>(elements, buckets(elements._capacity) * sizeof(uint32_t)) {
 		if (!empty()) {
 			assert(!Elements<T>::_node[0].hash.active);
 			_bucket_capacity = buckets(Elements<T>::_capacity);
@@ -126,12 +134,15 @@ class HashSet : public Elements<T> {
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
-	HashSet(HashSet<T, C> && set) : Elements<T>(move(set)), _bucket_capacity(set._bucket_capacity), _bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {}
+	HashSet(HashSet<T, C> && set)
+	  : Elements<T>(move(set)),
+	    _bucket_capacity(set._bucket_capacity),
+		_bucket(reinterpret_cast<uint32_t *>(Elements<T>::reserved())) {}
 
 	/*! \brief Convert to hash set
 	 * \param elements Elements container
 	 */
-	HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
+	explicit HashSet(Elements<T>&& elements) : Elements<T>(move(elements)) {
 		if (!empty()) {
 			_bucket_capacity = buckets(Elements<T>::_capacity);
 			assert(!Elements<T>::_node[0].hash.active);
@@ -152,9 +163,10 @@ class HashSet : public Elements<T> {
 	 */
 	template<typename I>
 	explicit HashSet(const I & begin, const I & end, size_t initial_capacity = 0) {
-		if (initial_capacity == 0)
+		if (initial_capacity == 0) {
 			for (I i = begin; i != end; ++i)
 				initial_capacity++;
+		}
 
 		resize(initial_capacity + 1);
 
@@ -226,7 +238,6 @@ class HashSet : public Elements<T> {
 			BaseIterator::next();
 			return *this;
 		}
-
 	};
 
 	/*! \brief Reverse binary search tree iterator
@@ -285,7 +296,7 @@ class HashSet : public Elements<T> {
 			uint32_t i = 1;
 			while (i < Elements<T>::_next && !Elements<T>::_node[i].hash.active)
 				i++;
-			return { *this, i };
+			return Iterator{*this, i};
 		}
 	}
 
@@ -293,7 +304,7 @@ class HashSet : public Elements<T> {
 	 * \return iterator to end (first invalid element)
 	 */
 	inline Iterator end() {
-		return { *this, Elements<T>::_next };
+		return Iterator{*this, Elements<T>::_next};
 	}
 
 	/*! \brief Get iterator to first element
@@ -306,7 +317,7 @@ class HashSet : public Elements<T> {
 			uint32_t i = 1;
 			while (i < Elements<T>::_next && !Elements<T>::_node[i].hash.active)
 				i++;
-			return { *this, i };
+			return ConstIterator{*this, i};
 		}
 	}
 
@@ -314,7 +325,7 @@ class HashSet : public Elements<T> {
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ConstIterator end() const {
-		return { *this, Elements<T>::_next };
+		return ConstIterator{*this, Elements<T>::_next};
 	}
 
 	/*! \brief Get iterator to last element
@@ -327,7 +338,7 @@ class HashSet : public Elements<T> {
 			uint32_t i = Elements<T>::_next - 1;
 			while (i > 0 && !Elements<T>::_node[i].hash.active)
 				i--;
-			return { *this, i };
+			return ReverseIterator{*this, i};
 		}
 	}
 
@@ -335,7 +346,7 @@ class HashSet : public Elements<T> {
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ReverseIterator rend() {
-		return { *this, 0 };
+		return ReverseIterator{*this, 0};
 	}
 
 	/*! \brief Get iterator to last element
@@ -348,7 +359,7 @@ class HashSet : public Elements<T> {
 			uint32_t i = Elements<T>::_next - 1;
 			while (i > 0 && !Elements<T>::_node[i].hash.active)
 				i--;
-			return { *this, i };
+			return ConstReverseIterator{*this, i};
 		}
 	}
 
@@ -356,7 +367,7 @@ class HashSet : public Elements<T> {
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ConstReverseIterator rend() const {
-		return { *this, 0 };
+		return ConstReverseIterator{*this, 0};
 	}
 
 	/*! \brief Create new element into set
@@ -365,7 +376,7 @@ class HashSet : public Elements<T> {
 	 *         indicator if element was created (`true`) or has already been in the set (`false`)
 	 */
 	template<typename... ARGS>
-	Pair<Iterator,bool> emplace(ARGS&&... args) {
+	Pair<Iterator, bool> emplace(ARGS&&... args) {
 		increase();
 
 		// Create local element (not active yet!)
@@ -376,7 +387,7 @@ class HashSet : public Elements<T> {
 		// Check if already in set
 		uint32_t i = find_in(b, next.data);
 		if (i != Elements<T>::_next)
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 
 		// Insert
 		return insert(Elements<T>::_next++, b);
@@ -387,7 +398,7 @@ class HashSet : public Elements<T> {
 	 * \return iterator to the inserted element (`first`) and
 	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
 	 */
-	Pair<Iterator,bool> insert(const T &value) {
+	Pair<Iterator, bool> insert(const T &value) {
 		increase();
 
 		// Get Bucket
@@ -397,7 +408,7 @@ class HashSet : public Elements<T> {
 		// Check if already in set
 		uint32_t i = find_in(b, value);
 		if (i != Elements<T>::_next)
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 
 		// Insert at position
 		auto & next = Elements<T>::_node[Elements<T>::_next];
@@ -411,13 +422,13 @@ class HashSet : public Elements<T> {
 	 * \return iterator to the inserted element (`first`) and
 	 *         indicator (`second`) if element was created (`true`) or has already been in the set (`false`)
 	 */
-	Pair<Iterator,bool> insert(Node &&value) {
+	Pair<Iterator, bool> insert(Node &&value) {
 		uint32_t h = C::hash(value.data);
 		uint32_t * b = bucket(h);
 
 		uint32_t i = find_in(b, value.data);
 		if (i != Elements<T>::_next) {
-			return { Iterator(*this, i), false };
+			return Pair<Iterator, bool>{Iterator(*this, i), false};
 		} else {
 			size_t n = 0;
 			if (!Elements<T>::is_node(value, n) || n == 0)
@@ -515,9 +526,9 @@ class HashSet : public Elements<T> {
 	 */
 	Optional<T> erase(const BaseIterator & position) {
 		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active)
-			return { move(extract(position).data) };
+			return Optional<T>{move(extract(position).data)};
 		else
-			return {};
+			return Optional<T>{};
 	}
 
 	/*! \brief Remove value from set
@@ -544,9 +555,9 @@ class HashSet : public Elements<T> {
 	inline Optional<T> erase(const U& value) {
 		auto position = find(value);
 		if (position.i >= 1 && position.i < Elements<T>::_next && Elements<T>::_node[position.i].hash.active)
-			return { move(extract(position).data) };
+			return Optional<T>{move(extract(position).data)};
 		else
-			return {};
+			return Optional<T>{};
 	}
 
 	/*! \brief Recalculate hash values
@@ -752,7 +763,7 @@ class HashSet : public Elements<T> {
 	 * \param element index of element to insert
 	 * \param b pointer to target bucket
 	 */
-	inline Pair<Iterator,bool> insert(uint32_t element, uint32_t * b) {
+	inline Pair<Iterator, bool> insert(uint32_t element, uint32_t * b) {
 		Elements<T>::_node[element].hash.active = true;
 		Elements<T>::_node[element].hash.prev = 0;
 
@@ -769,9 +780,8 @@ class HashSet : public Elements<T> {
 		*b = element;
 
 		// return Iterator
-		return { Iterator(*this, element), true };
+		return Pair<Iterator, bool>{Iterator(*this, element), true};
 	}
-
 };
 
 
@@ -783,8 +793,8 @@ class HashSet : public Elements<T> {
  * \tparam L percentage of hash buckets (compared to element capacity)
  */
 template<typename K, typename V, typename C = Comparison, size_t L = 150>
-class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
-	using Base = HashSet<KeyValue<K,V>, C, L>;
+class HashMap : protected HashSet<KeyValue<K, V>, C, L> {
+	using Base = HashSet<KeyValue<K, V>, C, L>;
 	using typename Base::BaseIterator;
 
  public:
@@ -807,20 +817,20 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 	using typename Base::clear;
 
 	/*! \brief Insert element */
-	inline Pair<Iterator,bool> insert(const K& key, const V& value) {
+	inline Pair<Iterator, bool> insert(const K& key, const V& value) {
 		return Base::emplace(key, value);
 	}
 
-	inline Pair<Iterator,bool> insert(K&& key, V&& value) {
+	inline Pair<Iterator, bool> insert(K&& key, V&& value) {
 		return Base::emplace(move(key), move(value));
 	}
 
 	inline Optional<V> erase(const BaseIterator & position) {
 		auto i = Base::erase(position);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	inline Optional<V> erase(const Iterator & position) {
@@ -843,27 +853,27 @@ class HashMap : protected HashSet<KeyValue<K,V>, C, L> {
 	inline Optional<V> erase(const O& key) {
 		auto i = Base::erase(key);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>
 	inline Optional<V> at(const O& key) {
 		auto i = Base::find(key);
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>
 	inline Optional<V> at(O&& key) {
 		auto i = Base::find(move(key));
 		if (i)
-			return { move(i->value) };
+			return Optional<V>{move(i->value)};
 		else
-			return {};
+			return Optional<V>{};
 	}
 
 	template<typename O>

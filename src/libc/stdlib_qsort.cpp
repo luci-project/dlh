@@ -28,8 +28,7 @@
 #include <dlh/types.hpp>
 #include <dlh/string.hpp>
 
-static inline int a_ctz_32(uint32_t x)
-{
+static inline int a_ctz_32(uint32_t x) {
 	static const char debruijn32[32] = {
 		0, 1, 23, 2, 29, 24, 19, 3, 30, 27, 25, 11, 20, 8, 4, 13,
 		31, 22, 28, 18, 26, 10, 7, 12, 21, 17, 9, 6, 16, 5, 15, 14
@@ -66,8 +65,7 @@ static inline int pntz(size_t p[2]) {
 	return 0;
 }
 
-static void cycle(size_t width, unsigned char* ar[], int n)
-{
+static void cycle(size_t width, unsigned char* ar[], int n) {
 	unsigned char tmp[256];
 	size_t l;
 	int i;
@@ -89,8 +87,7 @@ static void cycle(size_t width, unsigned char* ar[], int n)
 }
 
 /* shl() and shr() need n > 0 */
-static inline void shl(size_t p[2], int n)
-{
+static inline void shl(size_t p[2], int n) {
 	if(static_cast<size_t>(n) >= 8 * sizeof(size_t)) {
 		n -= 8 * sizeof(size_t);
 		p[1] = p[0];
@@ -101,8 +98,7 @@ static inline void shl(size_t p[2], int n)
 	p[0] <<= n;
 }
 
-static inline void shr(size_t p[2], int n)
-{
+static inline void shr(size_t p[2], int n) {
 	if(static_cast<size_t>(n)  >= 8 * sizeof(size_t)) {
 		n -= 8 * sizeof(size_t);
 		p[0] = p[1];
@@ -113,8 +109,7 @@ static inline void shr(size_t p[2], int n)
 	p[1] >>= n;
 }
 
-static void sift(unsigned char *head, size_t width, cmpfun cmp, int pshift, size_t lp[])
-{
+static void sift(unsigned char *head, size_t width, cmpfun cmp, int pshift, size_t lp[]) {
 	unsigned char *rt, *lf;
 	unsigned char *ar[14 * sizeof(size_t) + 1];
 	int i = 1;
@@ -140,8 +135,7 @@ static void sift(unsigned char *head, size_t width, cmpfun cmp, int pshift, size
 	cycle(width, ar, i);
 }
 
-static void trinkle(unsigned char *head, size_t width, cmpfun cmp, size_t pp[2], int pshift, int trusty, size_t lp[])
-{
+static void trinkle(unsigned char *head, size_t width, cmpfun cmp, size_t pp[2], int pshift, int trusty, size_t lp[]) {
 	unsigned char *stepson,
 	              *rt, *lf;
 	size_t p[2];
@@ -179,8 +173,7 @@ static void trinkle(unsigned char *head, size_t width, cmpfun cmp, size_t pp[2],
 	}
 }
 
-extern "C" void qsort(void *base, size_t nel, size_t width, cmpfun cmp)
-{
+extern "C" void qsort(void *base, size_t nel, size_t width, cmpfun cmp) {
 	size_t lp[12*sizeof(size_t)];
 	size_t i, size = width * nel;
 	unsigned char *head, *high;
@@ -194,7 +187,7 @@ extern "C" void qsort(void *base, size_t nel, size_t width, cmpfun cmp)
 	high = head + size - width;
 
 	/* Precompute Leonardo numbers, scaled by element width */
-	for(lp[0]=lp[1]=width, i=2; (lp[i]=lp[i-2]+lp[i-1]+width) < size; i++);
+	for(lp[0] = lp[1] = width, i = 2; (lp[i] = lp[i-2] + lp[i-1] + width) < size; i++) {}
 
 	while(head < high) {
 		if((p[0] & 3) == 3) {

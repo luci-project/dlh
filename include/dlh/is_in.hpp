@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/comparison.hpp>
@@ -7,7 +11,7 @@ class is {
 	T value;
 
  public:
-	constexpr is(T value) : value(value) {}
+	explicit constexpr is(T value) : value(value) {}
 
 #if __cplusplus >= 201703L
 	template<typename... Targs>

@@ -1,3 +1,9 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// Copyright 2016 by Stephan Brumme (XXHash)
+// Copyright 2014 by Yann Collet (XXHash)
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /*! \file XXHash (64 bit), based on Yann Collet's descriptions
  * \see http://cyan4973.github.io/xxHash/
  *
@@ -34,7 +40,7 @@ class XXHash64 {
 	}
 
 	/// process a single 64 bit value
-	static constexpr uint64_t processSingle(uint64_t previous, uint64_t input)	{
+	static constexpr uint64_t processSingle(uint64_t previous, uint64_t input) {
 		return rotateLeft(previous + input * Prime2, 31) * Prime1;
 	}
 
@@ -98,7 +104,10 @@ class XXHash64 {
 		}
 
 		// copy back
-		state[0] = s0; state[1] = s1; state[2] = s2; state[3] = s3;
+		state[0] = s0;
+		state[1] = s1;
+		state[2] = s2;
+		state[3] = s3;
 
 		// copy remainder to temporary buffer
 		bufferSize = length;
@@ -157,7 +166,10 @@ class XXHash64 {
 		}
 
 		// copy back
-		state[0] = s0; state[1] = s1; state[2] = s2; state[3] = s3;
+		state[0] = s0;
+		state[1] = s1;
+		state[2] = s2;
+		state[3] = s3;
 
 		// copy remainder to temporary buffer
 		bufferSize = stop - data;
@@ -216,11 +228,11 @@ class XXHash64 {
 
 		// at least 8 bytes left ? => eat 8 bytes per step
 		for (; data + 8 <= stop; data += 8)
-			result = rotateLeft(result ^ processSingle(0, *(uint64_t*)data), 27) * Prime1 + Prime4;
+			result = rotateLeft(result ^ processSingle(0, *reinterpret_cast<const uint64_t*>(data)), 27) * Prime1 + Prime4;
 
 		// 4 bytes left ? => eat those
 		if (data + 4 <= stop) {
-			result = rotateLeft(result ^ (*(uint32_t*)data) * Prime1,   23) * Prime2 + Prime3;
+			result = rotateLeft(result ^ (*reinterpret_cast<const uint32_t*>(data)) * Prime1,   23) * Prime2 + Prime3;
 			data  += 4;
 		}
 
@@ -254,6 +266,6 @@ class XXHash64 {
 template<>
 constexpr bool XXHash64::add<const char *>(const char *input) {
 	size_t len = 0;
-	for (const char * s = input; s != nullptr && *s++ != '\0'; len++);
+	for (const char * s = input; s != nullptr && *s++ != '\0'; len++) {}
 	return add(input, len);
 }

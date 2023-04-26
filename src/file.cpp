@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/file.hpp>
 
 #include <dlh/log.hpp>
@@ -214,13 +218,13 @@ Vector<const char *> lines(const char * path) {
 
 void __procfdname(char *buf, unsigned fd) {
 	unsigned i, j;
-	for (i=0; (buf[i] = "/proc/self/fd/"[i]); i++);
+	for (i=0; (buf[i] = "/proc/self/fd/"[i]); i++) {}
 	if (!fd) {
 		buf[i] = '0';
 		buf[i+1] = 0;
 		return;
 	}
-	for (j=fd; j; j/=10, i++) {};
+	for (j=fd; j; j/=10, i++) {}
 	buf[i] = 0;
 	for (; fd; fd/=10) buf[--i] = '0' + fd%10;
 }
@@ -253,21 +257,21 @@ bool absolute(const char * __restrict__ path, char * __restrict__ buffer, size_t
 
 Pair<const char *, const char *> pathsplit(char *path) {
 	if (path == nullptr || *path == '\0') {
-		return { ".", "." };
+		return Pair<const char *, const char *>{".", "."};
 	}
 	size_t p = String::len(path) - 1;
 	// remove trailing slashes
 	for (; path[p] == '/'; p--)
 		if (p == 0)
 			// path = "/"
-			return { path, path };
+			return Pair<const char *, const char *>{path, path};
 		else
 			path[p] = '\0';
 
 	// find basename (go back to last slahs)
 	for (; path[p] != '/'; p--)
 		if (p == 0)
-			return { ".", path };
+			return Pair<const char *, const char *>{".", path};
 
 	// We've got the basename
 	char * basename = path + p + 1;
@@ -277,7 +281,7 @@ Pair<const char *, const char *> pathsplit(char *path) {
 	for (; p > 0 && path[p] == '/'; p--)
 		path[p] = '\0';
 
-	return { path, basename };
+	return Pair<const char *, const char *>{path, basename};
 }
 
-}  // Namespace File
+}  // namespace File

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/container/tree.hpp>
@@ -20,7 +24,7 @@ class Config {
 	TreeMap<const char *, const char *> contents;
 
  public:
-	Config(const char * file, Source source = CONFIG_ONLY, bool consume_env = false);
+	explicit Config(const char * file, Source source = CONFIG_ONLY, bool consume_env = false);
 
 	const char * value(const char * name);
 

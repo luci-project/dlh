@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/syscall.hpp>
@@ -17,7 +21,7 @@ class OutputStream : public StringStream<BUFFERSZ> {
 
 	/*! \brief Flush the buffer.
 	 */
-	virtual void flush() override {
+	void flush() override {
 		size_t l = 0;
 		while (l < this->_pos)
 			if (auto r = Syscall::write(fd, this->_bufptr + l, this->_pos - l))
@@ -26,7 +30,6 @@ class OutputStream : public StringStream<BUFFERSZ> {
 				break;
 		this->_pos = 0;
 	}
-
 };
 
 extern OutputStream<1024> cout, cerr;

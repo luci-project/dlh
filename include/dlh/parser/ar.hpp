@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/types.hpp>
@@ -79,7 +83,7 @@ class AR {
 	AR(uintptr_t addr, size_t size);
 
 	/*! \brief Open archive from filesystem (it will never be unmapped!) */
-	AR(const char * path);
+	explicit AR(const char * path);
 
 	/*! \brief Is the signature correct? */
 	bool is_valid() const;

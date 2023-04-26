@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/types.hpp>
@@ -129,13 +133,14 @@ constexpr int compare(const char *s1, const char *s2, size_t n) {
 	if (s1 == s2)
 		return 0;
 
-	if (s1 != nullptr && s2 != nullptr)
+	if (s1 != nullptr && s2 != nullptr) {
 		for (size_t i = 0; i < n; i++) {
 			if (s1[i] != s2[i])
 				return static_cast<int>(s1[i]) - static_cast<int>(s2[i]);
 			else if (s1[i] == '\0')
 				break;
 		}
+	}
 
 	return 0;
 }

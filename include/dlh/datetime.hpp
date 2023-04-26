@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/types.hpp>
@@ -23,15 +27,21 @@ struct DateTime {
 	DateTime() {}
 
 	DateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour = 0, uint8_t minute = 0, uint8_t second = 0, long nanosecond = 0)
-	 : year(year), month(month), day(day), weekday(0), hour(hour), minute(minute), second(second), nanosecond(nanosecond) { fix(); }
+	 : year(year), month(month), day(day), weekday(0), hour(hour), minute(minute), second(second), nanosecond(nanosecond) {
+		fix();
+	}
 
 	/*! \brief Construct from a timestamp (Unix epoch time)
 	 */
-	DateTime(time_t epoch, long int nanosecond = 0) { from_timestamp(epoch, nanosecond); }
+	explicit DateTime(time_t epoch, long int nanosecond = 0) {
+		from_timestamp(epoch, nanosecond);
+	}
 
 	/*! \brief Construct from a timespec struct
 	 */
-	DateTime(const timespec & ts) { from_timespec(ts); }
+	explicit DateTime(const timespec & ts) {
+		from_timespec(ts);
+	}
 
 	/* Copy constructor */
 	constexpr DateTime(const DateTime & other) { *this = other; }
@@ -48,7 +58,9 @@ struct DateTime {
 
 	/*! \brief Assign from Unix timespec
 	 */
-	void from_timespec(const timespec & ts) { from_timestamp(ts.tv_sec, ts.tv_nsec); };
+	void from_timespec(const timespec & ts) {
+		from_timestamp(ts.tv_sec, ts.tv_nsec);
+	}
 
 	/*! \brief Convert to Unix epoch time
 	 * \return Seconds since 1 January 1970

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/mem.hpp>
 #include <dlh/log.hpp>
 #include <dlh/math.hpp>
@@ -48,7 +52,7 @@ static Allocator::Buddy<MIN_ALLOC_LOG2, MAX_ALLOC_LOG2, reserve_sbrk> allocator;
 // Use mmap based allocator
 static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 	// Mapping address
-	static uintptr_t mmap_addr = 0x700000000000UL;
+	static uintptr_t mmap_addr = 0x300000000000UL;
 
 	uintptr_t ptr = 0;
 
@@ -59,10 +63,10 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 	if (max_ptr == 0) {
 		// Initial mapping
 		if (auto mmap = Syscall::mmap(mmap_addr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
-			mmap_addr = ptr = mmap.value();;
+			mmap_addr = ptr = mmap.value();
 			max_ptr = ptr + size;
 		} else {
-			LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << (void*)mmap_addr << " failed: " << mmap.error_message() << endl;
+			LOG_WARNING << "Allocator reserve by mmap of " << size << " bytes at " << reinterpret_cast<void*>(mmap_addr) << " failed: " << mmap.error_message() << endl;
 		}
 		return ptr;
 	} else {
@@ -86,7 +90,7 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 			ptr = max_ptr;
 			max_ptr += size;
 		} else {
-			LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << new_size << " bytes at " << (void*)mmap_addr << " failed: " << mremap.error_message() << endl;
+			LOG_WARNING << "Allocator reserve by mremap of " << old_size << " bytes to " << new_size << " bytes at " << reinterpret_cast<void*>(mmap_addr) << " failed: " << mremap.error_message() << endl;
 		}
 	}
 
@@ -133,7 +137,7 @@ class MemoryMap {
 			new_info->size = new_size;
 			return reinterpret_cast<uintptr_t>(new_info->data);
 		} else {
-			LOG_WARNING << "Allocator using mremap of " << old_info->size << " bytes to " << new_size << " bytes at " << (void*)start << " failed: " << mremap.error_message() << endl;
+			LOG_WARNING << "Allocator using mremap of " << old_info->size << " bytes to " << new_size << " bytes at " << reinterpret_cast<void*>(start) << " failed: " << mremap.error_message() << endl;
 			return 0;
 		}
 	}
@@ -145,7 +149,7 @@ class MemoryMap {
 		size_t size = info->size;
 		auto munmap = Syscall::munmap(start, size);
 		if (munmap.failed()) {
-			LOG_WARNING << "Allocator using munmap of " << size << " bytes at " << (void*)start << " failed: " << munmap.error_message() << endl;
+			LOG_WARNING << "Allocator using munmap of " << size << " bytes at " << reinterpret_cast<void*>(start) << " failed: " << munmap.error_message() << endl;
 		}
 	}
 };
@@ -175,13 +179,13 @@ void free(uintptr_t addr) {
 #ifndef DLH_LEGACY
 		if (allocator.size(addr) == 0) {
 			MemoryMap::remove(addr);
-		} else
+		} else  // NOLINT
 #endif
-		{
+		 {
 			Guarded section(mutex);
 
 			allocator.free(addr);
-		}
+		 }
 	}
 }
 
@@ -210,9 +214,9 @@ uintptr_t realloc(uintptr_t addr, size_t size) {
 				allocator.free(addr);
 			}
 		}
-	} else
+	} else  // NOLINT
 #endif
-	{
+	 {
 		assert(addr == 0 || old_size != 0);
 		Guarded section(mutex);
 
@@ -228,7 +232,7 @@ uintptr_t realloc(uintptr_t addr, size_t size) {
 		// Free old allocation
 		if (addr != 0)
 			allocator.free(addr);
-	}
+	 }
 
 	// Ensure GLIBC compatibility
 	assert(new_addr % 16 == 0);

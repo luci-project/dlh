@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/container/pair.hpp>
@@ -65,7 +69,7 @@ inline char * get(const char * path) {
 size_t set(const char * path, const char * data, size_t len, bool append = false);
 size_t set(const char * path, const char * data, bool append = false);
 
-}
+}  // namespace contents
 
 Vector<const char *> lines(const char * path);
 
@@ -90,4 +94,5 @@ inline const char * dirname(char * path) {
 inline const char * basename(char * path) {
 	return pathsplit(path).second;
 }
-}  // Namespace File
+
+}  // namespace File

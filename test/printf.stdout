@@ -331,19 +331,19 @@ printf("%p", nullptr) = 5
 printf("%010p", nullptr) = 10
  -> "     (nil)"
 
-printf("%p", (void*)57) = 4
+printf("%p", reinterpret_cast<void*>(57)) = 4
  -> "0x39"
 
-printf("%#020p", (void*)57) = 20
+printf("%#020p", reinterpret_cast<void*>(57)) = 20
  -> "0x000000000000000039"
 
-printf("%#-020p", (void*)57) = 20
+printf("%#-020p", reinterpret_cast<void*>(57)) = 20
  -> "0x39                "
 
-printf("%#012p", (void*)57) = 12
+printf("%#012p", reinterpret_cast<void*>(57)) = 12
  -> "0x0000000039"
 
-printf("%#-012p", (void*)57) = 12
+printf("%#-012p", reinterpret_cast<void*>(57)) = 12
  -> "0x39        "
 
 printf("%04s", "foo") = 4

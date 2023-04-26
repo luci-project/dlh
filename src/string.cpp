@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/string.hpp>
 #include <dlh/mem.hpp>
 
@@ -18,7 +22,7 @@ static constexpr void prefix(const char* needle, size_t needle_len, size_t * n) 
 		n[i] = 0;
 
 	for (size_t j = 0, i = 1; i < needle_len; i++)  {
-		for (j = n[i + 1]; j > 0 && needle[j] != needle[i]; j = n[j]);
+		for (j = n[i + 1]; j > 0 && needle[j] != needle[i]; j = n[j]) {}
 		if (j > 0 || needle[j] == needle[i])
 			n[i + 1] = j + 1;
 	}
@@ -27,7 +31,7 @@ static constexpr void prefix(const char* needle, size_t needle_len, size_t * n) 
 static constexpr const char * find(const char *haystack, const char* needle, size_t haystack_len, size_t needle_len, size_t * n, size_t & pos) {
 	assert(haystack_len > 0 && needle_len > 0 && n != nullptr);
 
-	if (haystack_len - pos >= needle_len)
+	if (haystack_len - pos >= needle_len) {
 		for (size_t i = pos, j = 0; i < haystack_len; i++) {
 			if (haystack[i] == needle[j]) {
 				if (++j == needle_len) {
@@ -39,7 +43,7 @@ static constexpr const char * find(const char *haystack, const char* needle, siz
 				i--;
 			}
 		}
-
+	}
 	return nullptr;
 }
 
@@ -169,10 +173,12 @@ bool starts_with(const char *str, const char * start) {
 bool ends_with(const char *str, const char * end) {
 	size_t s = len(str);
 	size_t e = len(end);
-	if (s >= e)
-		for (size_t i = 0; i < e; i++)
+	if (s >= e) {
+		for (size_t i = 0; i < e; i++) {
 			if (str[s - e +  i] != end[i])
 				return false;
+		}
+	}
 	return true;
 }
 
@@ -266,7 +272,7 @@ int compare_case(const char *s1, const char *s2, size_t n) {
 	if (s1 == s2)
 		return 0;
 
-	if (s1 != nullptr && s2 != nullptr)
+	if (s1 != nullptr && s2 != nullptr) {
 		for (size_t i = 0; i < n; i++) {
 			const char s1l = to_lower(s1[i]);
 			const char s2l = to_lower(s2[i]);
@@ -275,7 +281,7 @@ int compare_case(const char *s1, const char *s2, size_t n) {
 			else if (s1[i] == '\0')
 				break;
 		}
-
+	}
 	return 0;
 }
 

@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/stream/buffer.hpp>
 #include <dlh/string.hpp>
 #include <dlh/types.hpp>
@@ -35,7 +39,6 @@ BufferStream& BufferStream::writefill(long long ival, size_t precision) {
 		return writefill(static_cast<unsigned long long>(-ival), true, precision);
 	else
 		return writefill(static_cast<unsigned long long>(ival), false, precision);
-
 }
 
 // Print a number.
@@ -384,7 +387,7 @@ size_t BufferStream::format(const char * format, va_list args) {
 						break;
 
 					case 's':
-					{
+					 {
 						const char * str = va_arg(args, const char *);
 						if (str == nullptr)
 							str = "(null)";
@@ -395,7 +398,7 @@ size_t BufferStream::format(const char * format, va_list args) {
 						format_start = nullptr;
 						state = NONE;
 						break;
-					}
+					 }
 
 					case 'p':
 						if (void * ptr = va_arg(args, void *)) {
@@ -420,11 +423,11 @@ size_t BufferStream::format(const char * format, va_list args) {
 					case 'i':
 						switch (length) {
 							case SHORT:
-							{
+							 {
 								auto val = static_cast<short>(va_arg(args, int));
 								writefill(static_cast<long long>(val), precision);
 								break;
-							}
+							 }
 
 							case LONG:
 								writefill(static_cast<long>(va_arg(args, int)), precision);
@@ -469,11 +472,11 @@ size_t BufferStream::format(const char * format, va_list args) {
 				if (state != NONE) {
 					switch (length) {
 						case SHORT:
-						{
+						 {
 							auto val = static_cast<unsigned short>(va_arg(args, unsigned));
 							writefill(static_cast<unsigned long long>(val), false, precision);
 							break;
-						}
+						 }
 
 						case LONG:
 							writefill(static_cast<unsigned long long>(va_arg(args, unsigned long)), false, precision);
@@ -519,7 +522,6 @@ size_t BufferStream::format(const char * format, va_list args) {
 		operator<<(*(format_start++));
 
 	// Reset modifiers
-	//reset();
 	_base = cache_base;
 	_width = cache_width;
 	_fill = cache_fill;

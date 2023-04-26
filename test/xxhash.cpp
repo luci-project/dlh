@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/stream/output.hpp>
 #include <dlh/xxhash.hpp>
 #include <dlh/random.hpp>
@@ -9,11 +13,11 @@ int main(int argc, const char *argv[]) {
 
 	size_t n = 200;
 	char * foo = Memory::alloc<char>(n);
-	{
+	 {
 		Random random(23);
 		for (size_t i = 0; i < n ; i++)
 			foo[i] = static_cast<char>(random.number());
-	}
+	 }
 
 	XXHash64 a(0);
 	const char f[1337] = { 0 };

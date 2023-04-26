@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/socket_client.hpp>
 
 #include <dlh/log.hpp>
@@ -22,9 +26,10 @@ bool Client::connect(const char * host) {
 			r = connect_inet(parts[1], port, false);
 		else
 			LOG_ERROR << "Unknown protocol " << parts[0] << endl;
-		if (psize > 0)
-			for (auto & p: parts)
+		if (psize > 0) {
+			for (auto & p : parts)
 				Memory::free(p);
+		}
 	}
 	return r;
 }

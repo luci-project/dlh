@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/syscall.hpp>
 #include <dlh/log.hpp>
 
@@ -7,12 +11,12 @@ namespace Syscall {
 template <typename T>
 static inline ReturnValue<T> retval(unsigned long r) {
 	if (r > -4096UL)
-		return { (Errno)(-r) };
+		return ReturnValue<T>{ (Errno)(-r) };
 	else
-		return { (T)(r), ENONE };
+		return ReturnValue<T>{ (T)(r), ENONE };
 }
 
-//TODO use sysconf
+// TODO use sysconf
 #define PAGE_SIZE 4096
 
 ReturnValue<int> nanosleep(const struct timespec *req, struct timespec *rem) {
@@ -31,7 +35,7 @@ static int __syscall_clock_gettime(clockid_t clk, struct timespec *ts) {
 	if (ret == -ENOSYS) {
 		if (clk == CLOCK_REALTIME) {
 			__syscall(SYS_gettimeofday, ts, 0);
-			ts->tv_nsec = (int)ts->tv_nsec * 1000;
+			ts->tv_nsec = static_cast<int>(ts->tv_nsec) * 1000;
 			return 0;
 		}
 		ret = -EINVAL;
@@ -95,14 +99,14 @@ ReturnValue<int> getrlimit(rlimit_t resource, struct rlimit *rlim) {
 	unsigned long k_rlim[2];
 	auto ret = retval<int>(__syscall(SYS_prlimit64, 0, resource, 0, rlim));
 	if (ret.success() || ret.error() != ENOSYS) {
-		return ret;
+		return ReturnValue<int>{ret};
 	} else if (__syscall(SYS_getrlimit, resource, k_rlim) < 0) {
 		ret = -1;
-		return ret;
+		return ReturnValue<int>{ret};
 	} else {
 		rlim->rlim_cur = k_rlim[0] == -1UL ? (~0ULL) : k_rlim[0];
 		rlim->rlim_max = k_rlim[1] == -1UL ? (~0ULL) : k_rlim[1];
-		return { 0 };
+		return ReturnValue<int>{0};
 	}
 }
 
@@ -118,9 +122,9 @@ ReturnValue<int> prctl(prctl_t option, unsigned long arg2, unsigned long arg3, u
 ReturnValue<int> sigaltstack(const struct sigstack * __restrict__ ss, struct sigstack * __restrict__ old) {
 	if (ss != nullptr) {
 		if ((ss->ss_flags & SS_DISABLE) == 0 && ss->ss_size < MINSIGSTKSZ)
-			return { ENOMEM };
+			return ReturnValue<int>{ENOMEM};
 		else if ((ss->ss_flags & SS_ONSTACK) != 0)
-			return { EINVAL };
+			return ReturnValue<int>{EINVAL};
 	}
 	return retval<int>(__syscall(SYS_sigaltstack, ss, old));
 }
@@ -135,7 +139,7 @@ __restore:
 extern "C" void __restore();
 
 ReturnValue<int> sigaction(int sig, const struct sigaction * __restrict__ sa, struct sigaction * __restrict__ old) {
-	//__syscall(SYS_rt_sigprocmask, SIG_UNBLOCK, 3UL << 32, 0, 8);
+	// TODO: __syscall(SYS_rt_sigprocmask, SIG_UNBLOCK, 3UL << 32, 0, 8);
 	struct sigaction tmp = *sa;
 	tmp.sa_flags |= SA_RESTORER;
 	tmp.sa_restorer = __restore;
@@ -167,8 +171,11 @@ ReturnValue<pid_t> wait(int * status) {
 }
 
 [[noreturn]] void crash() {
-	asm volatile( "hlt" : : : "memory" );
-	*(volatile char *)0=0;
+	// We should not have the necessary privileges
+	asm volatile("hlt" ::: "memory");
+	// or division by zero should cause a trap
+	*reinterpret_cast<volatile char *>(0) = 0;
+	// or wait forever if above didn't work
 	while(1) {}
 	__builtin_unreachable();
 }
@@ -184,8 +191,9 @@ ReturnValue<uintptr_t> mmap(uintptr_t start, size_t len, int prot, int flags, in
 
 ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len, int flags, uintptr_t new_addr) {
 	if (new_len >= PTRDIFF_MAX)
-		return { ENOMEM };
-	return retval<uintptr_t>(__syscall(SYS_mremap, old_addr, old_len, new_len, flags, new_addr));
+		return ReturnValue<uintptr_t>{ENOMEM};
+	else
+		return retval<uintptr_t>(__syscall(SYS_mremap, old_addr, old_len, new_len, flags, new_addr));
 }
 
 ReturnValue<int> mprotect(uintptr_t addr, size_t len, int prot) {
@@ -388,26 +396,26 @@ static uintptr_t curbrk = 0;
 
 ReturnValue<int> brk(uintptr_t addr) {
 	if ((curbrk = __syscall(SYS_brk, addr)) < addr)
-		return { ENOMEM };
+		return ReturnValue<int>{ENOMEM};
 	else
-		return { 0 };
+		return ReturnValue<int>{0};
 }
 
 ReturnValue<uintptr_t> sbrk(intptr_t inc) {
 	if (curbrk == 0 && brk(0).failed())
-		return { ENOMEM };
+		return ReturnValue<uintptr_t>{ENOMEM};
 
 	uintptr_t o = curbrk;
 	if (inc == 0)
-		return { o };
+		return ReturnValue<uintptr_t>{o};
 	else if ((inc > 0 && (o + inc < o)) ||
 	         (inc < 0 && (o < static_cast<uintptr_t>(-inc))))
-		return { ENOMEM };
+		return ReturnValue<uintptr_t>{ENOMEM};
 
 	if (brk(o + inc).success())
-		return { o };
+		return ReturnValue<uintptr_t>{o};
 	else
-		return { ENOMEM };
+		return ReturnValue<uintptr_t>{ENOMEM};
 }
 
 ReturnValue<long> ptrace(ptrace_request_t request, pid_t pid, void *addr, void *data) {

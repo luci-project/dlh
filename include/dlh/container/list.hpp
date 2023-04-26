@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/assert.hpp>
@@ -12,9 +16,9 @@ struct ListNode : public T {
 	ListNode * _prev;
 	ListNode * _next;
 
-	ListNode(const T& value) : T(value), _prev(nullptr), _next(nullptr) {}
+	explicit ListNode(const T& value) : T(value), _prev(nullptr), _next(nullptr) {}
 
-	ListNode(T&& value) : T(move(value)), _prev(nullptr), _next(nullptr) {}
+	explicit ListNode(T&& value) : T(move(value)), _prev(nullptr), _next(nullptr) {}
 
 	template <class... ARGS>
 	explicit ListNode(const ARGS&... args) : T(args...), _prev(nullptr), _next(nullptr) {}
@@ -43,7 +47,7 @@ class List {
 		friend class List<T, N, NEXT, PREV>;
 		mutable N * i;
 
-		BaseIterator(N * node) : i(node) {}
+		explicit BaseIterator(N * node) : i(node) {}
 
 		inline void next() const {
 			assert(i != nullptr);
@@ -65,23 +69,23 @@ class List {
 			return reinterpret_cast<T*>(i);
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator==(const I& other) const {
 			return i == other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator==(const X& other) const {
 			assert(i != nullptr);
 			return *reinterpret_cast<X*>(i) == other;
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator!=(const BaseIterator& other) const {
 			return i == other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator!=(const X& other) const {
 			assert(i != nullptr);
 			return *reinterpret_cast<X*>(i) != other;
@@ -95,7 +99,7 @@ class List {
  public:
 	/*! \brief Create new empty list
 	 */
-	explicit List() {}
+	List() {}
 
 	/*! \brief Range constructor
 	 * \param begin First element in range
@@ -118,7 +122,7 @@ class List {
 	 */
 	class Iterator : public BaseIterator {
 		friend class List<T, N, NEXT, PREV>;
-		Iterator(N * p) : BaseIterator(p) {}
+		explicit Iterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -145,7 +149,7 @@ class List {
 	 */
 	class ConstIterator : public BaseIterator {
 		friend class List<T, N, NEXT, PREV>;
-		ConstIterator(N * p) : BaseIterator(p) {}
+		explicit ConstIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -158,14 +162,13 @@ class List {
 			BaseIterator::next();
 			return *this;
 		}
-
 	};
 
 	/*! \brief Reverse binary search tree iterator
 	 */
 	class ReverseIterator : public BaseIterator {
 		friend class List<T, N, NEXT, PREV>;
-		ReverseIterator(N * p) : BaseIterator(p) {}
+		explicit ReverseIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -192,7 +195,7 @@ class List {
 	 */
 	class ConstReverseIterator : public BaseIterator {
 		friend class List<T, N, NEXT, PREV>;
-		ConstReverseIterator(N * p) : BaseIterator(p) {}
+		explicit ConstReverseIterator(N * p) : BaseIterator(p) {}
 
 	 public:
 		using BaseIterator::operator*;
@@ -211,56 +214,56 @@ class List {
 	 * \return iterator to first valid element (if available) or `end()`
 	 */
 	inline Iterator begin() {
-		return { _head };
+		return Iterator{_head};
 	}
 
 	/*! \brief Get iterator to end (post-last-element)
 	 * \return iterator to end (first invalid element)
 	 */
 	inline Iterator end() {
-		return { nullptr };
+		return Iterator{nullptr};
 	}
 
 	/*! \brief Get iterator to first element
 	 * \return iterator to first valid element (if available) or `end()`
 	 */
 	inline ConstIterator begin() const {
-		return { _head };
+		return ConstIterator{_head};
 	}
 
 	/*! \brief Get iterator to end (post-last-element)
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ConstIterator end() const {
-		return { nullptr };
+		return ConstIterator{nullptr};
 	}
 
 	/*! \brief Get iterator to last element
 	 * \return iterator to last valid element (if available) or `rend()`
 	 */
 	inline ReverseIterator rbegin() {
-		return { _tail };
+		return ReverseIterator{_tail};
 	}
 
 	/*! \brief Get reverse iterator to end (pre-first-element)
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ReverseIterator rend() {
-		return { nullptr };
+		return ReverseIterator{nullptr};
 	}
 
 	/*! \brief Get iterator to last element
 	 * \return iterator to last valid element (if available) or `rend()`
 	 */
 	inline ConstReverseIterator rbegin() const {
-		return { _tail };
+		return ConstReverseIterator{_tail};
 	}
 
 	/*! \brief Get reverse iterator to end (pre-first-element)
 	 * \return iterator to end (first invalid element)
 	 */
 	inline ConstReverseIterator rend() const {
-		return { nullptr };
+		return ConstReverseIterator{nullptr};
 	}
 
 	/*! \brief Create new element before postition
@@ -297,7 +300,7 @@ class List {
 		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
-		return { node };
+		return Iterator{node};
 	}
 
 	/*! \brief Insert element before postition
@@ -338,7 +341,7 @@ class List {
 		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
-		return { node };
+		return Iterator{node};
 	}
 
 	/*! \brief Insert element at front
@@ -378,7 +381,7 @@ class List {
 		assert((node->*PREV == nullptr && _head == node) || (node->*PREV->*NEXT == node && _head != node));
 
 		_size++;
-		return { node };
+		return Iterator{node};
 	}
 
 	/*! \brief Insert element at back
@@ -433,7 +436,7 @@ class List {
 	 * \return iterator to the next element
 	 */
 	Iterator erase(const BaseIterator & position) {
-		return { erase(position.i) };
+		return Iterator{erase(position.i)};
 	}
 
 	/*! \brief Erase element at front

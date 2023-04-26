@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/stream/output.hpp>
 #include <dlh/parser/string.hpp>
 #include <dlh/type_traits.hpp>
@@ -17,7 +21,7 @@ void test(const char * str, T value) {
 		cerr << "failed!" << endl;
 		Syscall::exit(1);
 	}
-};
+}
 
 template<typename T>
 void testfail(const char * str) {
@@ -30,7 +34,7 @@ void testfail(const char * str) {
 	} else {
 		cout << "failed (as expected)!" << endl;
 	}
-};
+}
 
 int main(int argc, const char *argv[]) {
 	(void) argc;
@@ -83,8 +87,8 @@ int main(int argc, const char *argv[]) {
 	testfail<int>("affe");
 	testfail<int>("xaffe");
 
-	test<int>("0b10100101",0b10100101);
-	test<int>("0B1101",0b1101);
+	test<int>("0b10100101", 0b10100101);
+	test<int>("0B1101", 0b1101);
 	testfail<int>("b1101");
 
 	test<int>("023", 023);

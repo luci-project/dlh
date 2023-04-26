@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/mutex.hpp>
@@ -65,14 +69,26 @@ class GuardedReader {
 	RWLock & _rwlock;
 
  public:
-	GuardedReader(RWLock & rwlock) : _rwlock(rwlock) { _rwlock.read_lock(); }
-	~GuardedReader() { _rwlock.read_unlock(); }
+	explict GuardedReader(RWLock & rwlock)
+	 : _rwlock(rwlock) {
+		_rwlock.read_lock();
+	}
+
+	~GuardedReader() {
+		_rwlock.read_unlock();
+	}
 };
 
 class GuardedWriter {
 	RWLock & _rwlock;
 
  public:
-	GuardedWriter(RWLock & rwlock) : _rwlock(rwlock) { _rwlock.write_lock(); }
-	~GuardedWriter() { _rwlock.write_unlock(); }
+	explicit GuardedWriter(RWLock & rwlock)
+	 : _rwlock(rwlock) {
+		_rwlock.write_lock();
+	}
+
+	~GuardedWriter() {
+		_rwlock.write_unlock();
+	}
 };

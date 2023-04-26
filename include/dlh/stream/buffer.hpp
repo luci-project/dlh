@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/types.hpp>
@@ -8,7 +12,7 @@
  */
 struct setbase {
 	uint8_t base;
-	setbase(uint8_t base) : base(base) {}
+	explicit setbase(uint8_t base) : base(base) {}
 };
 
 /*! \brief Sets the field width to be used on output operations.
@@ -16,14 +20,14 @@ struct setbase {
  */
 struct setw {
 	uint8_t n;
-	setw(uint8_t n = 0) : n(n) {}
+	explicit setw(uint8_t n = 0) : n(n) {}
 };
 
 /*! \brief Sets the fill character
  */
 struct setfill {
 	const char c;
-	setfill(char c) : c(c) {}
+	explicit setfill(char c) : c(c) {}
 };
 
 
@@ -79,7 +83,7 @@ class BufferStream {
 
 	/*! \brief Constructor implicitly determining size */
 	template<size_t L>
-	BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
+	explicit BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
 
 	/*! \brief Destructor */
 	virtual ~BufferStream() { flush(); }
@@ -103,7 +107,7 @@ class BufferStream {
 	/*! \brief Flush the buffer.
 	 * (only for derived classes, has no effect in BufferStream)
 	 */
-	virtual void flush() {};
+	virtual void flush() {}
 
 	/*! \brief clear the buffer.
 	 */
@@ -112,7 +116,7 @@ class BufferStream {
 		_pos = 0;
 		if (_len > 0)
 			_bufptr[_len - 1] = '\0';
-	};
+	}
 
 	/*! \brief set alignment for fields with specified width
 	 * \param left `true` for right-, `false` for left alignment

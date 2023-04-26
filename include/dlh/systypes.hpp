@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 // TODO: Auto generate from system headers
@@ -889,7 +893,7 @@ struct uffdio_api {
 	uint64_t features;
 	uint64_t ioctls;
 
-	uffdio_api(uint64_t features = 0, uint64_t api = UFFD_API, uint64_t ioctls = 0)
+	explicit uffdio_api(uint64_t features = 0, uint64_t api = UFFD_API, uint64_t ioctls = 0)
 	 : api(api), features(features), ioctls(ioctls) {}
 };
 
@@ -897,7 +901,7 @@ struct uffdio_range {
 	uint64_t start;
 	uint64_t len;
 
-	uffdio_range(uint64_t start = 0, uint64_t len = 0)
+	explicit uffdio_range(uint64_t start = 0, uint64_t len = 0)
 	 : start(start), len(len) {}
 };
 
@@ -906,7 +910,7 @@ struct uffdio_register {
 	uint64_t mode;
 	uint64_t ioctls;
 
-	uffdio_register(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, uint64_t ioctls = 0)
+	explicit uffdio_register(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, uint64_t ioctls = 0)
 	 : range(start, len), mode(mode), ioctls(ioctls) {}
 };
 
@@ -917,7 +921,7 @@ struct uffdio_copy {
 	uint64_t mode;
 	int64_t copy;
 
-	uffdio_copy(uint64_t dst = 0, uint64_t src = 0, uint64_t len = 0, uint64_t mode = 0, int64_t copy = 0)
+	explicit uffdio_copy(uint64_t dst = 0, uint64_t src = 0, uint64_t len = 0, uint64_t mode = 0, int64_t copy = 0)
 	 : dst(dst), src(src), len(len), mode(mode), copy(copy) {}
 };
 
@@ -926,6 +930,6 @@ struct uffdio_zeropage {
 	uint64_t mode;
 	int64_t zeropage;
 
-	uffdio_zeropage(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, uint64_t zeropage = 0)
+	explicit uffdio_zeropage(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, uint64_t zeropage = 0)
 	 : range(start, len), mode(mode), zeropage(zeropage) {}
 };

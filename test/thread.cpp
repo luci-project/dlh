@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include <dlh/stream/output.hpp>
 #include <dlh/syscall.hpp>
 #include <dlh/string.hpp>
@@ -24,7 +28,7 @@ void* foo(void * a) {
 
 	Syscall::sleep(8);
 	cout << "foo done" << endl;
-	return (void*)42;
+	return reinterpret_cast<void*>(42);
 }
 
 int main(int argc, const char *argv[]) {
@@ -32,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	(void) argv;
 
 	cerr << "main start" << endl;
-	Thread * f = Thread::create(foo, (void*)0x23, true, true);
+	Thread * f = Thread::create(foo, reinterpret_cast<void*>(0x23), true, true);
 	if (f == nullptr) {
 		cerr << "failed" << endl;
 		return 1;

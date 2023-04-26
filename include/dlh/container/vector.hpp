@@ -1,5 +1,8 @@
-/*! \file
- *  \brief vector class
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+/*! \file vector class
  */
 #pragma once
 
@@ -64,23 +67,23 @@ template<class T> class Vector {
 			return ref._element + i;
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator==(const I& other) const {
 			return &ref == &other.ref && i == other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator==(const X& other) const {
 			assert(i >= 0 && i < ref._size);
 			return *reinterpret_cast<X*>(ref._element[i]) == other;
 		}
 
-		template<typename I, typename enable_if<is_base_of<BaseIterator,I>::value, int>::type = 0>
+		template<typename I, typename enable_if<is_base_of<BaseIterator, I>::value, int>::type = 0>
 		inline bool operator!=(const BaseIterator& other) const {
 			return &ref != &other.ref || i != other.i;
 		}
 
-		template<typename X = T, typename enable_if<!is_base_of<BaseIterator,X>::value, int>::type = 0>
+		template<typename X = T, typename enable_if<!is_base_of<BaseIterator, X>::value, int>::type = 0>
 		inline bool operator!=(const X& other) const {
 			assert(i >= 0 && i < ref._size);
 			return *reinterpret_cast<X*>(ref._element[i]) != other;
@@ -266,35 +269,35 @@ template<class T> class Vector {
 	};
 
 	inline Iterator begin() {
-		return { *this, 0 };
+		return Iterator{*this, 0};
 	}
 
 	inline ConstIterator begin() const {
-		return { *this, 0 };
+		return ConstIterator{*this, 0};
 	}
 
 	inline Iterator end() {
-		return { *this, _size };
+		return Iterator{*this, _size};
 	}
 
 	inline ConstIterator end() const {
-		return { *this, _size };
+		return ConstIterator{*this, _size};
 	}
 
 	inline ReverseIterator rbegin() {
-		return { *this, _size - 1};
+		return ReverseIterator{*this, _size - 1};
 	}
 
 	inline ConstReverseIterator rbegin() const {
-		return { *this, _size - 1};
+		return ConstReverseIterator{*this, _size - 1};
 	}
 
 	inline ReverseIterator rend() {
-		return { *this, -1 };
+		return ReverseIterator{*this, -1};
 	}
 
 	inline ConstReverseIterator rend() const {
-		return { *this, -1 };
+		return ConstReverseIterator{*this, -1};
 	}
 
 	/*! \brief access specified element
@@ -304,9 +307,9 @@ template<class T> class Vector {
 	 */
 	inline Optional<T> at(int32_t i) {
 		if (i >= 0 && i < _size)
-			return { _element[i] };
+			return Optional<T>{_element[i]};
 		else
-			return {};
+			return Optional<T>{};
 	}
 
 	/*! \brief Access the first element
@@ -420,9 +423,9 @@ template<class T> class Vector {
 
 			new (_element + pos) T(forward<ARGS>(args)...);
 			_size++;
-			return { *this, pos };
+			return Iterator{*this, pos};
 		} else {
-			return { *this, _size };
+			return Iterator{*this, _size};
 		}
 	}
 
@@ -435,7 +438,7 @@ template<class T> class Vector {
 			expand();
 
 		new (_element + _size) T(forward<ARGS>(args)...);
-		return { *this, _size++ };
+		return Iterator{ *this, _size++};
 	}
 
 	/*! \brief Adds an element to the end
@@ -483,7 +486,7 @@ template<class T> class Vector {
 		if (pos < INT32_MAX)
 			return emplace(static_cast<int32_t>(pos), forward<ARGS>(args)...);
 		else
-			return { *this, _size };
+			return Iterator{*this, _size};
 	}
 
 	/*! \brief Inserts element at the specified location
@@ -574,7 +577,7 @@ template<class T> class Vector {
 	 * \return removed value (if valid iterator)
 	 */
 	inline Iterator erase(int32_t pos) {
-		return { *this, erase_helper(pos) };
+		return Iterator{*this, erase_helper(pos)};
 	}
 
 	/*! \brief Remove element at the specified location
@@ -582,7 +585,7 @@ template<class T> class Vector {
 	 * \return Iterator (to the next element)
 	 */
 	inline Iterator erase(size_t pos) {
-		return { *this, pos <= INT32_MAX ? erase_helper(static_cast<int32_t>(pos)) : _size };
+		return Iterator{*this, pos <= INT32_MAX ? erase_helper(static_cast<int32_t>(pos)) : _size};
 	}
 
 	/*! \brief Remove value from set
@@ -590,7 +593,7 @@ template<class T> class Vector {
 	 * \return removed value (if valid iterator)
 	 */
 	inline Iterator erase(const Iterator & position) {
-		return { *this, erase_helper(position.i) };
+		return Iterator{*this, erase_helper(position.i)};
 	}
 
 	/*! \brief Remove value from set
@@ -598,7 +601,7 @@ template<class T> class Vector {
 	 * \return removed value (if valid iterator)
 	 */
 	inline ReverseIterator erase(const ReverseIterator & position) {
-		return { *this, erase_helper(position.i) };
+		return ReverseIterator{*this, erase_helper(position.i)};
 	}
 
 	/*! \brief Access Element

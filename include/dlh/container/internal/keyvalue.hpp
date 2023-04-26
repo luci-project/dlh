@@ -1,3 +1,7 @@
+// Dirty Little Helper (DLH) - system support library for C/C++
+// Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #pragma once
 
 #include <dlh/utility.hpp>
@@ -10,11 +14,11 @@ struct KeyValue {
 
 	KeyValue() : key(), value() { }
 
-	KeyValue(const K& key) : key(key), value() { }
+	explicit KeyValue(const K& key) : key(key), value() {}
 
 	KeyValue(const K& key, const V& value) : key(key), value(value) { }
 
-	KeyValue(K&& key) : key(move(key)), value() { }
+	explicit KeyValue(K&& key) : key(move(key)), value() {}
 
 	KeyValue(K&& key, V&& value) : key(move(key)), value(move(value)) { }
 
@@ -22,39 +26,39 @@ struct KeyValue {
 	KeyValue(const KeyValue<OK, OV>& o) : key(o.key), value(o.value) {}
 
 	template<class OF, class OS>
-	KeyValue(const Pair<OF, OS>& o) : key(o.first), value(o.second) {}
+	explicit KeyValue(const Pair<OF, OS>& o) : key(o.first), value(o.second) {}
 
 	template<class OK, class OV>
-	KeyValue& operator=(const KeyValue<OK,OV>& o) {
+	KeyValue& operator=(const KeyValue<OK, OV>& o) {
 		key = o.key;
 		value = o.value;
 		return *this;
 	}
 
 	template<class OF, class OS>
-	KeyValue& operator=(const Pair<OF,OS>& o) {
+	KeyValue& operator=(const Pair<OF, OS>& o) {
 		key = o.first;
 		value = o.second;
 		return *this;
 	}
 
 	template<class OK, class OV>
-	constexpr bool operator==(const KeyValue<OK,OV>& other) const {
+	constexpr bool operator==(const KeyValue<OK, OV>& other) const {
 		return key == other.key && value == other.value;
 	}
 
 	template<class OF, class OS>
-	constexpr bool operator==(const Pair<OF,OS>& other) const {
+	constexpr bool operator==(const Pair<OF, OS>& other) const {
 		return key == other.first && value == other.second;
 	}
 
 	template<class OK, class OV>
-	constexpr bool operator!=(const KeyValue<OK,OV>& other) const {
+	constexpr bool operator!=(const KeyValue<OK, OV>& other) const {
 		return key != other.key || value != other.value;
 	}
 
 	template<class OF, class OS>
-	constexpr bool operator!=(const Pair<OF,OS>& other) const {
+	constexpr bool operator!=(const Pair<OF, OS>& other) const {
 		return key != other.first || value != other.second;
 	}
 };
