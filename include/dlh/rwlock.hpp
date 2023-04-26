@@ -69,7 +69,7 @@ class GuardedReader {
 	RWLock & _rwlock;
 
  public:
-	explict GuardedReader(RWLock & rwlock)
+	explicit GuardedReader(RWLock & rwlock)
 	 : _rwlock(rwlock) {
 		_rwlock.read_lock();
 	}
