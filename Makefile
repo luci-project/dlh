@@ -83,7 +83,7 @@ lint::
 	fi
 
 tidy:: $(TIDYCONFIG)
-	$(VERBOSE) $(TIDY) --header-filter=".*" --system-headers --config-file=$< $(filter-out $(TIDYIGNORE),$(SOURCES) $(TESTSRC)) -- -stdlib=libc++  $(CXXFLAGS)
+	$(VERBOSE) $(TIDY) --config-file=$< --header-filter=".*" --system-headers $(filter-out $(TIDYIGNORE),$(SOURCES) $(TESTSRC)) -- -stdlib=libc++  $(CXXFLAGS)
 
 clean::
 	$(VERBOSE) rm -rf $(BUILDDIR)

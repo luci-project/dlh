@@ -306,6 +306,15 @@ template<class T> class Vector {
 	 * \note This function differs to the standard library due to the lack of exceptions
 	 */
 	inline Optional<T> at(int32_t i) {
+		return at(static_cast<size_t>(i));
+	}
+
+	/*! \brief access specified element
+	 * \param pos position of the element to return
+	 * \return element or T() if out of bounds
+	 * \note This function differs to the standard library due to the lack of exceptions
+	 */
+	inline Optional<T> at(size_t i) {
 		if (i >= 0 && i < _size)
 			return Optional<T>{_element[i]};
 		else
@@ -646,7 +655,6 @@ template<class T> class Vector {
 		return remove(position.i);
 	}
 
-
 	/*! \brief Remove value from set
 	 * \param position iterator to element
 	 * \return removed value (if valid iterator)
@@ -692,8 +700,26 @@ template<class T> class Vector {
 	 * \note undefined behaviour if index is out of bounds
 	 * \param i index
 	 */
+	inline T & operator[](size_t i) {
+		assert(i >= 0 && i < static_cast<size_t>(_size));
+		return _element[i];
+	}
+
+	/*! \brief Access Element
+	 * \note undefined behaviour if index is out of bounds
+	 * \param i index
+	 */
 	inline const T & operator[](int32_t i) const {
 		assert(i >= 0 && i < _size);
+		return _element[i];
+	}
+
+	/*! \brief Access Element
+	 * \note undefined behaviour if index is out of bounds
+	 * \param i index
+	 */
+	inline const T & operator[](size_t i) const {
+		assert(i >= 0 && i < static_cast<size_t>(_size));
 		return _element[i];
 	}
 
