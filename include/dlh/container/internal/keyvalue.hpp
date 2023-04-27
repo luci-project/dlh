@@ -16,11 +16,11 @@ struct KeyValue {
 
 	explicit KeyValue(const K& key) : key(key), value() {}
 
-	KeyValue(const K& key, const V& value) : key(key), value(value) { }
+	KeyValue(const K& key, const V& value) : key(key), value(value) {}
 
 	explicit KeyValue(K&& key) : key(move(key)), value() {}
 
-	KeyValue(K&& key, V&& value) : key(move(key)), value(move(value)) { }
+	KeyValue(K&& key, V&& value) : key(move(key)), value(move(value)) {}
 
 	template<class OK, class OV>
 	KeyValue(const KeyValue<OK, OV>& o) : key(o.key), value(o.value) {}

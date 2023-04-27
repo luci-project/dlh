@@ -249,7 +249,7 @@ static inline uint16_t ntohs(uint16_t n) {
 		int i;
 		char c;
 	} u = { 1 };
-	return u.c ? __builtin_bswap16(n) : n;
+	return u.c != '\0' ? __builtin_bswap16(n) : n;
 }
 
 static inline uint32_t ntohl(uint32_t n) {
@@ -257,7 +257,7 @@ static inline uint32_t ntohl(uint32_t n) {
 		int i;
 		char c;
 	} u = { 1 };
-	return u.c ? __builtin_bswap32(n) : n;
+	return u.c != '\0' ? __builtin_bswap32(n) : n;
 }
 
 static inline uint16_t htons(uint16_t n) {
@@ -265,7 +265,7 @@ static inline uint16_t htons(uint16_t n) {
 		int i;
 		char c;
 	} u = { 1 };
-	return u.c ? __builtin_bswap16(n) : n;
+	return u.c != '\0' ? __builtin_bswap16(n) : n;
 }
 
 static inline uint32_t htonl(uint32_t n) {
@@ -273,7 +273,7 @@ static inline uint32_t htonl(uint32_t n) {
 		int i;
 		char c;
 	} u = { 1 };
-	return u.c ? __builtin_bswap32(n) : n;
+	return u.c != '\0' ? __builtin_bswap32(n) : n;
 }
 
 }  // namespace Socket

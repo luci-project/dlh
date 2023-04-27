@@ -83,7 +83,7 @@ int main(int argc, const char *argv[]) {
 	 }
 	 {
 		cout << "String::split(s, 'b' , 4):" << endl;
-		for (auto p : String::split(s, 'b', 4)) {
+		for (const char * p : String::split(s, 'b', 4)) {
 			cout << " - " << p << endl;
 			Memory::free(p);
 		}
@@ -91,12 +91,12 @@ int main(int argc, const char *argv[]) {
 	 {
 		char t[String::len(s)];
 		cout << "String::split_inplace(t, 'b', 4):" << endl;
-		for (auto p : String::split_inplace(String::copy(t, s), 'b', 4))
+		for (const char * p : String::split_inplace(String::copy(t, s), 'b', 4))
 			cout << " - " << p << endl;
 	 }
 	 {
 		cout << "String::split(s, \"b\" , 4):" << endl;
-		for (auto p : String::split(s, "b", 4)) {
+		for (const char * p : String::split(s, "b", 4)) {
 			cout << " - " << p << endl;
 			Memory::free(p);
 		}
@@ -104,12 +104,12 @@ int main(int argc, const char *argv[]) {
 	 {
 		char t[String::len(s)];
 		cout << "String::split_inplace(t, \"b\", 4):" << endl;
-		for (auto p : String::split_inplace(String::copy(t, s), "b", 4))
+		for (const char * p : String::split_inplace(String::copy(t, s), "b", 4))
 			cout << " - " << p << endl;
 	 }
 	 {
 		cout << "String::split(s, \"bar\"):" << endl;
-		for (auto p : String::split(s, "bar")) {
+		for (const char * p : String::split(s, "bar")) {
 			cout << " - " << p << endl;
 			Memory::free(p);
 		}
@@ -117,7 +117,7 @@ int main(int argc, const char *argv[]) {
 	 {
 		char t[String::len(s)];
 		cout << "String::split_inplace(t, \"bar\"):" << endl;
-		for (auto p : String::split_inplace(String::copy(t, s), "bar"))
+		for (const char * p : String::split_inplace(String::copy(t, s), "bar"))
 			cout << " - " << p << endl;
 	 }
 	 {

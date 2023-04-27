@@ -46,7 +46,7 @@ class XXHash64 {
 
 	/// process a block of 4x4 bytes, this is the main part of the XXHash32 algorithm
 	static constexpr void process(const void* data, uint64_t& state0, uint64_t& state1, uint64_t& state2, uint64_t& state3) {
-		const uint64_t* block = (const uint64_t*) data;
+		const uint64_t* block = static_cast<const uint64_t*>(data);
 		state0 = processSingle(state0, block[0]);
 		state1 = processSingle(state1, block[1]);
 		state2 = processSingle(state2, block[2]);
@@ -81,7 +81,10 @@ class XXHash64 {
 		}
 
 		// copying state to local variables helps optimizer A LOT
-		uint64_t s0 = state[0], s1 = state[1], s2 = state[2], s3 = state[3];
+		uint64_t s0 = state[0];
+		uint64_t s1 = state[1];
+		uint64_t s2 = state[2];
+		uint64_t s3 = state[3];
 
 		if (bufferSize > 0) {
 			// make sure temporary buffer is full (16 bytes)
@@ -132,7 +135,7 @@ class XXHash64 {
 
 		totalLength += length;
 		// byte-wise access
-		const unsigned char* data = (const unsigned char*)input;
+		const unsigned char* data = static_cast<const unsigned char*>(input);
 
 		// unprocessed old data plus new data still fit in temporary buffer ?
 		if (bufferSize + length < MaxBufferSize) {
@@ -146,7 +149,10 @@ class XXHash64 {
 		const unsigned char* stop = data + length;
 
 		// copying state to local variables helps optimizer A LOT
-		uint64_t s0 = state[0], s1 = state[1], s2 = state[2], s3 = state[3];
+		uint64_t s0 = state[0];
+		uint64_t s1 = state[1];
+		uint64_t s2 = state[2];
+		uint64_t s3 = state[3];
 
 		// some data left from previous update ?
 		if (bufferSize > 0) {

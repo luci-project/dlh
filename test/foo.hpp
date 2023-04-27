@@ -9,11 +9,11 @@
 
 static size_t uid_c = 0;
 struct Foo {
-	const size_t uid;
-	int id;
+	const size_t uid = 0;
+	int id = 0;
 
-	Foo * n;
-	Foo * p;
+	Foo * n = nullptr;
+	Foo * p = nullptr;
 
 	Foo(const Foo & o) : uid(uid_c++), id(o.id) {
 		cerr << "Foo #" << uid << " (" << id << ") created (copy from Foo #" << o.uid << ")" << endl;

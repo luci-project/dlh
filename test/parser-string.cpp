@@ -109,14 +109,14 @@ int main(int argc, const char *argv[]) {
 	testfail<uint16_t>("0x10000");
 
 	test<int32_t>("0x7fffffff", 0x7fffffff);
-	test<int32_t>("-0x80000000", -0x80000000);
+	test<int32_t>("-0x80000000", -0x80000000);  // NOLINT
 	testfail<int32_t>("0x80000000");
 	testfail<int32_t>("-0x80000001");
 	test<uint32_t>("0xffffffff", 0xffffffff);
 	testfail<uint32_t>("0x100000000");
 
 	test<int64_t>("0x7fffffffffffffff", 0x7fffffffffffffffL);
-	test<int64_t>("-0x8000000000000000", -0x8000000000000000L);
+	test<int64_t>("-0x8000000000000000", -0x8000000000000000L);  // NOLINT
 	testfail<int64_t>("0x8000000000000000");
 	testfail<int64_t>("-0x8000000000000001");
 	test<uint64_t>("0xffffffffffffffff", 0xffffffffffffffffUL);

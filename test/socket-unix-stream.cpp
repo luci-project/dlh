@@ -16,7 +16,7 @@ int main() {
 				Syscall::sleep(1);
 				client(fd.value(), server_addr);
 			}
-			Syscall::close(fd);
+			Syscall::close(fd.value());
 		} else {
 			cerr << "Creating socket failed: " << fd.error_message() << endl;
 		}

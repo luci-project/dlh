@@ -77,13 +77,13 @@ class BufferStream {
 
  public:
 	/*! \brief Default constructor. Initial number system is decimal. */
-	BufferStream(char * buffer, size_t len) : _bufptr(buffer), _len(buffer == nullptr ? 0 : len), _pos(0) {
+	BufferStream(char * const buffer, size_t len) : _bufptr(buffer), _len(buffer == nullptr ? 0 : len), _pos(0) {
 		clear();
 	}
 
 	/*! \brief Constructor implicitly determining size */
 	template<size_t L>
-	explicit BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
+	explicit BufferStream(const char buffer[L]) : BufferStream(&buffer, L) {}
 
 	/*! \brief Destructor */
 	virtual ~BufferStream() {

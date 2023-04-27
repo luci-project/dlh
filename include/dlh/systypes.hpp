@@ -272,7 +272,7 @@ typedef long int off_t;
 #define O_TMPFILE  (020000000 | __O_DIRECTORY)
 
 // (f*at)
-#define AT_FDCWD                -100
+#define AT_FDCWD               (-100)
 #define AT_SYMLINK_NOFOLLOW    0x100
 #define AT_REMOVEDIR           0x200
 #define AT_SYMLINK_FOLLOW      0x400
@@ -930,6 +930,6 @@ struct uffdio_zeropage {
 	uint64_t mode;
 	int64_t zeropage;
 
-	explicit uffdio_zeropage(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, uint64_t zeropage = 0)
+	explicit uffdio_zeropage(uint64_t start = 0, uint64_t len = 0, uint64_t mode = 0, int64_t zeropage = 0)
 	 : range(start, len), mode(mode), zeropage(zeropage) {}
 };

@@ -32,7 +32,8 @@ SOURCES = $(shell find $(SRCFOLDER)/ -name "*.cpp")
 OBJECTS = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.o)) $(BUILDINFO)
 DEPFILES = $(patsubst $(SRCFOLDER)/%,$(BUILDDIR)/%,$(SOURCES:.cpp=.d)) $(patsubst %.cpp,$(BUILDDIR)/%.d,$(wildcard test/*.cpp))
 TARGET = lib$(LIBNAME).a
-TEST := $(patsubst test/%.cpp,test-%,$(wildcard test/*.cpp))
+TESTSRC := $(wildcard test/*.cpp)
+TEST := $(patsubst test/%.cpp,test-%,$(TESTSRC))
 
 all: $(TARGET)
 
@@ -82,7 +83,7 @@ lint::
 	fi
 
 tidy:: $(TIDYCONFIG)
-	$(VERBOSE) $(TIDY) --config-file=$< $(filter-out $(TIDYIGNORE),$(SOURCES)) -- -stdlib=libc++  $(CXXFLAGS)
+	$(VERBOSE) $(TIDY) --header-filter=".*" --system-headers --config-file=$< $(filter-out $(TIDYIGNORE),$(SOURCES) $(TESTSRC)) -- -stdlib=libc++  $(CXXFLAGS)
 
 clean::
 	$(VERBOSE) rm -rf $(BUILDDIR)

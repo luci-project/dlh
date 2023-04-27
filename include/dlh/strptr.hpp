@@ -49,7 +49,7 @@ struct StrPtr {
 		return str == nullptr || len == 0;
 	}
 
-	constexpr inline const char * c_str() {
+	constexpr inline const char * c_str() const {
 		return str;
 	}
 
@@ -68,10 +68,12 @@ struct StrPtr {
 		return !operator==(other);
 	}
 
-	constexpr StrPtr& operator=(const StrPtr& other) {
-		str = other.str;
-		hash = other.hash;
-		len = other.len;
+	constexpr StrPtr& operator=(const StrPtr & other) {
+		if (&other != this) {
+			str = other.str;
+			hash = other.hash;
+			len = other.len;
+		}
 		return *this;
 	}
 

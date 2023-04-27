@@ -155,7 +155,7 @@ class TreeSet : public Elements<T> {
 	 * \param initial_capacity space to reserve (or determined automatically if zero)
 	 */
 	template<typename I>
-	explicit TreeSet(const I & begin, const I & end, size_t initial_capacity = 0) {
+	TreeSet(const I & begin, const I & end, size_t initial_capacity = 0) {
 		if (initial_capacity == 0) {
 			for (I i = begin; i != end; ++i)
 				initial_capacity++;
@@ -664,6 +664,22 @@ class TreeSet : public Elements<T> {
 	}
 
 #ifndef NDEBUG
+
+ private:
+	int check_node(uint32_t node, uint32_t parent) { // NOLINT misc-no-recursion
+		if (node == 0) {
+			return 0;
+		} else {
+			assert(Elements<T>::_node[node].tree.parent == parent);
+			auto & n = Elements<T>::_node[node].tree;
+			int l = check_node(n.left, node);
+			int r = check_node(n.right, node);
+			assert(r - l == static_cast<int>(n.balance));
+			return 1 + (l > r ? l : r);
+		}
+	}
+
+ public:
 	/*! \brief Check if balanced */
 	void check() {
 		// Elements
@@ -693,20 +709,6 @@ class TreeSet : public Elements<T> {
 		} else {
 			assert(Elements<T>::_node[_root].tree.parent == 0);
 			check_node(_root, 0);
-		}
-	}
-
- private:
-	int check_node(uint32_t node, uint32_t parent) {
-		if (node == 0) {
-			return 0;
-		} else {
-			assert(Elements<T>::_node[node].tree.parent == parent);
-			auto & n = Elements<T>::_node[node].tree;
-			int l = check_node(n.left, node);
-			int r = check_node(n.right, node);
-			assert(r - l == static_cast<int>(n.balance));
-			return 1 + (l > r ? l : r);
 		}
 	}
 #endif
@@ -848,15 +850,13 @@ class TreeSet : public Elements<T> {
 				if (c == 0) {
 					return true;
 				} else if (c < 0) {
-				 	if (e.tree.right != 0)
-						i = e.tree.right;
-					else
+				 	if (e.tree.right == 0)
 						break;
+					i = e.tree.right;
 				} else /* if (c > 0) */ {
-				 	if (e.tree.left != 0)
-						i = e.tree.left;
-					else
+				 	if (e.tree.left == 0)
 						break;
+					i = e.tree.left;
 				}
 			}
 
@@ -1100,7 +1100,7 @@ class TreeSet : public Elements<T> {
 			s.balance = 0;
 		}
 
-		replace_node(grandparent, parent, subroot, false);
+		replace_node(grandparent, parent, subroot, false);  // NOLINT
 
 		parent = subroot;
 

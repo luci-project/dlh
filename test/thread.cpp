@@ -21,7 +21,7 @@ void* foo(void * a) {
 	struct sigaction action;
 	Memory::set(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = term;
-	Syscall::sigaction(SIGCHLD, &action, NULL).die_on_error("sigaction");
+	Syscall::sigaction(SIGCHLD, &action, nullptr).die_on_error("sigaction");
 
 	auto r = Syscall::prctl(PR_SET_PDEATHSIG, SIGCHLD).value_or_die("set signal");
 	cout << "set signal " << r << endl;

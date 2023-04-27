@@ -28,7 +28,7 @@ constexpr T&& forward(typename remove_reference<T>::type && arg) noexcept {
 }
 
 template<typename T, size_t S>
-constexpr size_t count(const T(&)[S]) {
+constexpr size_t count(const T(&/*unused*/)[S]) {
 	return S;
 }
 

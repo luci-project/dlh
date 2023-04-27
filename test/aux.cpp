@@ -4,8 +4,7 @@
 
 #include <dlh/stream/output.hpp>
 #include <dlh/auxiliary.hpp>
-
-extern char **environ;
+#include <dlh/systypes.hpp>
 
 int main(int argc, const char *argv[]) {
 	(void) argc;

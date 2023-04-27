@@ -18,7 +18,7 @@ struct Thread {
 			void *to_free;
 		} pointer;
 
-		constexpr DynamicThreadVector(void * val = nullptr) : pointer{val, 0} {}
+		constexpr DynamicThreadVector(void * val = nullptr) : pointer{val, 0} {}  // NOLINT
 
 		inline bool allocated() const {
 			return pointer.val != nullptr;
@@ -157,7 +157,7 @@ struct Thread {
 	   Padding for newer GLIBC compatibility */
 	char end_padding[256] = { };
 
-	explicit constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {
+	explicit constexpr Thread(DynamicThreadVector * dtv = nullptr, uintptr_t base = 0, size_t size = 0, bool detach = false) : tcb(this), dtv(dtv), selfptr(this), map_base(base), map_size(size), joindid(detach ? this : 0) {  // NOLINT
 		list.next = &list;
 		list.prev = &list;
 	}

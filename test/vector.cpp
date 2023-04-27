@@ -17,7 +17,7 @@ int main(int argc, const char *argv[]) {
 	 {
 		Vector<Foo> s;
 		auto p = s.push_front(13);
-		auto q = s.insert(p, 666);
+		auto q = s.insert(++p, 666);
 		s.push_back(Foo(3));
 		s.push_back(five);
 		s.emplace_front(42);

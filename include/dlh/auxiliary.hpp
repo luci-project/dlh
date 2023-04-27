@@ -78,7 +78,7 @@ struct alignas(16) Auxiliary {
 	static Auxiliary * data(Auxiliary::type type);
 	static Auxiliary vector(Auxiliary::type type);
 
-	Auxiliary(type t = AT_NULL, long int v = 0) : a_type(t), a_un({v}) {}
+	explicit Auxiliary(type t = AT_NULL, long int v = 0) : a_type(t), a_un({v}) {}
 } __attribute__((packed));
 
 static_assert(sizeof(Auxiliary) == 2 * sizeof(void*), "Auxiliary vector has wrong size!");

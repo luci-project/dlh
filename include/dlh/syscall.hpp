@@ -25,7 +25,7 @@ class ReturnValue {
 
  public:
 	ReturnValue() : _e(ENONE) {}
-	explicit ReturnValue(Errno e) :  _v((T)(-1)), _e(e) {}
+	explicit ReturnValue(Errno e) :  _v(static_cast<T>(-1)), _e(e) {}
 	explicit ReturnValue(T v, Errno e = ENONE) :  _v(v), _e(e) {}
 	ReturnValue(const ReturnValue& other) : _v(other._v), _e(other._e) {}
 	ReturnValue(ReturnValue&& other) = default;

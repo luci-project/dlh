@@ -22,7 +22,7 @@ int main() {
 					cerr << "Client bind socket failed: " << bind.error_message() << endl;
 				}
 			}
-			Syscall::close(fd);
+			Syscall::close(fd.value());
 		} else {
 			cerr << "Creating socket failed: " << fd.error_message() << endl;
 		}

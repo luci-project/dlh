@@ -409,8 +409,8 @@ class List {
 	void extract(N * node) {
 		assert(node != nullptr);
 
-		auto next = node->*NEXT;
-		auto prev = node->*PREV;
+		auto * next = node->*NEXT;
+		auto * prev = node->*PREV;
 
 		if (next == nullptr) {
 			assert(_tail == node);
@@ -516,7 +516,7 @@ class List {
 		if (node == nullptr)
 			return nullptr;
 
-		auto next = node->*NEXT;
+		auto * next = node->*NEXT;
 		extract(node);
 		delete node;
 		return next;

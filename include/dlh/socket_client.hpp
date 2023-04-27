@@ -33,7 +33,7 @@ public:
 	/* Connect via unix domain socket */
 	bool connect_unix(const char * server_path, const char * client_path = nullptr);
 
-	bool is_connected() {
+	bool is_connected() const {
 		return socket >= 0;
 	}
 

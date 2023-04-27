@@ -44,7 +44,8 @@ struct DateTime {
 	}
 
 	/* Copy constructor */
-	constexpr DateTime(const DateTime & other) { *this = other; }
+	constexpr DateTime(const DateTime & other)  = default;
+	constexpr DateTime(DateTime && other) = default;
 
 	/*! \brief Get name of weekday */
 	const char * weekday_name(bool abbrev = false) const;

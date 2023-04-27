@@ -24,10 +24,10 @@
 template<typename T, typename C = Comparison, size_t L = 150>
 class HashSet : public Elements<T> {
  protected:
-	using typename Elements<T>::_capacity;
-	using typename Elements<T>::_next;
-	using typename Elements<T>::_count;
-	using typename Elements<T>::_node;
+	using Elements<T>::_capacity;
+	using Elements<T>::_next;
+	using Elements<T>::_count;
+	using Elements<T>::_node;
 
 	/*! \brief Hash bucket capacity */
 	uint32_t _bucket_capacity = 0;
@@ -154,7 +154,7 @@ class HashSet : public Elements<T> {
 	}
 
 	HashSet<T, C> & operator=(const HashSet<T, C> &) = delete;
-	HashSet<T, C> & operator=(HashSet<T, C> &&) = delete;
+	HashSet<T, C> & operator=(HashSet<T, C> && other) = delete;
 
 	/*! \brief Range constructor
 	 * \param begin First element in range
@@ -162,7 +162,7 @@ class HashSet : public Elements<T> {
 	 * \param initial_capacity space to reserve (or determined automatically if zero)
 	 */
 	template<typename I>
-	explicit HashSet(const I & begin, const I & end, size_t initial_capacity = 0) {
+	HashSet(const I & begin, const I & end, size_t initial_capacity = 0) {
 		if (initial_capacity == 0) {
 			for (I i = begin; i != end; ++i)
 				initial_capacity++;
@@ -745,7 +745,7 @@ class HashSet : public Elements<T> {
 	 * \return index of target value or `Elements<T>::_next` if not found
 	 */
 	template<typename U>
-	inline uint32_t find_in(uint32_t * bucket, const U &value) const {
+	inline uint32_t find_in(const uint32_t * bucket, const U &value) const {
 		// Find
 		for (uint32_t i = *bucket; i != 0; i = Elements<T>::_node[i].hash.next) {
 			assert(Elements<T>::_count < Elements<T>::_next);

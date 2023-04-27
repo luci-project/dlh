@@ -489,6 +489,33 @@ template<class T> class Vector {
 			return Iterator{*this, _size};
 	}
 
+	/*! \brief Creats element at the specified location
+	 * \param position Iterator
+	 * \param args Arguments to create the value
+	 */
+	template<typename... ARGS>
+	inline Iterator emplace(const BaseIterator & position, ARGS&&... args) {
+		return emplace(position.i, forward<ARGS>(args)...);
+	}
+
+	/*! \brief Creats element at the specified location
+	 * \param position Iterator
+	 * \param args Arguments to create the value
+	 */
+	template<typename... ARGS>
+	inline Iterator emplace(const Iterator & position, ARGS&&... args) {
+		return emplace(position.i, forward<ARGS>(args)...);
+	}
+
+	/*! \brief Creats element at the specified location
+	 * \param position Iterator
+	 * \param args Arguments to create the value
+	 */
+	template<typename... ARGS>
+	inline Iterator emplace(const ReverseIterator & position, ARGS&&... args) {
+		return emplace(position.i, forward<ARGS>(args)...);
+	}
+
 	/*! \brief Inserts element at the specified location
 	 * \param pos position
 	 * \param value value
@@ -498,11 +525,59 @@ template<class T> class Vector {
 	}
 
 	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const BaseIterator & position, const T& value) {
+		return emplace(position.i, value);
+	}
+
+	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const Iterator & position, const T& value) {
+		return emplace(position.i, value);
+	}
+
+	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const ReverseIterator & position, const T& value) {
+		return emplace(position.i, value);
+	}
+
+	/*! \brief Inserts element at the specified location
 	 * \param pos position
 	 * \param value value
 	 */
 	inline Iterator insert(size_t pos, T&& value) {
 		return emplace(pos, forward<T>(value));
+	}
+
+	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const BaseIterator & position, T&& value) {
+		return emplace(position.i, forward<T>(value));
+	}
+
+	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const Iterator & position, T&& value) {
+		return emplace(position.i, forward<T>(value));
+	}
+
+	/*! \brief Inserts element at the specified location
+	 * \param position Iterator
+	 * \param value value
+	 */
+	inline Iterator insert(const ReverseIterator & position, T&& value) {
+		return emplace(position.i, forward<T>(value));
 	}
 
 	/*! \brief Remove the last element
