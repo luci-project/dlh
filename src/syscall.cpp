@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include <dlh/syscall.hpp>
+#include <dlh/page.hpp>
 #include <dlh/log.hpp>
 
 #include "syscall.hpp"
@@ -15,9 +16,6 @@ static inline ReturnValue<T> retval(unsigned long r) {
 	else
 		return ReturnValue<T>{ static_cast<T>(r), ENONE };
 }
-
-// TODO use sysconf
-#define PAGE_SIZE 4096
 
 ReturnValue<int> nanosleep(const struct timespec *req, struct timespec *rem) {
 	return retval<int>(__syscall(SYS_nanosleep, req, rem));
@@ -198,8 +196,8 @@ ReturnValue<uintptr_t> mremap(uintptr_t old_addr, size_t old_len, size_t new_len
 }
 
 ReturnValue<int> mprotect(uintptr_t start, size_t len, int prot) {
-	size_t end = reinterpret_cast<size_t>(reinterpret_cast<char *>(start) + len + PAGE_SIZE - 1) & -PAGE_SIZE;
-	start &= -PAGE_SIZE;
+	size_t end = reinterpret_cast<size_t>(reinterpret_cast<char *>(start) + len + Page::SIZE - 1) & -Page::SIZE;
+	start &= -Page::SIZE;
 	return retval<int>(__syscall(SYS_mprotect, start, end-start, prot));
 }
 

@@ -5,6 +5,7 @@
 #include <dlh/mem.hpp>
 #include <dlh/log.hpp>
 #include <dlh/math.hpp>
+#include <dlh/page.hpp>
 #include <dlh/mutex.hpp>
 #include <dlh/assert.hpp>
 #include <dlh/string.hpp>
@@ -13,11 +14,9 @@
 
 namespace Memory {
 
-#define PAGE_SIZE 0x1000UL
-
 #ifndef MMAP_ALLOC_THREASHOLD
 // Threshold to use mmap instead of alloc
-#define MMAP_ALLOC_THREASHOLD (32 * PAGE_SIZE)
+#define MMAP_ALLOC_THREASHOLD (32 * Page::SIZE)
 #endif
 
 #ifndef MMAP_ALLOC_START
@@ -64,7 +63,7 @@ static uintptr_t reserve_mmap(size_t size, uintptr_t & max_ptr) {
 	uintptr_t ptr = 0;
 
 	// Calculate size uising 1 MiB chunks
-	const size_t block_size = 256 * PAGE_SIZE;
+	const size_t block_size = 256 * Page::SIZE;
 	size = Math::align_up(size, block_size);
 
 	if (max_ptr == 0) {
