@@ -20,4 +20,4 @@ However, this still does not necessarily provide the same interface or all the f
 Author & License
 ----------------
 
-*Dirty Little Helper (DLH)* is part of the *Luci*-project, which is being developed by [Bernhard Heinloth](https://sys.cs.fau.de/person/heinloth) of the [https://sys.cs.fau.de/](Department of Computer Science 4) at [https://www.fau.eu/](Friedrich-Alexander-Universität Erlangen-Nürnberg) and is available under the [LICENSE.md](GNU Affero General Public License, Version 3 (AGPL v3)).
+*Dirty Little Helper (DLH)* is part of the *Luci*-project,which is being developed by [Bernhard Heinloth](https://sys.cs.fau.de/person/heinloth) of the [Department of Computer Science 4](https://sys.cs.fau.de/) at [Friedrich-Alexander-Universität Erlangen-Nürnberg](https://www.fau.eu/) and is available under the [GNU Affero General Public License, Version 3 (AGPL v3)](LICENSE.md).
