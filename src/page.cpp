@@ -2,7 +2,7 @@
 // Copyright 2021-2023 by Bernhard Heinloth <heinloth@cs.fau.de>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#include "page.hpp"
+#include <dlh/page.hpp>
 
 #include <dlh/mem.hpp>
 #include <dlh/syscall.hpp>

@@ -83,7 +83,7 @@ class BufferStream {
 
 	/*! \brief Constructor implicitly determining size */
 	template<size_t L>
-	explicit BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}
+	explicit BufferStream(char buffer[L]) : BufferStream(&buffer, L) {}  // NOLINT
 
 	/*! \brief Destructor */
 	virtual ~BufferStream() {
