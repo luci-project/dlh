@@ -45,25 +45,25 @@ struct Arguments : Opts {
 	 public:
 		const bool is_vector;
 
-		explicit Member(const char * Opts::* str)                     : t(M_STR),  m({.str = str}),   is_vector(false) {}
-		explicit Member(short Opts::* s)                              : t(M_S),    m({.s = s}),       is_vector(false) {}
-		explicit Member(unsigned short Opts::* us)                    : t(M_US),   m({.us = us}),     is_vector(false) {}
-		explicit Member(int Opts::* i)                                : t(M_I),    m({.i = i}),       is_vector(false) {}
-		explicit Member(unsigned Opts::* u)                           : t(M_U),    m({.u = u}),       is_vector(false) {}
-		explicit Member(long Opts::* l)                               : t(M_L),    m({.l = l}),       is_vector(false) {}
-		explicit Member(unsigned long Opts::* ul)                     : t(M_UL),   m({.ul = ul}),     is_vector(false) {}
-		explicit Member(long long Opts::* ll)                         : t(M_LL),   m({.ll = ll}),     is_vector(false) {}
-		explicit Member(unsigned long long Opts::* ull)               : t(M_ULL),  m({.ull = ull}),   is_vector(false) {}
-		explicit Member(bool Opts::* b)                               : t(M_B),    m({.b = b}),       is_vector(false) {}
-		explicit Member(Vector<const char *> Opts::* vstr)            : t(M_VSTR), m({.vstr = vstr}), is_vector(true) {}
-		explicit Member(Vector<short> Opts::* vs)                     : t(M_VS),   m({.vs = vs}),     is_vector(true) {}
-		explicit Member(Vector<unsigned short> Opts::* vus)           : t(M_VUS),  m({.vs = vus}),    is_vector(true) {}
-		explicit Member(Vector<int> Opts::* vi)                       : t(M_VI),   m({.vi = vi}),     is_vector(true) {}
-		explicit Member(Vector<unsigned> Opts::* vu)                  : t(M_VU),   m({.vu = vu}),     is_vector(true) {}
-		explicit Member(Vector<long> Opts::* vl)                      : t(M_VL),   m({.vl = vl}),     is_vector(true) {}
-		explicit Member(Vector<unsigned long> Opts::* vul)            : t(M_VUL),  m({.vul = vul}),   is_vector(true) {}
-		explicit Member(Vector<long long> Opts::* vll)                : t(M_VLL),  m({.vll = vll}),   is_vector(true) {}
-		explicit Member(Vector<unsigned long long> Opts::* vull)      : t(M_VULL), m({.vull = vull}), is_vector(true) {}
+		Member(const char * Opts::* str)                     : t(M_STR),  m({.str = str}),   is_vector(false) {}  // NOLINT
+		Member(short Opts::* s)                              : t(M_S),    m({.s = s}),       is_vector(false) {}  // NOLINT
+		Member(unsigned short Opts::* us)                    : t(M_US),   m({.us = us}),     is_vector(false) {}  // NOLINT
+		Member(int Opts::* i)                                : t(M_I),    m({.i = i}),       is_vector(false) {}  // NOLINT
+		Member(unsigned Opts::* u)                           : t(M_U),    m({.u = u}),       is_vector(false) {}  // NOLINT
+		Member(long Opts::* l)                               : t(M_L),    m({.l = l}),       is_vector(false) {}  // NOLINT
+		Member(unsigned long Opts::* ul)                     : t(M_UL),   m({.ul = ul}),     is_vector(false) {}  // NOLINT
+		Member(long long Opts::* ll)                         : t(M_LL),   m({.ll = ll}),     is_vector(false) {}  // NOLINT
+		Member(unsigned long long Opts::* ull)               : t(M_ULL),  m({.ull = ull}),   is_vector(false) {}  // NOLINT
+		Member(bool Opts::* b)                               : t(M_B),    m({.b = b}),       is_vector(false) {}  // NOLINT
+		Member(Vector<const char *> Opts::* vstr)            : t(M_VSTR), m({.vstr = vstr}), is_vector(true) {}  // NOLINT
+		Member(Vector<short> Opts::* vs)                     : t(M_VS),   m({.vs = vs}),     is_vector(true) {}  // NOLINT
+		Member(Vector<unsigned short> Opts::* vus)           : t(M_VUS),  m({.vs = vus}),    is_vector(true) {}  // NOLINT
+		Member(Vector<int> Opts::* vi)                       : t(M_VI),   m({.vi = vi}),     is_vector(true) {}  // NOLINT
+		Member(Vector<unsigned> Opts::* vu)                  : t(M_VU),   m({.vu = vu}),     is_vector(true) {}  // NOLINT
+		Member(Vector<long> Opts::* vl)                      : t(M_VL),   m({.vl = vl}),     is_vector(true) {}  // NOLINT
+		Member(Vector<unsigned long> Opts::* vul)            : t(M_VUL),  m({.vul = vul}),   is_vector(true) {}  // NOLINT
+		Member(Vector<long long> Opts::* vll)                : t(M_VLL),  m({.vll = vll}),   is_vector(true) {}  // NOLINT
+		Member(Vector<unsigned long long> Opts::* vull)      : t(M_VULL), m({.vull = vull}), is_vector(true) {}  // NOLINT
 
 		bool is_bool() const {
 			return t == M_B;
