@@ -35,7 +35,7 @@ extern "C" char *strchr(const char *s, int c);
  * \return Pointer to first occurrence of the substring
  *         or to nullptr if not found
  */
-extern "C" char *strstr(const char *haystack, int needle);
+extern "C" char *strstr(const char *haystack, const char *needle);
 
 /*! \brief Find the last occurrence of a character in a string
  * \ingroup string

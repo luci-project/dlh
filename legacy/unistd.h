@@ -9,6 +9,7 @@
 // Based on musl libc (and rarely glibc)
 #include <errno.h>
 #include <dlh/types.hpp>
+#include <dlh/socket.hpp>
 #include <dlh/systypes.hpp>
 
 // Syscall Wrapper
