@@ -9,7 +9,6 @@ TIDYCONFIG ?= .clang-tidy
 TIDYIGNORE := %$(SRCFOLDER)/libc/stdlib_qsort.cpp
 
 AR ?= ar
-CXX ?= g++
 
 ifeq ($(OPTIMIZE), 1)
 	CXXFLAGS := -O3 -DNDEBUG
@@ -47,7 +46,7 @@ test: $(TEST)
 
 test-%: test/%.cpp $(TARGET) $(MAKEFILE_LIST)
 	@echo "Build		$@ ($<)"
-	$(VERBOSE) $(CXX) $(CXXFLAGS) -no-pie -o $@ $< -L. -l$(LIBNAME)
+	$(VERBOSE) $(CXX) $(CXXFLAGS) -no-pie -o $@ $< -L. -l$(LIBNAME) -lgcc
 
 check: $(patsubst test-%,check-%,$(TEST))
 
