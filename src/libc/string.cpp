@@ -12,7 +12,7 @@ extern "C" char *strchrnul(const char *s, int c) {
 }
 
 extern "C" char *strchr(const char *s, int c) {
-	return const_cast<char*>(String::find(s, c)));
+	return const_cast<char*>(String::find(s, c));
 }
 
 extern "C" char *strstr(const char *haystack, const char *needle) {

@@ -21,12 +21,13 @@ extern "C" void * calloc(size_t nmemb, size_t size) {
 	return reinterpret_cast<void*>(Memory::alloc_array(nmemb, size));
 }
 
+#include <dlh/random.hpp>
 static Random random;
 extern "C" int rand() {
 	return static_cast<int>(random.number());
 }
 
-extern "C" srand(unsigned int seed) {
-	return random.set(seed);
+extern "C" void srand(unsigned int seed) {
+	random.set(seed);
 }
 #endif

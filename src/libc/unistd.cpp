@@ -134,7 +134,7 @@ extern "C" int pipe(int fd[2]) {
 	return reterrno(Syscall::pipe(fd, 0));
 }
 
-extern "C" int pipe2(int fd[2], int flag) {
+extern "C" int pipe2(int fd[2], int flags) {
 	return reterrno(Syscall::pipe(fd, flags));
 }
 
@@ -171,7 +171,7 @@ extern "C" void *sbrk(intptr_t inc) {
 }
 
 extern "C" long ptrace(int request, pid_t pid, void *addr, void *data) {
-	return reterrno(Syscall::brk(reinterpret_cast<ptrace_request_t>(request), pid, addr, data));
+	return reterrno(Syscall::ptrace(static_cast<ptrace_request_t>(request), pid, addr, data));
 }
 #endif
 
