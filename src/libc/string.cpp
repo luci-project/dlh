@@ -50,6 +50,7 @@ extern "C" char * strdup(const char *s) {
 extern "C" char * strndup(const char *s, size_t n) {
 	return String::duplicate(s, n);
 }
+#endif
 
 extern "C" void* memcpy(void * __restrict__ dest, void const * __restrict__ src, size_t size) {
 	return Memory::copy(dest, src, size);
@@ -66,5 +67,3 @@ extern "C" void* memset(void *dest, int pattern, size_t size) {
 extern "C" int memcmp(const void * s1, const void * s2, size_t n) {
 	return Memory::compare(s1, s2, n);
 }
-
-#endif
