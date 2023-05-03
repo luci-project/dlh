@@ -17,7 +17,7 @@ gcc-legacy:
 clang:
   image: inf4/luci:ubuntu-jammy
   script:
-    - make CXX=clang++ VERBOSE= check
+    - make CXX=clang++ check
   artifacts:
     paths:
       - "libdlh.a"
@@ -25,7 +25,7 @@ clang:
 clang-legacy:
   image: inf4/luci:ubuntu-jammy
   script:
-    - make CXX=clang++ LEGACY=1 VERBOSE= check
+    - make CXX=clang++ LEGACY=1 check
   artifacts:
     paths:
       - "libdlh.a"
