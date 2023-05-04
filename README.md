@@ -24,7 +24,7 @@ This library allows building a simple hello world example in file `foo.cpp` with
 
 by running
 
-    g++ -nodefaultlibs -nostdlib -nostdinc -ffreestanding -I include -L. -ldlh -lgcc -o foo foo.cpp
+    g++ -nodefaultlibs -nostdlib -nostdinc -I include -L. -ldlh -lgcc -o foo foo.cpp
 
 Disabling additional language features with `-fno-exceptions`, `-fno-stack-protector` and `-mno-red-zone` is recommended.
 In addition, `libgcc` should be included by adding `-lgcc`.
@@ -51,7 +51,7 @@ For example, a file `bar.cpp` with the contents
 
 can be compiled using
 
-    g++ -nodefaultlibs -nostdlib -nostdinc -ffreestanding -I include -I legacy -L. -ldlh -o bar bar.cpp
+    g++ -nodefaultlibs -nostdlib -nostdinc -I include -I legacy -L. -ldlh -o bar bar.cpp
 
 However, this still does not necessarily provide the same interface or all the functionality of their namesakes.
 
