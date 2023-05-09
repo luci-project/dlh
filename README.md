@@ -1,7 +1,7 @@
 Dirty Little Helper (DLH)
 =========================
 
-Set of tools including the most important syscall wrappers, library functions and containers for creating a static standalone (*freestanding*) application - without *libc* / *libstdc++* dependencies.
+Set of tools including the most important syscall wrappers, library functions, and containers for creating a static standalone (*freestanding*) application - without *libc* / *libstdc++* dependencies.
 
 
 Usage
@@ -26,7 +26,7 @@ by running
 
     g++ -nodefaultlibs -nostdlib -nostdinc -I include -L. -ldlh -lgcc -o foo foo.cpp
 
-Disabling additional language features with `-fno-exceptions`, `-fno-stack-protector` and `-mno-red-zone` is recommended.
+Disabling additional language features with `-fno-exceptions`, `-fno-stack-protector`, and `-mno-red-zone` is recommended.
 In addition, `libgcc` should be included by adding `-lgcc`.
 
 
@@ -34,7 +34,7 @@ Legacy interface
 ----------------
 
 By default, the legacy interface is omitted, e.g. due to the hiccup caused by the thread local `errno` variable, flat namespace for functions, etc...
-But in case you prefer a more similar interface to basic functions of libc / STL, compile DLH in `LEGACY` mode:
+But in case you prefer a more similar interface to basic functions of libc/STL, compile *DLH* in `LEGACY` mode:
 
     make LEGACY=1
 
@@ -61,7 +61,7 @@ Compatibility
 
 This project has a strong dependency on the compiler.
 Only certain features and platforms are supported.
-It is not intended for general purpose use.
+It is not intended for general-purpose use.
 
 
 Author & License
