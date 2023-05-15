@@ -185,14 +185,14 @@ struct Arguments : Opts {
 			return false;
 		}
 
-		void help(BufferStream & out, Opts * opts = nullptr, size_t max_len = 70) {
+		void help(BufferStream & out, size_t par_len, size_t line_len, Opts * opts = nullptr) {
 			size_t pos = 0;
-			auto text = [this, &out, max_len, &pos, &opts](size_t len) -> bool {
+			auto text = [this, &out, par_len, line_len, &pos, &opts](size_t len) -> bool {
 				size_t l = 0;
 				bool e = false;
 				while (help_text[pos] == ' ')
 					pos++;
-				for (size_t i = 0; i < max_len; i++)
+				for (size_t i = 0; i < line_len - par_len; i++)
 					if (help_text[pos + i] == '\0') {
 						e = opts == nullptr;
 						l = i;
@@ -200,15 +200,14 @@ struct Arguments : Opts {
 					} else if (help_text[pos + i] == ' ') {
 						l = i;
 					}
-				size_t spacer = 25;
 				if (l > 0) {
-					if (len < spacer)
-						out.write(' ', spacer - len);
+					if (len < par_len)
+						out.write(' ', par_len - len);
 					out.write(help_text + pos, l);
 					pos += l;
 				} else if (opts != nullptr) {
-					if (len < spacer)
-						out.write(' ', spacer - len);
+					if (len < par_len)
+						out.write(' ', par_len - len);
 					out << "(default: ";
 					member.output(opts, out);
 					out << ")" << endl;
@@ -247,6 +246,7 @@ struct Arguments : Opts {
 	Vector<Parameter> args;
 	Vector<const char *> positional, terminal;
 	validate_t validate_positional, validate_terminal;
+	const size_t line_len = 80;
 
 	Arguments() = default;
 	Arguments(const Arguments&) = delete;
@@ -259,7 +259,7 @@ struct Arguments : Opts {
 	}
 
  public:
-	Arguments(const std::initializer_list<Parameter> & list, validate_t validate_positional, validate_t validate_terminal = nullptr) : validate_positional(validate_positional), validate_terminal(validate_terminal) {
+	Arguments(const std::initializer_list<Parameter> & list, validate_t validate_positional, validate_t validate_terminal = nullptr, size_t line_len = 80) : validate_positional(validate_positional), validate_terminal(validate_terminal), line_len(line_len) {
 		for (const auto & arg : list) {
 			// Check if parameter is unqiue
 			bool skip = false;
@@ -322,47 +322,51 @@ struct Arguments : Opts {
 
 		bool hasRequired = false;
 		bool hasOptional = false;
-		size_t flen = 4 + String::len(file);
-		size_t alen = flen;
+		size_t file_len = 4 + String::len(file);
+		size_t cur_len = file_len;
+		size_t arg_len_max = 16;
+
+		auto check_newline = [this, &out, &cur_len, file_len](size_t len) {
+			if (cur_len + len > this->line_len) {
+				out << endl;
+				out.write(' ', file_len);
+				cur_len = file_len;
+			}
+			cur_len += len;
+		};
+
 		for (auto arg : args) {
+			size_t len_name_long = arg.name_long != nullptr ? String::len(arg.name_long) : 0;
+			size_t len_name_arg = arg.name_long != nullptr ? 1 + String::len(arg.name_arg) : 0;
+			arg_len_max = Math::max(arg_len_max, 2 + len_name_long + len_name_arg);
+			check_newline((arg.required ? 3 : 5) + len_name_long + len_name_arg);
 			if (arg.required) {
-				alen += 3;
-				if (arg.name_long != nullptr) {
+				if (arg.name_long != nullptr)
 					out << " --" << arg.name_long;
-					alen += String::len(arg.name_long);
-				} else {
+				else
 					out << " -" << arg.name_short;
-				}
-				if (arg.name_arg != nullptr) {
+				if (arg.name_arg != nullptr)
 					out << " " << arg.name_arg;
-					alen += 1 + String::len(arg.name_arg);
-				}
 				hasRequired = true;
 			} else {
-				alen += 5;
-				if (arg.name_long != nullptr) {
+				if (arg.name_long != nullptr)
 					out << " [--" << arg.name_long;
-					alen += String::len(arg.name_long);
-				} else {
+				else
 					out << " [-" << arg.name_short;
-				}
-				if (arg.name_arg != nullptr) {
+				if (arg.name_arg != nullptr)
 					out << " " << arg.name_arg;
-					alen += 1 + String::len(arg.name_arg);
-				}
 				out << "]";
 				hasOptional = true;
 			}
-			if (alen > 70) {
-				out << endl;
-				out.write(' ', flen);
-				alen = flen;
-			}
 		}
-		if (positional != nullptr)
+		if (positional != nullptr) {
+			check_newline(1 + String::len(positional));
 			out << " " << positional;
-		if (terminal != nullptr)
+		}
+		if (terminal != nullptr) {
+			check_newline(4 + String::len(terminal));
 			out << " -- " << terminal;
+		}
 		out << endl;
 
 		// Parameter details
@@ -370,14 +374,14 @@ struct Arguments : Opts {
 			out << endl << " Required parameters:" << endl;
 			for (auto arg : args)
 				if (arg.required)
-					arg.help(out);
+					arg.help(out, arg_len_max + 5, line_len);
 		}
 
 		if (hasOptional) {
 			out << endl << " Optional parameters:" << endl;
 			for (auto arg : args)
 				if (!arg.required)
-					arg.help(out, arg.member.is_default(this) ? nullptr : this);
+					arg.help(out, arg_len_max + 5, line_len, arg.member.is_default(this) ? nullptr : this);
 		}
 
 		if (footer != nullptr)
