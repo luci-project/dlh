@@ -45,5 +45,7 @@ END_TEMPLATE(1)
  *  \param line Line in which the assertion failed
  *  \param func Name of the function in which the assertion failed
  */
-[[noreturn]] void __assert_fail(const char * exp, const char * file, int line, const char * func);
+extern "C" {
+	[[noreturn]] void __assert_fail(const char * exp, const char * file, int line, const char * func);
+}
 #endif
