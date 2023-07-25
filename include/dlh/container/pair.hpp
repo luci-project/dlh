@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <dlh/types.hpp>
+#include <dlh/type_traits.hpp>
+
 template<typename F, typename S>
 struct Pair {
 	F first;
@@ -12,9 +15,6 @@ struct Pair {
 	Pair() : first(), second() { }
 
 	Pair(const F& first, const S& second) : first(first), second(second) { }
-
-	template<typename OF, typename OS>
-	Pair(const Pair<OF, OS>& o) : first(o.first), second(o.second) {}
 
 	template<typename OF, typename OS>
 	Pair& operator=(const Pair<OF, OS>& o) {
@@ -29,12 +29,20 @@ struct Pair {
 		s = second;
 	}
 
-	template<typename OF, typename OS>
+	constexpr bool operator==(const Pair<F, S>& other) const {
+		return first == other.first && second == other.second;
+	}
+
+	template<typename OF, typename OS, typename enable_if<is_comparable<F, OF>::value && is_comparable<S, OS>::value, int>::type = 0>
 	constexpr bool operator==(const Pair<OF, OS>& other) const {
 		return first == other.first && second == other.second;
 	}
 
-	template<typename OF, typename OS>
+	constexpr bool operator!=(const Pair<F, S>& other) const {
+		return first != other.first || second != other.second;
+	}
+
+	template<typename OF, typename OS, typename enable_if<is_comparable<F, OF>::value && is_comparable<S, OS>::value, int>::type = 0>
 	constexpr bool operator!=(const Pair<OF, OS>& other) const {
 		return first != other.first || second != other.second;
 	}

@@ -85,7 +85,7 @@ template<> struct is_integral_base<long> : true_type {};
 template<> struct is_integral_base<unsigned long> : true_type {};
 template<> struct is_integral_base<long long> : true_type {};
 template<> struct is_integral_base<unsigned long long> : true_type {};
-template<typename T> struct is_integral : is_integral_base<remove_cvref_t<T>> {};
+template<typename T> struct is_integral : is_integral_base<remove_cvref_t<remove_const_t<T>>> {};
 
 template<typename T> inline const char * integral_name() { return "[complex type]"; }
 template<> inline const char * integral_name<bool>() { return "bool"; }
@@ -100,4 +100,28 @@ template<> inline const char * integral_name<unsigned long>() { return "unsigned
 template<> inline const char * integral_name<long long>() { return "long long"; }
 template<> inline const char * integral_name<unsigned long long>() { return "unsigned long long"; }
 
+namespace detail {
+	template<class T> struct type_identity {using type = T; };  // NOLINT
+	template<class T> auto try_add_lvalue_reference(int) -> type_identity<T&>;
+	template<class T> auto try_add_lvalue_reference(...) -> type_identity<T>;
+	template<class T> auto try_add_rvalue_reference(int) -> type_identity<T&&>;
+	template<class T> auto try_add_rvalue_reference(...) -> type_identity<T>;
+
+	template<class T> true_type is_class_test(int T::*);
+	template<class T> false_type is_class_test(...);
+
+}  // namespace detail
+
+template<class T> struct add_lvalue_reference : decltype(detail::try_add_lvalue_reference<T>(0)) {};
+template<class T> struct add_rvalue_reference : decltype(detail::try_add_rvalue_reference<T>(0)) {};
+
+template<typename T> constexpr bool always_false = false;
+template<typename T> typename add_rvalue_reference<T>::type declval() noexcept {
+	static_assert(always_false<T>, "declval not allowed in an evaluated context");
+}
+
+template<class ...> using void_t = void;
+template<typename T, typename U > using comparison_t = decltype(declval<T&>() == declval<U&>());
+template<typename T, typename U, typename = void_t<> > struct is_comparable : false_type {};
+template<typename T, typename U> struct is_comparable <T, U, void_t<comparison_t<T, U>>> : is_same<comparison_t<T, U>, bool>{};
 }

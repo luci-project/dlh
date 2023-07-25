@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <dlh/types.hpp>
 #include <dlh/utility.hpp>
+#include <dlh/type_traits.hpp>
 #include <dlh/container/pair.hpp>
 
 template<class K, class V>
@@ -47,7 +49,7 @@ struct KeyValue {
 		return key == other.key && value == other.value;
 	}
 
-	template<class OF, class OS>
+	template<class OF, class OS, typename enable_if<is_comparable<K, OF>::value && is_comparable<V, OS>::value, int>::type = 0>
 	constexpr bool operator==(const Pair<OF, OS>& other) const {
 		return key == other.first && value == other.second;
 	}
@@ -57,7 +59,7 @@ struct KeyValue {
 		return key != other.key || value != other.value;
 	}
 
-	template<class OF, class OS>
+	template<class OF, class OS, typename enable_if<is_comparable<K, OF>::value && is_comparable<V, OS>::value, int>::type = 0>
 	constexpr bool operator!=(const Pair<OF, OS>& other) const {
 		return key != other.first || value != other.second;
 	}

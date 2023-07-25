@@ -69,13 +69,29 @@ struct Comparison {
 	 * \param b second value
 	 * \return `true` if equal, `false` otherwise
 	 */
-	template<typename T, typename U>
+	template<typename T, typename U, typename enable_if<!is_comparable<T, U>::value, int>::type = 0>
 	static constexpr inline bool equal(const T& a, const U& b) {
 		return compare(a, b) == 0;
 	}
 
-	static constexpr inline bool equal(const StrPtr & a, const StrPtr & b) {
+	template<typename T, typename U, typename enable_if<is_comparable<T, U>::value, int>::type = 0>
+	static constexpr inline bool equal(const T& a, const U& b) {
 		return a == b;
+	}
+
+	template<typename K, typename V, typename O>
+	static constexpr inline int equal(const KeyValue<K, V> & a, const O & b) {
+		return equal(a.key, b);
+	}
+
+	template<typename O, typename K, typename V>
+	static constexpr inline int equal(const O & a, const KeyValue<K, V> & b) {
+		return equal(a, b.key);
+	}
+
+	template<typename K, typename V, typename U, typename W>
+	static constexpr inline int equal(const KeyValue<K, V> & a, const KeyValue<U, W> & b) {
+		return equal(a.key, b.key);
 	}
 
 	/*! \brief Calculate 32bit hash value
