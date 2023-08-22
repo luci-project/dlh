@@ -141,7 +141,7 @@ class XXHash64 {
 		if (bufferSize + length < MaxBufferSize) {
 			// just add new data
 			while (length-- > 0)
-				buffer[bufferSize++] = *data++;
+				buffer[bufferSize++] = *data++;  //NOLINT
 			return true;
 		}
 
