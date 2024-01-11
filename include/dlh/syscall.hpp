@@ -167,7 +167,9 @@ time_t time(time_t *t = nullptr);
 pid_t gettid();
 pid_t getpid();
 pid_t getppid();
+pid_t getpgid(pid_t pid = 0);
 
+ReturnValue<int> setpgid(pid_t pid, pid_t pgid);
 ReturnValue<int> kill(pid_t pid, signal_t sig);
 ReturnValue<int> tgkill(pid_t tgid, pid_t tid, signal_t sig);
 

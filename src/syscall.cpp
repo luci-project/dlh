@@ -83,7 +83,15 @@ pid_t getppid() {
 	return __syscall(SYS_getppid);
 }
 
+pid_t getpgid(pid_t pid) {
+	return __syscall(SYS_getpgid, pid);
+}
 
+ReturnValue<int> setpgid(pid_t pid, pid_t pgid) {
+	return retval<int>(__syscall(SYS_setpgid, pid, pgid));
+}
+
+\
 ReturnValue<int> kill(pid_t pid, signal_t sig) {
 	return retval<int>(__syscall(SYS_kill, pid, sig));
 }

@@ -796,6 +796,50 @@ struct user_regs_struct {
 	__extension__ unsigned long long int gs;
 };
 
+/* IOCTL */
+typedef enum : unsigned long {
+	TCGETS       = 0x5401,
+	TCSETS       = 0x5402,
+	TCSETSW      = 0x5403,
+	TCSETSF      = 0x5404,
+	TCGETA       = 0x5405,
+	TCSETA       = 0x5406,
+	TCSETAW      = 0x5407,
+	TCSETAF      = 0x5408,
+	TCSBRK       = 0x5409,
+	TCXONC       = 0x540A,
+	TCFLSH       = 0x540B,
+	TIOCEXCL     = 0x540C,
+	TIOCNXCL     = 0x540D,
+	TIOCSCTTY    = 0x540E,
+	TIOCGPGRP    = 0x540F,
+	TIOCSPGRP    = 0x5410,
+	TIOCOUTQ     = 0x5411,
+	TIOCSTI      = 0x5412,
+	TIOCGWINSZ   = 0x5413,
+	TIOCSWINSZ   = 0x5414,
+	TIOCMGET     = 0x5415,
+	TIOCMBIS     = 0x5416,
+	TIOCMBIC     = 0x5417,
+	TIOCMSET     = 0x5418,
+	TIOCGSOFTCAR = 0x5419,
+	TIOCSSOFTCAR = 0x541A,
+	FIONREAD     = 0x541B,
+	TIOCINQ      = 0x541B,
+	TIOCLINUX    = 0x541C,
+	TIOCCONS     = 0x541D,
+	TIOCGSERIAL  = 0x541E,
+	TIOCSSERIAL  = 0x541F,
+	TIOCPKT      = 0x5420,
+	FIONBIO      = 0x5421,
+	TIOCNOTTY    = 0x5422,
+	TIOCSETD     = 0x5423,
+	TIOCGETD     = 0x5424,
+	TCSBRKP      = 0x5425,
+	TIOCSBRK     = 0x5427,
+	TIOCCBRK     = 0x5428,
+	TIOCGSID     = 0x5429
+} ioctl_t;
 
 /* Userfault FD */
 #define UFFD_API 0xAAUL
