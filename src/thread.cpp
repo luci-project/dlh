@@ -30,8 +30,6 @@ Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, bool sepa
 
 	if (!separate)
 		flags |= CLONE_THREAD | CLONE_SIGHAND;
-	else
-		flags |= CLONE_PARENT;
 
 	if (hidden)
 		flags |= CLONE_UNTRACED;
