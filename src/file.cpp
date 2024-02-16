@@ -152,7 +152,7 @@ const char * format_description(Format format) {
 		case FORMAT_PS: return "Document file (Postscript)";
 		case FORMAT_PDF: return "Document file (Portable Document Format)";
 		case FORMAT_SCRIPT: return "script file";
-		default: return "(unknwon)";
+		default: return "(unknown)";
 	}
 }
 
