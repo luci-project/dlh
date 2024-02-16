@@ -103,6 +103,19 @@ int main(int argc, const char *argv[]) {
 	 }
 	 {
 		char t[String::len(s)];
+		cout << "String::split_any_inplace(t, \"hb\", 4):" << endl;
+		for (const char * p : String::split_any_inplace(String::copy(t, s), "hb", 4))
+			cout << " - " << p << endl;
+	 }
+	 {
+		cout << "String::split_any(s, \"hb\"):" << endl;
+		for (const char * p : String::split_any(s, "hb")) {
+			cout << " - " << p << endl;
+			Memory::free(p);
+		}
+	 }
+	 {
+		char t[String::len(s)];
 		cout << "String::split_inplace(t, \"b\", 4):" << endl;
 		for (const char * p : String::split_inplace(String::copy(t, s), "b", 4))
 			cout << " - " << p << endl;

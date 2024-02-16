@@ -353,7 +353,74 @@ Vector<const char *> split(const char * source, int delimiter, size_t max) {
 				r.push_back(t);
 		}
 	}
+	return r;
+}
 
+Vector<const char *> split_any(const char * source, const char * delimiter, size_t max) {
+	Vector<const char *> r;
+	if (source != nullptr) {
+		if (delimiter == nullptr) {
+			char * t = duplicate(source);
+			if (t != nullptr)
+				r.push_back(t);
+		} else {
+			size_t s = 0;
+			size_t i;
+			for (i = 0; source[i] != '\0'; ++i) {
+				bool found = false;
+				for (const char * d = delimiter; *d != '\0'; d++)
+					if (source[i] == *d) {
+						found = true;
+						break;
+					}
+				if (found && max > 0) {
+					if (s < i) {
+						char * t = duplicate(source + s, i - s);
+						if (t != nullptr) {
+							t[i - s] = '\0';
+							r.push_back(t);
+							max--;
+						}
+					}
+					s = i + 1;
+				}
+			}
+			if (s < i) {
+				char * t = duplicate(source + s, i - s);
+				if (t != nullptr)
+					r.push_back(t);
+			}
+		}
+	}
+	return r;
+}
+
+Vector<const char *> split_any_inplace(char * source, const char * delimiter, size_t max) {
+	Vector<const char *> r;
+	if (source != nullptr) {
+		if (delimiter == nullptr) {
+			r.push_back(source);
+		} else {
+			bool push_next = true;
+			for (; *source != '\0'; ++source) {
+				bool found = false;
+				for (const char * d = delimiter; *d != '\0'; d++)
+					if (*source == *d) {
+						found = true;
+						break;
+					}
+				if (found && max > 0) {
+					*source = '\0';
+					if (!push_next)
+						max--;
+					push_next = true;
+				} else if (push_next) {
+					r.push_back(source);
+					push_next = false;
+				}
+			}
+		}
+	}
 	return r;
 }
 

@@ -240,15 +240,15 @@ char* duplicate(const char *s);
  */
 char* duplicate(const char *s, size_t n);
 
-/*! \brief Split a string by an delimiter
+/*! \brief Split a string by a delimiter
  * \param source pointer to a string (target memory will be modified!)
- * \param delimiter character to split string (will be overwritten with NULL character)
+ * \param delimiter character to split string
  * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
  * \return Vector with pointers to the start of each substring (empty substrings are omitted)
  */
 Vector<const char *> split_inplace(char * source, int delimiter, size_t max = SIZE_MAX);
 
-/*! \brief Split a string by an delimiter
+/*! \brief Split a string by a delimiter
  * \param source pointer to a string
  * \param delimiter character to split string
  * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
@@ -257,7 +257,24 @@ Vector<const char *> split_inplace(char * source, int delimiter, size_t max = SI
  */
 Vector<const char *> split(const char * source, int delimiter, size_t max = SIZE_MAX);
 
-/*! \brief Split a string by an delimiter
+/*! \brief Split a string by any of the given delimiters
+ * \param source pointer to a string (target memory will be modified!)
+ * \param delimiter null-terminated list of characters to split the string
+ * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
+ * \return Vector with pointers to the start of each substring (empty substrings are omitted)
+ */
+Vector<const char *> split_any_inplace(char * source, const char * delimiter, size_t max = SIZE_MAX);
+
+/*! \brief Split a string by any of the given delimiters
+ * \param source pointer to a string
+ * \param delimiter null-terminated list of characters to split the string
+ * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
+ * \return Vector with pointers to the start of each substring (empty substrings are omitted)
+ * \note You have to free each element of the result vector!
+ */
+Vector<const char *> split_any(const char * source, const char * delimiter, size_t max = SIZE_MAX);
+
+/*! \brief Split a string by a delimiter
  * \param source pointer to a string (target memory will be modified!)
  * \param delimiter substring to split string
  * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
@@ -265,7 +282,7 @@ Vector<const char *> split(const char * source, int delimiter, size_t max = SIZE
  */
 Vector<const char *> split_inplace(char * source, const char * delimiter, size_t max = SIZE_MAX);
 
-/*! \brief Split a string by an delimiter
+/*! \brief Split a string by a delimiter
  * \param source pointer to a string
  * \param delimiter substring to split string
  * \param max maximum number of splits (hence the vector contains not more than max + 1 elements)
