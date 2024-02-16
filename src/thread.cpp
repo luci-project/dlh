@@ -39,7 +39,7 @@ Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, bool sepa
 	auto tls_size_aligned = Math::align(tls_size, 64);
 	size_t map_size = tls_size_aligned + Math::align(sizeof(Thread), 64) + Math::align(stack_size, 16);
 	if (auto mmap = Syscall::mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0)) {
-		register Thread * that __asm__("r8") = reinterpret_cast<Thread *>(mmap.value() + tls_size_aligned);
+		Thread * that = reinterpret_cast<Thread *>(mmap.value() + tls_size_aligned);
 		if (new (that) Thread(dtv, mmap.value(), map_size, detach) == that) {
 			that->multiple_threads = 1;
 			void** top_of_stack = reinterpret_cast<void**>(mmap.value() + map_size - 16);
@@ -47,6 +47,7 @@ Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, bool sepa
 			*(--top_of_stack) = reinterpret_cast<void*>(func);
 			*(--top_of_stack) = that;
 
+			register Thread * that_param __asm__("r8") = that;
 			register pid_t * child_tid __asm__("r10") = &(that->tid);
 
 			pid_t pid;
@@ -59,7 +60,7 @@ Thread * Thread::create(void* (*func)(void*), void * arg, bool detach, bool sepa
 			              "pop %%rdx\n\t"
 			              "call __start_child\n\t"
 			              "1:;"
-			              : "=a"(pid) : "a"(SYS_clone), "D"(flags), "S"(top_of_stack), "d"(&(that->tid)), "r"(child_tid), "r"(that): "rcx", "r11", "memory");
+			              : "=a"(pid) : "a"(SYS_clone), "D"(flags), "S"(top_of_stack), "d"(&(that->tid)), "r"(child_tid), "r"(that_param): "rcx", "r11", "memory");
 			if (pid > 0) {
 				assert(pid == that->tid);
 				return that;
