@@ -4,6 +4,8 @@
 
 #include <dlh/stream/output.hpp>
 #include <dlh/container/tree.hpp>
+#include <dlh/string.hpp>
+#include <dlh/assert.hpp>
 
 int main(int argc, const char *argv[]) {
 	TreeSet<int> s = { 888, 999 };
@@ -69,7 +71,10 @@ int main(int argc, const char *argv[]) {
 	}
 	m["bar"] = 23;
 	m["baz"] = -42;
-	m["bar"] *= -1;
+	const char * d = String::duplicate("bar");
+	assert(d != nullptr);
+	m[d] *= -1;
+	Memory::free(d);
 
 	auto i = m.find(StrPtr("foo"));
 	if (i)

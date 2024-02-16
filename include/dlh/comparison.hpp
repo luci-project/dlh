@@ -79,6 +79,10 @@ struct Comparison {
 		return a == b;
 	}
 
+	static constexpr inline bool equal(const char * a, const char * b) {
+		return compare(a, b) == 0;
+	}
+
 	template<typename K, typename V, typename O>
 	static constexpr inline int equal(const KeyValue<K, V> & a, const O & b) {
 		return equal(a.key, b);
