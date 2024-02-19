@@ -6,9 +6,10 @@
 
 #include <dlh/mutex.hpp>
 
+template <class T = Mutex>
 class RWLock {
 	unsigned block = 0;
-	Mutex reader, global;
+	T reader, global;
 
  public:
 	/*! \brief Lock for reading
@@ -65,11 +66,12 @@ class RWLock {
 	}
 };
 
+template <class T>
 class GuardedReader {
-	RWLock & _rwlock;
+	RWLock<T> & _rwlock;
 
  public:
-	explicit GuardedReader(RWLock & rwlock)
+	explicit GuardedReader(RWLock<T> & rwlock)
 	 : _rwlock(rwlock) {
 		_rwlock.read_lock();
 	}
@@ -79,11 +81,12 @@ class GuardedReader {
 	}
 };
 
+template <class T>
 class GuardedWriter {
-	RWLock & _rwlock;
+	RWLock<T> & _rwlock;
 
  public:
-	explicit GuardedWriter(RWLock & rwlock)
+	explicit GuardedWriter(RWLock<T> & rwlock)
 	 : _rwlock(rwlock) {
 		_rwlock.write_lock();
 	}

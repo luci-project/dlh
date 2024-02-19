@@ -32,11 +32,12 @@ class Mutex {
 	void unlock();
 };
 
+template <class T = Mutex>
 class Guarded {
-	Mutex & _mutex;
+	T & _mutex;
 
  public:
-	explicit Guarded(Mutex & mutex)
+	explicit Guarded(T & mutex)
 	 : _mutex(mutex) {
 		_mutex.lock();
 	}
