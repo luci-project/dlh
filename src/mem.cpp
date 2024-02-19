@@ -169,7 +169,7 @@ uintptr_t alloc(size_t size) {
 		return MemoryMap::create(size);
 #endif
 	} else {
-		Guarded section(mutex);
+		Guarded<Mutex> section(mutex);
 
 		uintptr_t addr = allocator.malloc(size);
 
@@ -188,7 +188,7 @@ void free(uintptr_t addr) {
 		} else  // NOLINT
 #endif
 		 {
-			Guarded section(mutex);
+			Guarded<Mutex> section(mutex);
 
 			allocator.free(addr);
 		 }
@@ -209,7 +209,7 @@ uintptr_t realloc(uintptr_t addr, size_t size) {
 		} else if (old_size == 0 && addr != 0) {
 			new_addr = MemoryMap::resize(addr, size);
 		} else {
-			Guarded section(mutex);
+			Guarded<Mutex> section(mutex);
 			// First try resize in allocator (cheap)
 			if (allocator.resize(addr, size)) {
 				return addr;
@@ -224,7 +224,7 @@ uintptr_t realloc(uintptr_t addr, size_t size) {
 #endif
 	 {
 		assert(addr == 0 || old_size != 0);
-		Guarded section(mutex);
+		Guarded<Mutex> section(mutex);
 
 		// Allocate (of size > 0)
 		if (size > 0) {
